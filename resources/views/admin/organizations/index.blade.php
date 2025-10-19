@@ -90,8 +90,12 @@
                                 <textarea class="form-control" id="address" name="address" rows="3"></textarea>
                             </div>
                             <div class="form-group">
-                                <label for="logo">آدرس لوگو</label>
-                                <input type="text" class="form-control" id="logo" name="logo" placeholder="https://example.com/logo.png">
+                                <label for="logo">لوگو</label>
+                                <input type="file" class="form-control" id="logo" name="logo" accept="image/jpeg,image/png,image/jpg">
+                                <small class="form-text text-muted">فرمت‌های مجاز: JPG, PNG - حداکثر 2MB</small>
+                                <div id="logoPreview" class="mt-2" style="display: none;">
+                                    <img id="logoPreviewImg" src="" alt="پیش‌نمایش لوگو" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label for="status">وضعیت <span class="text-danger">*</span></label>
@@ -247,7 +251,50 @@
                 $('#organizationModalLabel').text('افزودن شرکت');
                 $('#organizationForm')[0].reset();
                 $('#organizationId').val('');
+                $('#logoPreview').hide();
                 $('#organizationModal').modal('show');
+            });
+
+            // Logo preview functionality
+            $('#logo').change(function() {
+                const file = this.files[0];
+                if (file) {
+                    // Check file type
+                    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+                    if (!allowedTypes.includes(file.type)) {
+                        swal({
+                            title: 'خطا',
+                            text: 'فرمت فایل باید JPG یا PNG باشد',
+                            type: 'error',
+                            padding: '2em'
+                        });
+                        $(this).val(''); // Clear the input
+                        $('#logoPreview').hide();
+                        return;
+                    }
+                    
+                    // Check file size (2MB = 2 * 1024 * 1024 bytes)
+                    if (file.size > 2 * 1024 * 1024) {
+                        swal({
+                            title: 'خطا',
+                            text: 'حجم فایل نمی‌تواند بیش از 2 مگابایت باشد',
+                            type: 'error',
+                            padding: '2em'
+                        });
+                        $(this).val(''); // Clear the input
+                        $('#logoPreview').hide();
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        $('#logoPreviewImg').attr('src', e.target.result);
+                        $('#logoPreview').show();
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    $('#logoPreview').hide();
+                }
             });
 
             // Save organization (create or update)
@@ -255,7 +302,6 @@
                 const id = $('#organizationId').val();
                 const name = $('#name').val();
                 const address = $('#address').val();
-                const logo = $('#logo').val();
                 const status = $('#status').val() === '1' ? true : false;
 
                 if (!name) {
@@ -268,21 +314,31 @@
                     return;
                 }
 
-                const data = {
-                    name: name,
-                    address: address,
-                    logo: logo,
-                    status: status
-                };
+                // Create FormData for file upload
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('address', address);
+                formData.append('status', status);
+                
+                // Add logo file if selected
+                const logoFile = $('#logo')[0].files[0];
+                if (logoFile) {
+                    formData.append('logo', logoFile);
+                }
 
                 const url = id ? `/api/admin/organizations/${id}` : '/api/admin/organizations';
-                const method = id ? 'PUT' : 'POST';
+                const method = id ? 'POST' : 'POST'; // Use POST for both with _method for PUT
+                if (id) {
+                    formData.append('_method', 'PUT');
+                }
                 const successMessage = id ? 'شرکت با موفقیت ویرایش شد' : 'شرکت با موفقیت ایجاد شد';
 
                 $.ajax({
                     url: url,
                     type: method,
-                    data: data,
+                    data: formData,
+                    processData: false,
+                    contentType: false,
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                         'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
@@ -350,8 +406,18 @@
                         $('#organizationId').val(organization.id);
                         $('#name').val(organization.name);
                         $('#address').val(organization.address);
-                        $('#logo').val(organization.logo);
                         $('#status').val(organization.status ? '1' : '0');
+                        
+                        // Show current logo if exists
+                        if (organization.logo) {
+                            $('#logoPreviewImg').attr('src', organization.logo);
+                            $('#logoPreview').show();
+                        } else {
+                            $('#logoPreview').hide();
+                        }
+                        
+                        // Clear file input
+                        $('#logo').val('');
 
                         $('#organizationModal').modal('show');
                     },

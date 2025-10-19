@@ -7,6 +7,7 @@ use App\Models\Organization;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Morilog\Jalali\Jalalian;
 
 class OrganizationController extends Controller
@@ -77,8 +78,16 @@ class OrganizationController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'address' => 'nullable|string',
-            'logo' => 'nullable|string|max:255',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'status' => 'required|in:true,false',
+        ], [
+            'name.required' => 'نام شرکت الزامی است',
+            'name.max' => 'نام شرکت نمی‌تواند بیش از 255 کاراکتر باشد',
+            'logo.image' => 'فایل انتخاب شده باید تصویر باشد',
+            'logo.mimes' => 'فرمت تصویر باید JPG یا PNG باشد',
+            'logo.max' => 'حجم تصویر نمی‌تواند بیش از 2 مگابایت باشد',
+            'status.required' => 'وضعیت الزامی است',
+            'status.in' => 'وضعیت باید فعال یا غیرفعال باشد',
         ]);
 
         if ($validator->fails()) {
@@ -89,10 +98,18 @@ class OrganizationController extends Controller
         $data['moderator_id'] = Auth::id();
         $data['status'] = $data['status'] === 'true' || $data['status'] === true;
 
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            $logo = $request->file('logo');
+            $logoName = time() . '_' . $logo->getClientOriginalName();
+            $logoPath = $logo->storeAs('public/organization_logos', $logoName);
+            $data['logo'] = Storage::url($logoPath);
+        }
+
         $organization = Organization::create($data);
 
         return response()->json([
-            'message' => 'Organization created successfully',
+            'message' => 'شرکت با موفقیت ایجاد شد',
             'data' => $organization
         ], 201);
     }
@@ -111,8 +128,16 @@ class OrganizationController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'address' => 'nullable|string',
-            'logo' => 'nullable|string|max:255',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'status' => 'required|in:true,false',
+        ], [
+            'name.required' => 'نام شرکت الزامی است',
+            'name.max' => 'نام شرکت نمی‌تواند بیش از 255 کاراکتر باشد',
+            'logo.image' => 'فایل انتخاب شده باید تصویر باشد',
+            'logo.mimes' => 'فرمت تصویر باید JPG یا PNG باشد',
+            'logo.max' => 'حجم تصویر نمی‌تواند بیش از 2 مگابایت باشد',
+            'status.required' => 'وضعیت الزامی است',
+            'status.in' => 'وضعیت باید فعال یا غیرفعال باشد',
         ]);
 
         if ($validator->fails()) {
@@ -122,10 +147,25 @@ class OrganizationController extends Controller
         $organization = Organization::findOrFail($id);
         $data = $request->all();
         $data['status'] = $data['status'] === 'true' || $data['status'] === true;
+
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            // Delete old logo if exists
+            if ($organization->logo) {
+                $oldLogoPath = str_replace('/storage/', 'public/', $organization->logo);
+                Storage::delete($oldLogoPath);
+            }
+            
+            $logo = $request->file('logo');
+            $logoName = time() . '_' . $logo->getClientOriginalName();
+            $logoPath = $logo->storeAs('public/organization_logos', $logoName);
+            $data['logo'] = Storage::url($logoPath);
+        }
+
         $organization->update($data);
 
         return response()->json([
-            'message' => 'Organization updated successfully',
+            'message' => 'شرکت با موفقیت ویرایش شد',
             'data' => $organization
         ]);
     }
@@ -133,10 +173,17 @@ class OrganizationController extends Controller
     public function destroy($id)
     {
         $organization = Organization::findOrFail($id);
+        
+        // Delete logo file if exists
+        if ($organization->logo) {
+            $logoPath = str_replace('/storage/', 'public/', $organization->logo);
+            Storage::delete($logoPath);
+        }
+        
         $organization->delete();
 
         return response()->json([
-            'message' => 'Organization deleted successfully'
+            'message' => 'شرکت با موفقیت حذف شد'
         ]);
     }
 }
