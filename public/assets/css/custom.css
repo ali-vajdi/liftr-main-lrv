@@ -1,0 +1,39 @@
+body{
+    letter-spacing: 0 !important;
+}
+
+#sidebar ul.menu-categories li.menu > .dropdown-toggle[aria-expanded=false] svg.feather-chevron-right {
+    transform: rotate(180deg);
+    transition: 0.5s;
+}
+
+#sidebar ul.menu-categories li.menu > .dropdown-toggle[aria-expanded=true] svg.feather-chevron-right {
+    background-color: transparent;
+    transform: rotate(90deg);
+    transition: 0.5s;
+}
+
+#sidebar ul.menu-categories li.menu > .dropdown-toggle{
+    letter-spacing: 0 !important;
+}
+
+.form-form .form-form-wrap form .field-wrapper input{
+    letter-spacing: 0 !important;
+    padding: 10px !important;
+}
+.form-form .form-form-wrap form .field-wrapper svg{
+    left: 10px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+}
+.form-form .form-form-wrap form .field-wrapper.input{
+    padding: 0 !important;
+}
+.table > tbody > tr > td{
+    font-size: 15px !important;
+    letter-spacing: 0 !important;
+}
+.table > thead > tr > th{
+    font-size: 14px !important;
+    letter-spacing: 0 !important;
+}
