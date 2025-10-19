@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\OrganizationPackageController;
 use App\Http\Controllers\Api\Organization\PackageController as OrgPackageController;
 use App\Http\Controllers\Api\Organization\UserController as OrgUserController;
 use App\Http\Controllers\Api\Organization\TechnicianController as OrgTechnicianController;
+use App\Http\Controllers\Api\Organization\BuildingController as OrgBuildingController;
 use App\Http\Controllers\Organization\AuthController as OrganizationAuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -92,5 +93,10 @@ Route::prefix('organization')->name('organization.')->group(function () {
         // Organization Technicians API
         Route::apiResource('technicians', OrgTechnicianController::class);
         Route::post('technicians/{technician}/credentials', [OrgTechnicianController::class, 'setCredentials']);
+        
+        // Organization Buildings API
+        Route::apiResource('buildings', OrgBuildingController::class);
+        Route::get('provinces', [OrgBuildingController::class, 'getProvinces']);
+        Route::get('cities-by-province', [OrgBuildingController::class, 'getCitiesByProvince']);
     });
 });

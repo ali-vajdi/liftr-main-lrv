@@ -28,6 +28,7 @@ Route::get('/profile', [OrganizationViewController::class, 'showProfile'])->name
 Route::get('/packages', [OrganizationViewController::class, 'showPackages'])->name('organization.packages.view');
 Route::get('/users', [OrganizationViewController::class, 'showUsers'])->name('organization.users.view');
 Route::get('/technicians', [OrganizationViewController::class, 'showTechnicians'])->name('organization.technicians.view');
+Route::get('/buildings', [OrganizationViewController::class, 'showBuildings'])->name('organization.buildings.view');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     // Auth Routes

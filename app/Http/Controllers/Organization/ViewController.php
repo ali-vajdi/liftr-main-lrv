@@ -89,4 +89,19 @@ class ViewController extends Controller
         
         return view('organization.technicians.index', compact('organization'));
     }
+
+    // Buildings Management Views
+    public function showBuildings()
+    {
+        // Get organization from authenticated user
+        $user = auth('organization')->user();
+        if (!$user) {
+            // If no authenticated user, get first organization for display
+            $organization = Organization::first();
+        } else {
+            $organization = $user->organization;
+        }
+        
+        return view('organization.buildings.index', compact('organization'));
+    }
 }
