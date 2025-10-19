@@ -62,6 +62,36 @@
                     </li>
                 </ul>
             </li>
+
+            <li class="menu {{ request()->routeIs('admin.packages.*') ? 'active' : '' }}">
+                <a href="#packages" data-toggle="collapse"
+                    aria-expanded="{{ request()->routeIs('admin.packages.*') ? 'true' : 'false' }}"
+                    class="dropdown-toggle">
+                    <div class="">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-package">
+                            <path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                        <span>مدیریت تعرفه‌ها</span>
+                    </div>
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-chevron-right">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </a>
+                <ul class="collapse submenu list-unstyled {{ request()->routeIs('admin.packages.*') ? 'show' : '' }}"
+                    id="packages" data-parent="#accordionExample">
+                    <li class="{{ request()->routeIs('admin.packages.view') ? 'active' : '' }}">
+                        <a href="{{ route('admin.packages.view') }}">مدیریت تعرفه‌ها</a>
+                    </li>
+                </ul>
+            </li>
         </ul>
         
     </nav>

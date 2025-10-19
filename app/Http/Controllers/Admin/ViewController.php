@@ -46,4 +46,16 @@ class ViewController extends Controller
         return view('admin.organizations.users.index', compact('organization'));
     }
 
+    // Packages Management Views
+    public function showPackages()
+    {
+        return view('admin.packages.index');
+    }
+
+    public function showOrganizationPackages($organizationId)
+    {
+        $organization = \App\Models\Organization::findOrFail($organizationId);
+        return view('admin.organizations.packages.index', compact('organization'));
+    }
+
 } 

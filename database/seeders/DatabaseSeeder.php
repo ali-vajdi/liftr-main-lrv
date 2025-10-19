@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             ModeratorSeeder::class,
             OrganizationSeeder::class,
             OrganizationUserSeeder::class,
+            PackageSeeder::class,
         ]);
     }
 }

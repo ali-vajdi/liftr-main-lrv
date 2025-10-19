@@ -1,6 +1,6 @@
 @extends('admin.layout.master')
 
-@section('title', 'مدیریت شرکت‌ها')
+@section('title', 'مدیریت تعرفه‌ها')
 
 @section('content')
     <div class="layout-px-spacing">
@@ -8,40 +8,26 @@
             <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 layout-spacing">
                 <div class="widget widget-chart-one">
                     <div class="widget-heading">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">مدیریت شرکت‌ها</h5>
-                            <a href="{{ route('admin.packages.view') }}" class="btn btn-info btn-sm">
-                                <i class="fa fa-package"></i> مدیریت تعرفه‌ها
-                            </a>
-                        </div>
+                        <h5 class="">مدیریت تعرفه‌ها</h5>
                     </div>
                     <div class="widget-content">
                         @include('admin.components.datatable', [
-                            'title' => 'شرکت‌ها',
-                            'apiUrl' => '/api/admin/organizations',
+                            'title' => 'تعرفه‌ها',
+                            'apiUrl' => '/api/admin/packages',
                             'createButton' => true,
-                            'createButtonText' => 'افزودن شرکت جدید',
+                            'createButtonText' => 'افزودن تعرفه جدید',
                             'columns' => [
                                 ['field' => 'id', 'label' => 'شناسه'],
-                                ['field' => 'name', 'label' => 'نام شرکت'],
-                                ['field' => 'address', 'label' => 'آدرس'],
+                                ['field' => 'name', 'label' => 'نام تعرفه'],
+                                ['field' => 'duration_label', 'label' => 'مدت زمان'],
+                                ['field' => 'formatted_price', 'label' => 'قیمت'],
                                 [
-                                    'field' => 'logo',
-                                    'label' => 'لوگو',
-                                    'formatter' => 'function(value) {
-                                        if (value) {
-                                            return `<img src="${value}" alt="Logo" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">`;
-                                        }
-                                        return "بدون لوگو";
-                                    }',
-                                ],
-                                [
-                                    'field' => 'status',
+                                    'field' => 'is_public',
                                     'label' => 'وضعیت',
                                     'formatter' => 'function(value) {
                                         return value ? 
-                                            `<span class="badge badge-success">فعال</span>` : 
-                                            `<span class="badge badge-danger">غیرفعال</span>`;
+                                            `<span class="badge badge-success">عمومی</span>` : 
+                                            `<span class="badge badge-warning">خصوصی</span>`;
                                     }',
                                 ],
                                 [
@@ -58,34 +44,12 @@
                                 html += \'<button type="button" class="btn btn-sm btn-info show-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="مشاهده">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>\';
                                 html += \'</button>\';
-                                
-                                // Users button
-                                html += \'<button type="button" class="btn btn-sm btn-warning users-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="مدیریت کاربران">\';
-                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>\';
-                                html += \'</button>\';
-                                
-                                // Packages button
-                                html += \'<button type="button" class="btn btn-sm btn-success packages-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="مدیریت پکیج‌ها">\';
-                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-package"><path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>\';
-                                html += \'</button>\';
                             ',
                             'actionHandlers' => '
                                 // Handle show button click
                                 $(".show-btn").on("click", function() {
                                     const id = $(this).data("id");
                                     window.onShow(id);
-                                });
-                                
-                                // Handle users button click
-                                $(".users-btn").on("click", function() {
-                                    const id = $(this).data("id");
-                                    window.location.href = "/admin/organizations/" + id + "/users";
-                                });
-                                
-                                // Handle packages button click
-                                $(".packages-btn").on("click", function() {
-                                    const id = $(this).data("id");
-                                    window.location.href = "/admin/organizations/" + id + "/packages";
                                 });
                             ',
                         ])
@@ -94,48 +58,48 @@
             </div>
         </div>
 
-        <!-- Modal for adding/editing organizations -->
-        <div class="modal fade" id="organizationModal" tabindex="-1" role="dialog" aria-labelledby="organizationModalLabel"
+        <!-- Modal for adding/editing package -->
+        <div class="modal fade" id="packageModal" tabindex="-1" role="dialog" aria-labelledby="packageModalLabel"
             aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="organizationModalLabel">افزودن شرکت</h5>
+                        <h5 class="modal-title" id="packageModalLabel">افزودن تعرفه</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form id="organizationForm">
-                            <input type="hidden" id="organizationId">
+                        <form id="packageForm">
+                            <input type="hidden" id="packageId">
                             <div class="form-group">
-                                <label for="name">نام شرکت <span class="text-danger">*</span></label>
+                                <label for="name">نام تعرفه</label>
                                 <input type="text" class="form-control" id="name" name="name" required>
                             </div>
                             <div class="form-group">
-                                <label for="address">آدرس</label>
-                                <textarea class="form-control" id="address" name="address" rows="3"></textarea>
+                                <label for="duration_days">مدت زمان (روز)</label>
+                                <input type="number" class="form-control" id="duration_days" name="duration_days" min="1" required>
                             </div>
                             <div class="form-group">
-                                <label for="logo">لوگو</label>
-                                <input type="file" class="form-control" id="logo" name="logo" accept="image/jpeg,image/png,image/jpg">
-                                <small class="form-text text-muted">فرمت‌های مجاز: JPG, PNG - حداکثر 2MB</small>
-                                <div id="logoPreview" class="mt-2" style="display: none;">
-                                    <img id="logoPreviewImg" src="" alt="پیش‌نمایش لوگو" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
-                                </div>
+                                <label for="duration_label">برچسب مدت</label>
+                                <input type="text" class="form-control" id="duration_label" name="duration_label" placeholder="مثال: 1 ماه، 15 روز، 6 ماه، 1 سال" required>
                             </div>
                             <div class="form-group">
-                                <label for="status">وضعیت <span class="text-danger">*</span></label>
-                                <select class="form-control" id="status" name="status" required>
-                                    <option value="1">فعال</option>
-                                    <option value="0">غیرفعال</option>
+                                <label for="price">قیمت (تومان)</label>
+                                <input type="number" class="form-control" id="price" name="price" min="0" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="is_public">وضعیت عمومی</label>
+                                <select class="form-control" id="is_public" name="is_public" required>
+                                    <option value="true">عمومی</option>
+                                    <option value="false">خصوصی</option>
                                 </select>
                             </div>
                         </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
-                        <button type="button" class="btn btn-primary" id="saveOrganization">ذخیره</button>
+                        <button type="button" class="btn btn-primary" id="savePackage">ذخیره</button>
                     </div>
                 </div>
             </div>
@@ -147,7 +111,7 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="detailsModalLabel">جزئیات شرکت</h5>
+                        <h5 class="modal-title" id="detailsModalLabel">جزئیات تعرفه</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -161,16 +125,16 @@
                                         <td id="detailId"></td>
                                     </tr>
                                     <tr>
-                                        <th>نام شرکت</th>
+                                        <th>نام تعرفه</th>
                                         <td id="detailName"></td>
                                     </tr>
                                     <tr>
-                                        <th>آدرس</th>
-                                        <td id="detailAddress"></td>
+                                        <th>مدت زمان</th>
+                                        <td id="detailDuration"></td>
                                     </tr>
                                     <tr>
-                                        <th>لوگو</th>
-                                        <td id="detailLogo"></td>
+                                        <th>قیمت</th>
+                                        <td id="detailPrice"></td>
                                     </tr>
                                     <tr>
                                         <th>وضعیت</th>
@@ -222,12 +186,12 @@
 @section('page-scripts')
     <script>
         $(document).ready(function() {
-            let currentOrganizationId = null;
+            let currentPackageId = null;
 
-            // Show organization details
+            // Show package details
             window.onShow = function(id) {
                 $.ajax({
-                    url: `/api/admin/organizations/${id}`,
+                    url: `/api/admin/packages/${id}`,
                     type: 'GET',
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
@@ -237,14 +201,11 @@
                         
                         $('#detailId').text(data.id);
                         $('#detailName').text(data.name);
-                        $('#detailAddress').text(data.address || 'ثبت نشده');
-                        $('#detailLogo').html(data.logo ? 
-                            `<img src="${data.logo}" alt="Logo" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">` : 
-                            'بدون لوگو'
-                        );
-                        $('#detailStatus').html(data.status ? 
-                            '<span class="badge badge-success">فعال</span>' : 
-                            '<span class="badge badge-danger">غیرفعال</span>'
+                        $('#detailDuration').text(data.duration_label);
+                        $('#detailPrice').text(data.formatted_price);
+                        $('#detailStatus').html(data.is_public ? 
+                            '<span class="badge badge-success">عمومی</span>' : 
+                            '<span class="badge badge-warning">خصوصی</span>'
                         );
                         $('#detailCreatedAt').text(new Date(data.created_at).toLocaleDateString('fa-IR'));
                         $('#detailUpdatedAt').text(new Date(data.updated_at).toLocaleDateString('fa-IR'));
@@ -273,106 +234,56 @@
                 });
             };
 
-            // Create new organization
+            // Create new package
             $('.create-new-button').click(function() {
-                $('#organizationModalLabel').text('افزودن شرکت');
-                $('#organizationForm')[0].reset();
-                $('#organizationId').val('');
-                $('#logoPreview').hide();
-                $('#organizationModal').modal('show');
+                $('#packageModalLabel').text('افزودن تعرفه');
+                $('#packageForm')[0].reset();
+                $('#packageId').val('');
+                $('#packageModal').modal('show');
             });
 
-            // Logo preview functionality
-            $('#logo').change(function() {
-                const file = this.files[0];
-                if (file) {
-                    // Check file type
-                    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-                    if (!allowedTypes.includes(file.type)) {
-                        swal({
-                            title: 'خطا',
-                            text: 'فرمت فایل باید JPG یا PNG باشد',
-                            type: 'error',
-                            padding: '2em'
-                        });
-                        $(this).val(''); // Clear the input
-                        $('#logoPreview').hide();
-                        return;
-                    }
-                    
-                    // Check file size (2MB = 2 * 1024 * 1024 bytes)
-                    if (file.size > 2 * 1024 * 1024) {
-                        swal({
-                            title: 'خطا',
-                            text: 'حجم فایل نمی‌تواند بیش از 2 مگابایت باشد',
-                            type: 'error',
-                            padding: '2em'
-                        });
-                        $(this).val(''); // Clear the input
-                        $('#logoPreview').hide();
-                        return;
-                    }
-                    
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        $('#logoPreviewImg').attr('src', e.target.result);
-                        $('#logoPreview').show();
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    $('#logoPreview').hide();
-                }
-            });
-
-            // Save organization (create or update)
-            $('#saveOrganization').click(function() {
-                const id = $('#organizationId').val();
+            // Save package (create or update)
+            $('#savePackage').click(function() {
+                const id = $('#packageId').val();
                 const name = $('#name').val();
-                const address = $('#address').val();
-                const status = $('#status').val() === '1' ? true : false;
+                const durationDays = $('#duration_days').val();
+                const durationLabel = $('#duration_label').val();
+                const price = $('#price').val();
+                const isPublic = $('#is_public').val();
 
-                if (!name) {
+                if (!name || !durationDays || !durationLabel || !price) {
                     swal({
                         title: 'خطا',
-                        text: 'لطفا نام شرکت را وارد کنید',
+                        text: 'لطفا تمام فیلدهای الزامی را پر کنید',
                         type: 'error',
                         padding: '2em'
                     });
                     return;
                 }
 
-                // Create FormData for file upload
-                const formData = new FormData();
-                formData.append('name', name);
-                formData.append('address', address);
-                formData.append('status', status);
-                
-                // Add logo file if selected
-                const logoFile = $('#logo')[0].files[0];
-                if (logoFile) {
-                    formData.append('logo', logoFile);
-                }
+                const data = {
+                    name: name,
+                    duration_days: parseInt(durationDays),
+                    duration_label: durationLabel,
+                    price: parseFloat(price),
+                    is_public: isPublic
+                };
 
-                const url = id ? `/api/admin/organizations/${id}` : '/api/admin/organizations';
-                const method = id ? 'POST' : 'POST'; // Use POST for both with _method for PUT
-                if (id) {
-                    formData.append('_method', 'PUT');
-                }
-                const successMessage = id ? 'شرکت با موفقیت ویرایش شد' : 'شرکت با موفقیت ایجاد شد';
+                const url = id ? `/api/admin/packages/${id}` : '/api/admin/packages';
+                const method = id ? 'PUT' : 'POST';
+                const successMessage = id ? 'تعرفه با موفقیت ویرایش شد' : 'تعرفه با موفقیت ثبت شد';
 
                 $.ajax({
                     url: url,
                     type: method,
-                    data: formData,
-                    processData: false,
-                    contentType: false,
+                    data: data,
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                         'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
                     },
                     success: function(response) {
-                        $('#organizationModal').modal('hide');
-
+                        $('#packageModal').modal('hide');
+                        
                         swal({
                             title: 'موفقیت',
                             text: successMessage,
@@ -418,35 +329,26 @@
                 });
             });
 
-            // Edit organization
+            // Edit package
             window.onEdit = function(id) {
                 $.ajax({
-                    url: `/api/admin/organizations/${id}`,
+                    url: `/api/admin/packages/${id}`,
                     type: 'GET',
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
                     },
                     success: function(response) {
-                        const organization = response.data;
+                        const package = response.data;
 
-                        $('#organizationModalLabel').text('ویرایش شرکت');
-                        $('#organizationId').val(organization.id);
-                        $('#name').val(organization.name);
-                        $('#address').val(organization.address);
-                        $('#status').val(organization.status ? '1' : '0');
-                        
-                        // Show current logo if exists
-                        if (organization.logo) {
-                            $('#logoPreviewImg').attr('src', organization.logo);
-                            $('#logoPreview').show();
-                        } else {
-                            $('#logoPreview').hide();
-                        }
-                        
-                        // Clear file input
-                        $('#logo').val('');
+                        $('#packageModalLabel').text('ویرایش تعرفه');
+                        $('#packageId').val(package.id);
+                        $('#name').val(package.name);
+                        $('#duration_days').val(package.duration_days);
+                        $('#duration_label').val(package.duration_label);
+                        $('#price').val(package.price);
+                        $('#is_public').val(package.is_public ? 'true' : 'false');
 
-                        $('#organizationModal').modal('show');
+                        $('#packageModal').modal('show');
                     },
                     error: function(xhr) {
                         if (xhr.status === 401) {
@@ -470,18 +372,18 @@
                 });
             };
 
-            // Delete organization
+            // Delete package
             window.onDelete = function(id) {
-                currentOrganizationId = id;
+                currentPackageId = id;
                 $('#deleteConfirmationModal').modal('show');
             };
 
             // Confirm delete
             $('#confirmDelete').click(function() {
-                if (!currentOrganizationId) return;
+                if (!currentPackageId) return;
 
                 $.ajax({
-                    url: `/api/admin/organizations/${currentOrganizationId}`,
+                    url: `/api/admin/packages/${currentPackageId}`,
                     type: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
@@ -492,7 +394,7 @@
 
                         swal({
                             title: 'موفقیت',
-                            text: 'شرکت با موفقیت حذف شد',
+                            text: 'تعرفه با موفقیت حذف شد',
                             type: 'success',
                             padding: '2em'
                         });
@@ -510,13 +412,6 @@
                                 padding: '2em'
                             }).then(function() {
                                 window.location.href = '/admin/login';
-                            });
-                        } else if (xhr.status === 422 || xhr.status === 409) {
-                            swal({
-                                title: 'خطا',
-                                text: xhr.responseJSON?.message || 'این مورد قابل حذف نیست زیرا در جای دیگری استفاده شده است',
-                                type: 'error',
-                                padding: '2em'
                             });
                         } else {
                             swal({

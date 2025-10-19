@@ -41,5 +41,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Organizations Management Routes
     Route::get('organizations', [ViewController::class, 'showOrganizations'])->name('organizations.view');
     Route::get('organizations/{organization}/users', [ViewController::class, 'showOrganizationUsers'])->name('organizations.users.view');
+    Route::get('organizations/{organization}/packages', [ViewController::class, 'showOrganizationPackages'])->name('organizations.packages.view');
+
+    // Packages Management Routes
+    Route::get('packages', [ViewController::class, 'showPackages'])->name('packages.view');
     
 });
