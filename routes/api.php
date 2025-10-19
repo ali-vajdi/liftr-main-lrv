@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Organization\PackageController as OrgPackageControl
 use App\Http\Controllers\Api\Organization\UserController as OrgUserController;
 use App\Http\Controllers\Api\Organization\TechnicianController as OrgTechnicianController;
 use App\Http\Controllers\Api\Organization\BuildingController as OrgBuildingController;
+use App\Http\Controllers\Api\Organization\ElevatorController as OrgElevatorController;
 use App\Http\Controllers\Organization\AuthController as OrganizationAuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -98,5 +99,8 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::apiResource('buildings', OrgBuildingController::class);
         Route::get('provinces', [OrgBuildingController::class, 'getProvinces']);
         Route::get('cities-by-province', [OrgBuildingController::class, 'getCitiesByProvince']);
+        
+        // Organization Elevators API
+        Route::apiResource('buildings.elevators', OrgElevatorController::class);
     });
 });

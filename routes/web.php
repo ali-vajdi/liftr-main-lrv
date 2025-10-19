@@ -29,6 +29,7 @@ Route::get('/packages', [OrganizationViewController::class, 'showPackages'])->na
 Route::get('/users', [OrganizationViewController::class, 'showUsers'])->name('organization.users.view');
 Route::get('/technicians', [OrganizationViewController::class, 'showTechnicians'])->name('organization.technicians.view');
 Route::get('/buildings', [OrganizationViewController::class, 'showBuildings'])->name('organization.buildings.view');
+Route::get('/buildings/{building}/elevators', [OrganizationViewController::class, 'showBuildingElevators'])->name('organization.buildings.elevators.view');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     // Auth Routes

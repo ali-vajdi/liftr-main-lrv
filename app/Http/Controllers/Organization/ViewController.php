@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Organization;
 
 use App\Http\Controllers\Controller;
+use App\Models\Building;
 use App\Models\Organization;
 
 class ViewController extends Controller
@@ -103,5 +104,23 @@ class ViewController extends Controller
         }
         
         return view('organization.buildings.index', compact('organization'));
+    }
+
+    public function showBuildingElevators($buildingId)
+    {
+        // Get organization from authenticated user
+        $user = auth('organization')->user();
+        if (!$user) {
+            // If no authenticated user, get first organization for display
+            $organization = Organization::first();
+        } else {
+            $organization = $user->organization;
+        }
+
+        // Get building and verify it belongs to organization
+        $building = Building::where('organization_id', $organization->id)
+            ->findOrFail($buildingId);
+        
+        return view('organization.elevators.index', compact('organization', 'building'));
     }
 }

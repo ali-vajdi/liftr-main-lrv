@@ -89,6 +89,11 @@
                                 html += \'<button type="button" class="btn btn-sm btn-warning location-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="مشاهده موقعیت">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map-pin"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>\';
                                 html += \'</button>\';
+                                
+                                // Elevators button
+                                html += \'<button type="button" class="btn btn-sm btn-success elevators-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="مدیریت آسانسورها">\';
+                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-up"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>\';
+                                html += \'</button>\';
                             ',
                             'actionHandlers' => '
                                 // Handle show button click
@@ -101,6 +106,12 @@
                                 $(".location-btn").on("click", function() {
                                     const id = $(this).data("id");
                                     window.onShowLocation(id);
+                                });
+                                
+                                // Handle elevators button click
+                                $(".elevators-btn").on("click", function() {
+                                    const id = $(this).data("id");
+                                    window.onShowElevators(id);
                                 });
                             ',
                         ])
@@ -645,6 +656,11 @@ window.onShow = function(id) {
             console.error('Error loading building details:', xhr);
         }
     });
+};
+
+// Show building elevators
+window.onShowElevators = function(id) {
+    window.location.href = `/buildings/${id}/elevators`;
 };
 
 // Show building location on map

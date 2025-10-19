@@ -53,6 +53,11 @@ class Building extends Model
         return $this->belongsTo(OrganizationUser::class);
     }
 
+    public function elevators()
+    {
+        return $this->hasMany(Elevator::class);
+    }
+
     // Accessors
     public function getBuildingTypeTextAttribute()
     {
