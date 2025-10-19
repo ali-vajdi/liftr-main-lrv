@@ -3,26 +3,30 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Bank;
+use App\Models\Organization;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Morilog\Jalali\Jalalian;
 
-class BankController extends Controller
+class OrganizationController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Bank::query();
+        $query = Organization::query();
 
         // Handle search
         if ($request->has('search') && !empty($request->search)) {
             $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
                 $q->where('name', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('branch_name', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('account_number', 'LIKE', "%{$searchTerm}%");
+                  ->orWhere('address', 'LIKE', "%{$searchTerm}%");
             });
+        }
+
+        // Handle status filter
+        if ($request->has('status') && $request->status !== '') {
+            $query->where('status', $request->status);
         }
 
         // Handle created_at date range filters
@@ -53,17 +57,17 @@ class BankController extends Controller
 
         // Get paginated results
         $perPage = $request->input('per_page', 10);
-        $banks = $query->paginate($perPage);
+        $organizations = $query->paginate($perPage);
 
         return response()->json([
-            'data' => $banks->items(),
+            'data' => $organizations->items(),
             'pagination' => [
-                'total' => $banks->total(),
-                'per_page' => $banks->perPage(),
-                'current_page' => $banks->currentPage(),
-                'last_page' => $banks->lastPage(),
-                'from' => $banks->firstItem(),
-                'to' => $banks->lastItem(),
+                'total' => $organizations->total(),
+                'per_page' => $organizations->perPage(),
+                'current_page' => $organizations->currentPage(),
+                'last_page' => $organizations->lastPage(),
+                'from' => $organizations->firstItem(),
+                'to' => $organizations->lastItem(),
             ]
         ]);
     }
@@ -72,8 +76,9 @@ class BankController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'branch_name' => 'required|string|max:255',
-            'account_number' => 'required|string|max:255',
+            'address' => 'nullable|string',
+            'logo' => 'nullable|string|max:255',
+            'status' => 'required|in:true,false',
         ]);
 
         if ($validator->fails()) {
@@ -82,21 +87,22 @@ class BankController extends Controller
 
         $data = $request->all();
         $data['moderator_id'] = Auth::id();
+        $data['status'] = $data['status'] === 'true' || $data['status'] === true;
 
-        $bank = Bank::create($data);
+        $organization = Organization::create($data);
 
         return response()->json([
-            'message' => 'Bank created successfully',
-            'data' => $bank
+            'message' => 'Organization created successfully',
+            'data' => $organization
         ], 201);
     }
 
     public function show($id)
     {
-        $bank = Bank::findOrFail($id);
+        $organization = Organization::findOrFail($id);
         
         return response()->json([
-            'data' => $bank
+            'data' => $organization
         ]);
     }
 
@@ -104,30 +110,33 @@ class BankController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'branch_name' => 'required|string|max:255',
-            'account_number' => 'required|string|max:255',
+            'address' => 'nullable|string',
+            'logo' => 'nullable|string|max:255',
+            'status' => 'required|in:true,false',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $bank = Bank::findOrFail($id);
-        $bank->update($request->all());
+        $organization = Organization::findOrFail($id);
+        $data = $request->all();
+        $data['status'] = $data['status'] === 'true' || $data['status'] === true;
+        $organization->update($data);
 
         return response()->json([
-            'message' => 'Bank updated successfully',
-            'data' => $bank
+            'message' => 'Organization updated successfully',
+            'data' => $organization
         ]);
     }
 
     public function destroy($id)
     {
-        $bank = Bank::findOrFail($id);
-        $bank->delete();
+        $organization = Organization::findOrFail($id);
+        $organization->delete();
 
         return response()->json([
-            'message' => 'Bank deleted successfully'
+            'message' => 'Organization deleted successfully'
         ]);
     }
-} 
+}

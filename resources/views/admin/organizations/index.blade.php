@@ -1,5 +1,6 @@
 @extends('admin.layout.master')
-@section('title', 'مدیریت پوزهای بانکی')
+
+@section('title', 'مدیریت شرکت‌ها')
 
 @section('content')
     <div class="layout-px-spacing">
@@ -7,23 +8,35 @@
             <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 layout-spacing">
                 <div class="widget widget-chart-one">
                     <div class="widget-heading">
-                        <h5 class="">مدیریت پوزهای بانکی</h5>
+                        <h5 class="">مدیریت شرکت‌ها</h5>
                     </div>
                     <div class="widget-content">
                         @include('admin.components.datatable', [
-                            'title' => 'پوزهای بانکی',
-                            'apiUrl' => '/api/admin/bank-poses',
+                            'title' => 'شرکت‌ها',
+                            'apiUrl' => '/api/admin/organizations',
                             'createButton' => true,
-                            'createButtonText' => 'افزودن پوز جدید',
+                            'createButtonText' => 'افزودن شرکت جدید',
                             'columns' => [
                                 ['field' => 'id', 'label' => 'شناسه'],
-                                ['field' => 'name', 'label' => 'نام پوز'],
-                                ['field' => 'description', 'label' => 'توضیحات'],
+                                ['field' => 'name', 'label' => 'نام شرکت'],
+                                ['field' => 'address', 'label' => 'آدرس'],
                                 [
-                                    'field' => 'bank',
-                                    'label' => 'بانک',
+                                    'field' => 'logo',
+                                    'label' => 'لوگو',
                                     'formatter' => 'function(value) {
-                                        return value ? value.name : "-";
+                                        if (value) {
+                                            return `<img src="${value}" alt="Logo" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">`;
+                                        }
+                                        return "بدون لوگو";
+                                    }',
+                                ],
+                                [
+                                    'field' => 'status',
+                                    'label' => 'وضعیت',
+                                    'formatter' => 'function(value) {
+                                        return value ? 
+                                            `<span class="badge badge-success">فعال</span>` : 
+                                            `<span class="badge badge-danger">غیرفعال</span>`;
                                     }',
                                 ],
                                 [
@@ -34,90 +47,114 @@
                                     }',
                                 ],
                             ],
-                            'filters' => [
-                                [
-                                    'type' => 'select',
-                                    'name' => 'bank_id',
-                                    'label' => 'بانک',
-                                    'placeholder' => 'همه بانک‌ها',
-                                    'options' => [],
-                                    'apiUrl' => '/api/admin/banks',
-                                    'labelField' => 'name',
-                                    'valueField' => 'id',
-                                ],
-                            ],
                             'primaryKey' => 'id',
+                            'actions' => '
+                                // Show button
+                                html += \'<button type="button" class="btn btn-sm btn-info show-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="مشاهده">\';
+                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>\';
+                                html += \'</button>\';
+                            ',
+                            'actionHandlers' => '
+                                // Handle show button click
+                                $(".show-btn").on("click", function() {
+                                    const id = $(this).data("id");
+                                    window.onShow(id);
+                                });
+                            ',
                         ])
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Modal for adding/editing poses -->
-        <div class="modal fade" id="poseModal" tabindex="-1" role="dialog" aria-labelledby="poseModalLabel"
+        <!-- Modal for adding/editing organizations -->
+        <div class="modal fade" id="organizationModal" tabindex="-1" role="dialog" aria-labelledby="organizationModalLabel"
             aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="poseModalLabel">افزودن پوز</h5>
+                        <h5 class="modal-title" id="organizationModalLabel">افزودن شرکت</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form id="poseForm">
-                            <input type="hidden" id="poseId">
+                        <form id="organizationForm">
+                            <input type="hidden" id="organizationId">
                             <div class="form-group">
-                                <label for="name">نام پوز</label>
+                                <label for="name">نام شرکت <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="name" name="name" required>
                             </div>
                             <div class="form-group">
-                                <label for="description">توضیحات</label>
-                                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                                <label for="address">آدرس</label>
+                                <textarea class="form-control" id="address" name="address" rows="3"></textarea>
                             </div>
                             <div class="form-group">
-                                <label for="bank_id">بانک</label>
-                                <select class="form-control" id="bank_id" name="bank_id" required>
-                                    <option value="">انتخاب بانک</option>
+                                <label for="logo">آدرس لوگو</label>
+                                <input type="text" class="form-control" id="logo" name="logo" placeholder="https://example.com/logo.png">
+                            </div>
+                            <div class="form-group">
+                                <label for="status">وضعیت <span class="text-danger">*</span></label>
+                                <select class="form-control" id="status" name="status" required>
+                                    <option value="1">فعال</option>
+                                    <option value="0">غیرفعال</option>
                                 </select>
                             </div>
                         </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
-                        <button type="button" class="btn btn-primary" id="savePose">ذخیره</button>
+                        <button type="button" class="btn btn-primary" id="saveOrganization">ذخیره</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Show Modal -->
-        <div class="modal fade" id="showModal" tabindex="-1" role="dialog" aria-labelledby="showModalLabel"
+        <!-- Details Modal -->
+        <div class="modal fade" id="detailsModal" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel"
             aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="showModalLabel">جزئیات پوز</h5>
+                        <h5 class="modal-title" id="detailsModalLabel">جزئیات شرکت</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p><strong>نام پوز:</strong> <span id="showName"></span></p>
-                                <p><strong>بانک:</strong> <span id="showBank"></span></p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>تاریخ ایجاد:</strong> <span id="showCreatedAt"></span></p>
-                                <p><strong>آخرین ویرایش:</strong> <span id="showUpdatedAt"></span></p>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <p><strong>توضیحات:</strong></p>
-                                <p id="showDescription" class="text-justify"></p>
-                            </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <th>شناسه</th>
+                                        <td id="detailId"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>نام شرکت</th>
+                                        <td id="detailName"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>آدرس</th>
+                                        <td id="detailAddress"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>لوگو</th>
+                                        <td id="detailLogo"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>وضعیت</th>
+                                        <td id="detailStatus"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>تاریخ ایجاد</th>
+                                        <td id="detailCreatedAt"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>آخرین ویرایش</th>
+                                        <td id="detailUpdatedAt"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -154,29 +191,34 @@
 @section('page-scripts')
     <script>
         $(document).ready(function() {
-            let currentPoseId = null;
+            let currentOrganizationId = null;
 
-            // Create new pose
-            $('.create-new-button').click(function() {
-                $('#poseModalLabel').text('افزودن پوز');
-                $('#poseForm')[0].reset();
-                $('#poseId').val('');
-                
-                // Load banks for new pose
+            // Show organization details
+            window.onShow = function(id) {
                 $.ajax({
-                    url: '/api/admin/banks',
+                    url: `/api/admin/organizations/${id}`,
                     type: 'GET',
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
                     },
                     success: function(response) {
-                        const banks = response.data;
-                        const select = $('#bank_id');
-                        select.empty().append('<option value="">انتخاب بانک</option>');
-                        banks.forEach(bank => {
-                            select.append(`<option value="${bank.id}">${bank.name}</option>`);
-                        });
-                        $('#poseModal').modal('show');
+                        const data = response.data;
+                        
+                        $('#detailId').text(data.id);
+                        $('#detailName').text(data.name);
+                        $('#detailAddress').text(data.address || 'ثبت نشده');
+                        $('#detailLogo').html(data.logo ? 
+                            `<img src="${data.logo}" alt="Logo" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">` : 
+                            'بدون لوگو'
+                        );
+                        $('#detailStatus').html(data.status ? 
+                            '<span class="badge badge-success">فعال</span>' : 
+                            '<span class="badge badge-danger">غیرفعال</span>'
+                        );
+                        $('#detailCreatedAt').text(new Date(data.created_at).toLocaleDateString('fa-IR'));
+                        $('#detailUpdatedAt').text(new Date(data.updated_at).toLocaleDateString('fa-IR'));
+
+                        $('#detailsModal').modal('show');
                     },
                     error: function(xhr) {
                         if (xhr.status === 401) {
@@ -191,26 +233,35 @@
                         } else {
                             swal({
                                 title: 'خطا',
-                                text: 'خطا در دریافت لیست بانک‌ها',
+                                text: 'خطا در دریافت اطلاعات',
                                 type: 'error',
                                 padding: '2em'
                             });
                         }
                     }
                 });
+            };
+
+            // Create new organization
+            $('.create-new-button').click(function() {
+                $('#organizationModalLabel').text('افزودن شرکت');
+                $('#organizationForm')[0].reset();
+                $('#organizationId').val('');
+                $('#organizationModal').modal('show');
             });
 
-            // Save pose (create or update)
-            $('#savePose').click(function() {
-                const id = $('#poseId').val();
+            // Save organization (create or update)
+            $('#saveOrganization').click(function() {
+                const id = $('#organizationId').val();
                 const name = $('#name').val();
-                const description = $('#description').val();
-                const bankId = $('#bank_id').val();
+                const address = $('#address').val();
+                const logo = $('#logo').val();
+                const status = $('#status').val() === '1' ? true : false;
 
-                if (!name || !bankId) {
+                if (!name) {
                     swal({
                         title: 'خطا',
-                        text: 'لطفا تمام فیلدهای الزامی را پر کنید',
+                        text: 'لطفا نام شرکت را وارد کنید',
                         type: 'error',
                         padding: '2em'
                     });
@@ -219,13 +270,14 @@
 
                 const data = {
                     name: name,
-                    description: description,
-                    bank_id: bankId
+                    address: address,
+                    logo: logo,
+                    status: status
                 };
 
-                const url = id ? `/api/admin/bank-poses/${id}` : '/api/admin/bank-poses';
+                const url = id ? `/api/admin/organizations/${id}` : '/api/admin/organizations';
                 const method = id ? 'PUT' : 'POST';
-                const successMessage = id ? 'پوز با موفقیت ویرایش شد' : 'پوز با موفقیت ایجاد شد';
+                const successMessage = id ? 'شرکت با موفقیت ویرایش شد' : 'شرکت با موفقیت ایجاد شد';
 
                 $.ajax({
                     url: url,
@@ -236,7 +288,7 @@
                         'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
                     },
                     success: function(response) {
-                        $('#poseModal').modal('hide');
+                        $('#organizationModal').modal('hide');
 
                         swal({
                             title: 'موفقیت',
@@ -283,24 +335,25 @@
                 });
             });
 
-            // Show pose details
-            window.onShow = function(id) {
+            // Edit organization
+            window.onEdit = function(id) {
                 $.ajax({
-                    url: `/api/admin/bank-poses/${id}`,
+                    url: `/api/admin/organizations/${id}`,
                     type: 'GET',
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
                     },
                     success: function(response) {
-                        const pose = response.data;
-                        
-                        $('#showName').text(pose.name);
-                        $('#showBank').text(pose.bank ? pose.bank.name : '-');
-                        $('#showDescription').text(pose.description || '-');
-                        $('#showCreatedAt').text(new Date(pose.created_at).toLocaleDateString('fa-IR'));
-                        $('#showUpdatedAt').text(new Date(pose.updated_at).toLocaleDateString('fa-IR'));
-                        
-                        $('#showModal').modal('show');
+                        const organization = response.data;
+
+                        $('#organizationModalLabel').text('ویرایش شرکت');
+                        $('#organizationId').val(organization.id);
+                        $('#name').val(organization.name);
+                        $('#address').val(organization.address);
+                        $('#logo').val(organization.logo);
+                        $('#status').val(organization.status ? '1' : '0');
+
+                        $('#organizationModal').modal('show');
                     },
                     error: function(xhr) {
                         if (xhr.status === 401) {
@@ -324,97 +377,18 @@
                 });
             };
 
-            // Edit pose
-            window.onEdit = function(id) {
-                // First load banks
-                $.ajax({
-                    url: '/api/admin/banks',
-                    type: 'GET',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
-                    },
-                    success: function(banksResponse) {
-                        const banks = banksResponse.data;
-                        const select = $('#bank_id');
-                        select.empty().append('<option value="">انتخاب بانک</option>');
-                        banks.forEach(bank => {
-                            const option = new Option(bank.name, bank.id);
-                            select.append(option);
-                        });
-
-                        // Then load pose data
-                        $.ajax({
-                            url: `/api/admin/bank-poses/${id}`,
-                            type: 'GET',
-                            headers: {
-                                'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
-                            },
-                            success: function(response) {
-                                const pose = response.data;
-
-                                $('#poseModalLabel').text('ویرایش پوز');
-                                $('#poseId').val(pose.id);
-                                $('#name').val(pose.name);
-                                $('#description').val(pose.description);
-                                $('#bank_id').val(pose.bank_id);
-
-                                $('#poseModal').modal('show');
-                            },
-                            error: function(xhr) {
-                                if (xhr.status === 401) {
-                                    swal({
-                                        title: 'خطای دسترسی',
-                                        text: 'لطفا مجددا وارد سیستم شوید',
-                                        type: 'error',
-                                        padding: '2em'
-                                    }).then(function() {
-                                        window.location.href = '/admin/login';
-                                    });
-                                } else {
-                                    swal({
-                                        title: 'خطا',
-                                        text: 'خطا در دریافت اطلاعات',
-                                        type: 'error',
-                                        padding: '2em'
-                                    });
-                                }
-                            }
-                        });
-                    },
-                    error: function(xhr) {
-                        if (xhr.status === 401) {
-                            swal({
-                                title: 'خطای دسترسی',
-                                text: 'لطفا مجددا وارد سیستم شوید',
-                                type: 'error',
-                                padding: '2em'
-                            }).then(function() {
-                                window.location.href = '/admin/login';
-                            });
-                        } else {
-                            swal({
-                                title: 'خطا',
-                                text: 'خطا در دریافت لیست بانک‌ها',
-                                type: 'error',
-                                padding: '2em'
-                            });
-                        }
-                    }
-                });
-            };
-
-            // Delete pose
+            // Delete organization
             window.onDelete = function(id) {
-                currentPoseId = id;
+                currentOrganizationId = id;
                 $('#deleteConfirmationModal').modal('show');
             };
 
             // Confirm delete
             $('#confirmDelete').click(function() {
-                if (!currentPoseId) return;
+                if (!currentOrganizationId) return;
 
                 $.ajax({
-                    url: `/api/admin/bank-poses/${currentPoseId}`,
+                    url: `/api/admin/organizations/${currentOrganizationId}`,
                     type: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
@@ -425,7 +399,7 @@
 
                         swal({
                             title: 'موفقیت',
-                            text: 'پوز با موفقیت حذف شد',
+                            text: 'شرکت با موفقیت حذف شد',
                             type: 'success',
                             padding: '2em'
                         });
@@ -464,4 +438,4 @@
             });
         });
     </script>
-@endsection 
+@endsection

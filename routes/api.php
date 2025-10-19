@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ModeratorController;
+use App\Http\Controllers\Api\OrganizationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -35,5 +36,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::apiResource('moderators', ModeratorController::class);
         Route::get('profile', [ModeratorController::class, 'profile']);
         Route::put('profile', [ModeratorController::class, 'updateProfile']);
+
+        // Organizations Management
+        Route::apiResource('organizations', OrganizationController::class);
     });
 });

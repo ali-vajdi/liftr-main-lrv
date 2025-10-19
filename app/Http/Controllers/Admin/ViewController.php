@@ -34,4 +34,10 @@ class ViewController extends Controller
         return view('admin.profile');
     }
 
+    // Organizations Management Views
+    public function showOrganizations()
+    {
+        return view('admin.organizations.index');
+    }
+
 } 

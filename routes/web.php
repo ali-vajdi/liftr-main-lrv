@@ -37,5 +37,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Moderators Management Routes
     Route::get('moderators', [ViewController::class, 'showModerators'])->name('moderators.view');
     Route::get('profile', [ViewController::class, 'showProfile'])->name('profile');
+
+    // Organizations Management Routes
+    Route::get('organizations', [ViewController::class, 'showOrganizations'])->name('organizations.view');
     
 });
