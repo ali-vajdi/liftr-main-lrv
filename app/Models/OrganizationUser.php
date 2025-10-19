@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Hash;
 
-class OrganizationUser extends Model
+class OrganizationUser extends Authenticatable
 {
-    use HasFactory;
+    use HasFactory, HasApiTokens, Notifiable;
 
     protected $fillable = [
         'name',
@@ -22,6 +24,7 @@ class OrganizationUser extends Model
 
     protected $hidden = [
         'password',
+        'remember_token',
     ];
 
     protected $casts = [

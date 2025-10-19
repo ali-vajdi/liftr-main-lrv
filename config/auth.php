@@ -50,6 +50,14 @@ return [
             'driver' => 'passport',
             'provider' => 'moderators',
         ],
+        'organization' => [
+            'driver' => 'passport',
+            'provider' => 'organization_users',
+        ],
+        'organization_api' => [
+            'driver' => 'passport',
+            'provider' => 'organization_users',
+        ],
         'client' => [
             'driver' => 'passport',
             'provider' => 'users',
@@ -81,6 +89,10 @@ return [
         'moderators' => [
             'driver' => 'eloquent',
             'model' => App\Models\Moderator::class,
+        ],
+        'organization_users' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\OrganizationUser::class,
         ],
         'clients' => [
             'driver' => 'eloquent',

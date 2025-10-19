@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\PrintController;
 use App\Http\Controllers\Admin\ViewController;
+use App\Http\Controllers\Organization\ViewController as OrganizationViewController;
+use App\Http\Controllers\Organization\AuthController as OrganizationAuthController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,9 +18,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Organization Panel Routes (Main Routes)
+Route::get('/login', [OrganizationViewController::class, 'showLogin'])->name('organization.login');
+Route::get('/lock-screen', [OrganizationViewController::class, 'showLockScreen'])->name('organization.lock');
+
+// Organization Dashboard and Management Routes
+Route::get('/', [OrganizationViewController::class, 'showDashboard'])->name('organization.dashboard');
+Route::get('/profile', [OrganizationViewController::class, 'showProfile'])->name('organization.profile');
+Route::get('/packages', [OrganizationViewController::class, 'showPackages'])->name('organization.packages.view');
+Route::get('/users', [OrganizationViewController::class, 'showUsers'])->name('organization.users.view');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     // Auth Routes
