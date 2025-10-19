@@ -40,5 +40,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     // Organizations Management Routes
     Route::get('organizations', [ViewController::class, 'showOrganizations'])->name('organizations.view');
+    Route::get('organizations/{organization}/users', [ViewController::class, 'showOrganizationUsers'])->name('organizations.users.view');
     
 });

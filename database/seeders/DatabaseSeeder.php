@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ModeratorSeeder::class,
             OrganizationSeeder::class,
+            OrganizationUserSeeder::class,
         ]);
     }
 }

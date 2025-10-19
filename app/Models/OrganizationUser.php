@@ -4,17 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Hash;
 
-class Organization extends Model
+class OrganizationUser extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'name',
-        'address',
-        'logo',
+        'phone_number',
+        'username',
+        'password',
         'status',
+        'organization_id',
         'moderator_id',
+    ];
+
+    protected $hidden = [
+        'password',
     ];
 
     protected $casts = [
@@ -37,15 +44,23 @@ class Organization extends Model
         return $this->status ? 'badge-success' : 'badge-danger';
     }
 
+    // Relationship with organization
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
+    }
+
     // Relationship with moderator
     public function moderator()
     {
         return $this->belongsTo(Moderator::class);
     }
 
-    // Relationship with organization users
-    public function users()
+    // Hash password when setting
+    public function setPasswordAttribute($value)
     {
-        return $this->hasMany(OrganizationUser::class);
+        if ($value) {
+            $this->attributes['password'] = Hash::make($value);
+        }
     }
 }

@@ -40,4 +40,10 @@ class ViewController extends Controller
         return view('admin.organizations.index');
     }
 
+    public function showOrganizationUsers($organizationId)
+    {
+        $organization = \App\Models\Organization::findOrFail($organizationId);
+        return view('admin.organizations.users.index', compact('organization'));
+    }
+
 } 

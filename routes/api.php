@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ModeratorController;
 use App\Http\Controllers\Api\OrganizationController;
+use App\Http\Controllers\Api\OrganizationUserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -39,5 +40,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Organizations Management
         Route::apiResource('organizations', OrganizationController::class);
+        
+        // Organization Users Management
+        Route::get('organizations/{organization}/users', [OrganizationUserController::class, 'index']);
+        Route::post('organizations/{organization}/users', [OrganizationUserController::class, 'store']);
+        Route::get('organizations/{organization}/users/{user}', [OrganizationUserController::class, 'show']);
+        Route::put('organizations/{organization}/users/{user}', [OrganizationUserController::class, 'update']);
+        Route::delete('organizations/{organization}/users/{user}', [OrganizationUserController::class, 'destroy']);
+        Route::post('organizations/{organization}/users/{user}/credentials', [OrganizationUserController::class, 'setCredentials']);
     });
 });

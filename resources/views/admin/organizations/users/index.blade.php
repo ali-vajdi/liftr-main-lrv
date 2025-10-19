@@ -1,6 +1,6 @@
 @extends('admin.layout.master')
 
-@section('title', 'مدیریت شرکت‌ها')
+@section('title', 'مدیریت کاربران سازمان')
 
 @section('content')
     <div class="layout-px-spacing">
@@ -8,26 +8,32 @@
             <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 layout-spacing">
                 <div class="widget widget-chart-one">
                     <div class="widget-heading">
-                        <h5 class="">مدیریت شرکت‌ها</h5>
+                        <h5 class="">مدیریت کاربران سازمان: {{ $organization->name }}</h5>
+                        <div class="mt-2">
+                            <a href="{{ route('admin.organizations.view') }}" class="btn btn-secondary btn-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg>
+                                بازگشت به لیست سازمان‌ها
+                            </a>
+                        </div>
                     </div>
                     <div class="widget-content">
                         @include('admin.components.datatable', [
-                            'title' => 'شرکت‌ها',
-                            'apiUrl' => '/api/admin/organizations',
+                            'title' => 'کاربران سازمان',
+                            'apiUrl' => '/api/admin/organizations/' . $organization->id . '/users',
                             'createButton' => true,
-                            'createButtonText' => 'افزودن شرکت جدید',
+                            'createButtonText' => 'افزودن کاربر جدید',
                             'columns' => [
                                 ['field' => 'id', 'label' => 'شناسه'],
-                                ['field' => 'name', 'label' => 'نام شرکت'],
-                                ['field' => 'address', 'label' => 'آدرس'],
+                                ['field' => 'name', 'label' => 'نام'],
+                                ['field' => 'phone_number', 'label' => 'شماره تلفن'],
                                 [
-                                    'field' => 'logo',
-                                    'label' => 'لوگو',
+                                    'field' => 'username',
+                                    'label' => 'نام کاربری',
                                     'formatter' => 'function(value) {
-                                        if (value) {
-                                            return `<img src="${value}" alt="Logo" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">`;
-                                        }
-                                        return "بدون لوگو";
+                                        return value || "تعین نشده";
                                     }',
                                 ],
                                 [
@@ -54,9 +60,9 @@
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>\';
                                 html += \'</button>\';
                                 
-                                // Users button
-                                html += \'<button type="button" class="btn btn-sm btn-warning users-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="مدیریت کاربران">\';
-                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>\';
+                                // Credentials button
+                                html += \'<button type="button" class="btn btn-sm btn-primary credentials-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="تنظیم نام کاربری و رمز عبور">\';
+                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-key"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>\';
                                 html += \'</button>\';
                             ',
                             'actionHandlers' => '
@@ -66,10 +72,10 @@
                                     window.onShow(id);
                                 });
                                 
-                                // Handle users button click
-                                $(".users-btn").on("click", function() {
+                                // Handle credentials button click
+                                $(".credentials-btn").on("click", function() {
                                     const id = $(this).data("id");
-                                    window.location.href = "/admin/organizations/" + id + "/users";
+                                    window.onCredentials(id);
                                 });
                             ',
                         ])
@@ -78,35 +84,36 @@
             </div>
         </div>
 
-        <!-- Modal for adding/editing organizations -->
-        <div class="modal fade" id="organizationModal" tabindex="-1" role="dialog" aria-labelledby="organizationModalLabel"
+        <!-- Modal for adding/editing users -->
+        <div class="modal fade" id="userModal" tabindex="-1" role="dialog" aria-labelledby="userModalLabel"
             aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="organizationModalLabel">افزودن شرکت</h5>
+                        <h5 class="modal-title" id="userModalLabel">افزودن کاربر</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form id="organizationForm">
-                            <input type="hidden" id="organizationId">
+                        <form id="userForm">
+                            <input type="hidden" id="userId">
                             <div class="form-group">
-                                <label for="name">نام شرکت <span class="text-danger">*</span></label>
+                                <label for="name">نام <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="name" name="name" required>
                             </div>
                             <div class="form-group">
-                                <label for="address">آدرس</label>
-                                <textarea class="form-control" id="address" name="address" rows="3"></textarea>
+                                <label for="phone_number">شماره تلفن <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="phone_number" name="phone_number" required>
                             </div>
                             <div class="form-group">
-                                <label for="logo">لوگو</label>
-                                <input type="file" class="form-control" id="logo" name="logo" accept="image/jpeg,image/png,image/jpg">
-                                <small class="form-text text-muted">فرمت‌های مجاز: JPG, PNG - حداکثر 2MB</small>
-                                <div id="logoPreview" class="mt-2" style="display: none;">
-                                    <img id="logoPreviewImg" src="" alt="پیش‌نمایش لوگو" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
-                                </div>
+                                <label for="username">نام کاربری</label>
+                                <input type="text" class="form-control" id="username" name="username">
+                            </div>
+                            <div class="form-group">
+                                <label for="password">رمز عبور</label>
+                                <input type="password" class="form-control" id="password" name="password">
+                                <small class="form-text text-muted">حداقل 6 کاراکتر</small>
                             </div>
                             <div class="form-group">
                                 <label for="status">وضعیت <span class="text-danger">*</span></label>
@@ -119,7 +126,40 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
-                        <button type="button" class="btn btn-primary" id="saveOrganization">ذخیره</button>
+                        <button type="button" class="btn btn-primary" id="saveUser">ذخیره</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Credentials Modal -->
+        <div class="modal fade" id="credentialsModal" tabindex="-1" role="dialog" aria-labelledby="credentialsModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="credentialsModalLabel">تنظیم نام کاربری و رمز عبور</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="credentialsForm">
+                            <input type="hidden" id="credentialsUserId">
+                            <div class="form-group">
+                                <label for="credentialsUsername">نام کاربری <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="credentialsUsername" name="username" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="credentialsPassword">رمز عبور <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control" id="credentialsPassword" name="password" required>
+                                <small class="form-text text-muted">حداقل 6 کاراکتر</small>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
+                        <button type="button" class="btn btn-primary" id="saveCredentials">ذخیره</button>
                     </div>
                 </div>
             </div>
@@ -131,7 +171,7 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="detailsModalLabel">جزئیات شرکت</h5>
+                        <h5 class="modal-title" id="detailsModalLabel">جزئیات کاربر</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -145,16 +185,16 @@
                                         <td id="detailId"></td>
                                     </tr>
                                     <tr>
-                                        <th>نام شرکت</th>
+                                        <th>نام</th>
                                         <td id="detailName"></td>
                                     </tr>
                                     <tr>
-                                        <th>آدرس</th>
-                                        <td id="detailAddress"></td>
+                                        <th>شماره تلفن</th>
+                                        <td id="detailPhoneNumber"></td>
                                     </tr>
                                     <tr>
-                                        <th>لوگو</th>
-                                        <td id="detailLogo"></td>
+                                        <th>نام کاربری</th>
+                                        <td id="detailUsername"></td>
                                     </tr>
                                     <tr>
                                         <th>وضعیت</th>
@@ -206,12 +246,13 @@
 @section('page-scripts')
     <script>
         $(document).ready(function() {
-            let currentOrganizationId = null;
+            let currentUserId = null;
+            const organizationId = {{ $organization->id }};
 
-            // Show organization details
+            // Show user details
             window.onShow = function(id) {
                 $.ajax({
-                    url: `/api/admin/organizations/${id}`,
+                    url: `/api/admin/organizations/${organizationId}/users/${id}`,
                     type: 'GET',
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
@@ -221,11 +262,8 @@
                         
                         $('#detailId').text(data.id);
                         $('#detailName').text(data.name);
-                        $('#detailAddress').text(data.address || 'ثبت نشده');
-                        $('#detailLogo').html(data.logo ? 
-                            `<img src="${data.logo}" alt="Logo" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">` : 
-                            'بدون لوگو'
-                        );
+                        $('#detailPhoneNumber').text(data.phone_number);
+                        $('#detailUsername').text(data.username || 'تعین نشده');
                         $('#detailStatus').html(data.status ? 
                             '<span class="badge badge-success">فعال</span>' : 
                             '<span class="badge badge-danger">غیرفعال</span>'
@@ -257,105 +295,92 @@
                 });
             };
 
-            // Create new organization
+            // Set credentials
+            window.onCredentials = function(id) {
+                $.ajax({
+                    url: `/api/admin/organizations/${organizationId}/users/${id}`,
+                    type: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
+                    },
+                    success: function(response) {
+                        const data = response.data;
+                        $('#credentialsUserId').val(data.id);
+                        $('#credentialsUsername').val(data.username || '');
+                        $('#credentialsPassword').val('');
+                        $('#credentialsModal').modal('show');
+                    },
+                    error: function(xhr) {
+                        if (xhr.status === 401) {
+                            swal({
+                                title: 'خطای دسترسی',
+                                text: 'لطفا مجددا وارد سیستم شوید',
+                                type: 'error',
+                                padding: '2em'
+                            }).then(function() {
+                                window.location.href = '/admin/login';
+                            });
+                        } else {
+                            swal({
+                                title: 'خطا',
+                                text: 'خطا در دریافت اطلاعات',
+                                type: 'error',
+                                padding: '2em'
+                            });
+                        }
+                    }
+                });
+            };
+
+            // Create new user
             $('.create-new-button').click(function() {
-                $('#organizationModalLabel').text('افزودن شرکت');
-                $('#organizationForm')[0].reset();
-                $('#organizationId').val('');
-                $('#logoPreview').hide();
-                $('#organizationModal').modal('show');
+                $('#userModalLabel').text('افزودن کاربر');
+                $('#userForm')[0].reset();
+                $('#userId').val('');
+                $('#userModal').modal('show');
             });
 
-            // Logo preview functionality
-            $('#logo').change(function() {
-                const file = this.files[0];
-                if (file) {
-                    // Check file type
-                    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-                    if (!allowedTypes.includes(file.type)) {
-                        swal({
-                            title: 'خطا',
-                            text: 'فرمت فایل باید JPG یا PNG باشد',
-                            type: 'error',
-                            padding: '2em'
-                        });
-                        $(this).val(''); // Clear the input
-                        $('#logoPreview').hide();
-                        return;
-                    }
-                    
-                    // Check file size (2MB = 2 * 1024 * 1024 bytes)
-                    if (file.size > 2 * 1024 * 1024) {
-                        swal({
-                            title: 'خطا',
-                            text: 'حجم فایل نمی‌تواند بیش از 2 مگابایت باشد',
-                            type: 'error',
-                            padding: '2em'
-                        });
-                        $(this).val(''); // Clear the input
-                        $('#logoPreview').hide();
-                        return;
-                    }
-                    
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        $('#logoPreviewImg').attr('src', e.target.result);
-                        $('#logoPreview').show();
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    $('#logoPreview').hide();
-                }
-            });
-
-            // Save organization (create or update)
-            $('#saveOrganization').click(function() {
-                const id = $('#organizationId').val();
+            // Save user (create or update)
+            $('#saveUser').click(function() {
+                const id = $('#userId').val();
                 const name = $('#name').val();
-                const address = $('#address').val();
+                const phoneNumber = $('#phone_number').val();
+                const username = $('#username').val();
+                const password = $('#password').val();
                 const status = $('#status').val() === '1' ? true : false;
 
-                if (!name) {
+                if (!name || !phoneNumber) {
                     swal({
                         title: 'خطا',
-                        text: 'لطفا نام شرکت را وارد کنید',
+                        text: 'لطفا نام و شماره تلفن را وارد کنید',
                         type: 'error',
                         padding: '2em'
                     });
                     return;
                 }
 
-                // Create FormData for file upload
-                const formData = new FormData();
-                formData.append('name', name);
-                formData.append('address', address);
-                formData.append('status', status);
-                
-                // Add logo file if selected
-                const logoFile = $('#logo')[0].files[0];
-                if (logoFile) {
-                    formData.append('logo', logoFile);
-                }
+                const data = {
+                    name: name,
+                    phone_number: phoneNumber,
+                    username: username,
+                    password: password,
+                    status: status
+                };
 
-                const url = id ? `/api/admin/organizations/${id}` : '/api/admin/organizations';
-                const method = id ? 'POST' : 'POST'; // Use POST for both with _method for PUT
-                if (id) {
-                    formData.append('_method', 'PUT');
-                }
-                const successMessage = id ? 'شرکت با موفقیت ویرایش شد' : 'شرکت با موفقیت ایجاد شد';
+                const url = id ? `/api/admin/organizations/${organizationId}/users/${id}` : `/api/admin/organizations/${organizationId}/users`;
+                const method = id ? 'PUT' : 'POST';
+                const successMessage = id ? 'کاربر با موفقیت ویرایش شد' : 'کاربر با موفقیت ایجاد شد';
 
                 $.ajax({
                     url: url,
                     type: method,
-                    data: formData,
-                    processData: false,
-                    contentType: false,
+                    data: data,
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                         'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
                     },
                     success: function(response) {
-                        $('#organizationModal').modal('hide');
+                        $('#userModal').modal('hide');
 
                         swal({
                             title: 'موفقیت',
@@ -402,35 +427,103 @@
                 });
             });
 
-            // Edit organization
+            // Save credentials
+            $('#saveCredentials').click(function() {
+                const userId = $('#credentialsUserId').val();
+                const username = $('#credentialsUsername').val();
+                const password = $('#credentialsPassword').val();
+
+                if (!username || !password) {
+                    swal({
+                        title: 'خطا',
+                        text: 'لطفا نام کاربری و رمز عبور را وارد کنید',
+                        type: 'error',
+                        padding: '2em'
+                    });
+                    return;
+                }
+
+                const data = {
+                    username: username,
+                    password: password
+                };
+
+                $.ajax({
+                    url: `/api/admin/organizations/${organizationId}/users/${userId}/credentials`,
+                    type: 'POST',
+                    data: data,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
+                    },
+                    success: function(response) {
+                        $('#credentialsModal').modal('hide');
+
+                        swal({
+                            title: 'موفقیت',
+                            text: 'نام کاربری و رمز عبور با موفقیت تنظیم شد',
+                            type: 'success',
+                            padding: '2em'
+                        });
+
+                        window.datatableApi.refresh();
+                    },
+                    error: function(xhr) {
+                        if (xhr.status === 422) {
+                            const errors = xhr.responseJSON.errors;
+                            let errorMessage = '';
+
+                            for (const key in errors) {
+                                errorMessage += errors[key].join('\n') + '\n';
+                            }
+
+                            swal({
+                                title: 'خطا در اعتبارسنجی',
+                                text: errorMessage,
+                                type: 'error',
+                                padding: '2em'
+                            });
+                        } else if (xhr.status === 401) {
+                            swal({
+                                title: 'خطای دسترسی',
+                                text: 'لطفا مجددا وارد سیستم شوید',
+                                type: 'error',
+                                padding: '2em'
+                            }).then(function() {
+                                window.location.href = '/admin/login';
+                            });
+                        } else {
+                            swal({
+                                title: 'خطا',
+                                text: 'خطا در ذخیره اطلاعات',
+                                type: 'error',
+                                padding: '2em'
+                            });
+                        }
+                    }
+                });
+            });
+
+            // Edit user
             window.onEdit = function(id) {
                 $.ajax({
-                    url: `/api/admin/organizations/${id}`,
+                    url: `/api/admin/organizations/${organizationId}/users/${id}`,
                     type: 'GET',
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
                     },
                     success: function(response) {
-                        const organization = response.data;
+                        const user = response.data;
 
-                        $('#organizationModalLabel').text('ویرایش شرکت');
-                        $('#organizationId').val(organization.id);
-                        $('#name').val(organization.name);
-                        $('#address').val(organization.address);
-                        $('#status').val(organization.status ? '1' : '0');
-                        
-                        // Show current logo if exists
-                        if (organization.logo) {
-                            $('#logoPreviewImg').attr('src', organization.logo);
-                            $('#logoPreview').show();
-                        } else {
-                            $('#logoPreview').hide();
-                        }
-                        
-                        // Clear file input
-                        $('#logo').val('');
+                        $('#userModalLabel').text('ویرایش کاربر');
+                        $('#userId').val(user.id);
+                        $('#name').val(user.name);
+                        $('#phone_number').val(user.phone_number);
+                        $('#username').val(user.username || '');
+                        $('#password').val('');
+                        $('#status').val(user.status ? '1' : '0');
 
-                        $('#organizationModal').modal('show');
+                        $('#userModal').modal('show');
                     },
                     error: function(xhr) {
                         if (xhr.status === 401) {
@@ -454,18 +547,18 @@
                 });
             };
 
-            // Delete organization
+            // Delete user
             window.onDelete = function(id) {
-                currentOrganizationId = id;
+                currentUserId = id;
                 $('#deleteConfirmationModal').modal('show');
             };
 
             // Confirm delete
             $('#confirmDelete').click(function() {
-                if (!currentOrganizationId) return;
+                if (!currentUserId) return;
 
                 $.ajax({
-                    url: `/api/admin/organizations/${currentOrganizationId}`,
+                    url: `/api/admin/organizations/${organizationId}/users/${currentUserId}`,
                     type: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
@@ -476,7 +569,7 @@
 
                         swal({
                             title: 'موفقیت',
-                            text: 'شرکت با موفقیت حذف شد',
+                            text: 'کاربر با موفقیت حذف شد',
                             type: 'success',
                             padding: '2em'
                         });
