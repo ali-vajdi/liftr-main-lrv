@@ -100,7 +100,6 @@ class BuildingController extends Controller
             'address' => 'required|string',
             'selected_latitude' => 'nullable|numeric|between:-90,90',
             'selected_longitude' => 'nullable|numeric|between:-180,180',
-            'service_day_of_month' => 'nullable|integer|min:1|max:31',
             'service_start_date' => 'nullable|string',
             'status' => 'required|in:true,false',
         ]);
@@ -203,7 +202,6 @@ class BuildingController extends Controller
             'address' => 'required|string',
             'selected_latitude' => 'nullable|numeric|between:-90,90',
             'selected_longitude' => 'nullable|numeric|between:-180,180',
-            'service_day_of_month' => 'nullable|integer|min:1|max:31',
             'service_start_date' => 'nullable|string',
             'status' => 'required|in:true,false',
         ]);
