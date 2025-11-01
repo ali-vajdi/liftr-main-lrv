@@ -186,13 +186,19 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="service_day_of_month">روز سرویس (روز ماه)</label>
                                 <input type="number" class="form-control" id="service_day_of_month" name="service_day_of_month" min="1" max="31">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="service_start_date">تاریخ شروع سرویس</label>
+                                <input type="text" class="form-control" id="service_start_date" name="service_start_date">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="status">وضعیت <span class="text-danger">*</span></label>
                                 <select class="form-control" id="status" name="status" required>
@@ -287,6 +293,10 @@
                             <td id="detailServiceDay"></td>
                         </tr>
                         <tr>
+                            <th>تاریخ شروع سرویس</th>
+                            <td id="detailServiceStartDate"></td>
+                        </tr>
+                        <tr>
                             <th>موقعیت انتخابی</th>
                             <td id="detailLocation"></td>
                         </tr>
@@ -374,7 +384,32 @@ $('.create-new-button').click(function() {
 $(document).ready(function() {
     // Load provinces on page load
     loadProvinces();
-    
+        
+    // Initialize JalaliDatePicker
+    jalaliDatepicker.startWatch({
+        selector: '#service_start_date',
+        date: true,
+        time: false,
+        hasSecond: false,
+        format: 'YYYY/MM/DD',
+        separatorChars: {
+            date: '/',
+            between: ' ',
+            time: ':'
+        },
+        persianDigits: false,
+        autoShow: true,
+        autoHide: true,
+        hideAfterChange: true,
+        showTodayBtn: true,
+        showEmptyBtn: true,
+        showCloseBtn: true,
+        useDropDownYears: true,
+        container: 'body',
+        zIndex: 10000,
+        maxDate: 'today'
+    });
+
     // Handle province change
     $('#province_id').on('change', function() {
         const provinceId = $(this).val();
@@ -414,6 +449,7 @@ $(document).ready(function() {
                     $('#province_id').val(data.province_id);
                     $('#address').val(data.address);
                     $('#service_day_of_month').val(data.service_day_of_month);
+                    $('#service_start_date').val(data.service_start_date_jalali || '');
                     $('#status').val(data.status ? 'true' : 'false');
                     $('#selected_latitude').val(data.selected_latitude);
                     $('#selected_longitude').val(data.selected_longitude);
@@ -638,6 +674,7 @@ window.onShow = function(id) {
                 $('#detailCity').text(data.city ? data.city.name : '-');
                 $('#detailAddress').text(data.address);
                 $('#detailServiceDay').text(data.service_day_of_month ? data.service_day_of_month + ' ماه' : 'تعریف نشده');
+                $('#detailServiceStartDate').text(data.service_start_date_jalali || '-');
                 $('#detailLocation').text(
                     data.selected_latitude && data.selected_longitude 
                         ? `${data.selected_latitude}, ${data.selected_longitude}`
