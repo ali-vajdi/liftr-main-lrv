@@ -62,6 +62,10 @@ return [
             'driver' => 'passport',
             'provider' => 'users',
         ],
+        'technician_api' => [
+            'driver' => 'passport',
+            'provider' => 'technicians',
+        ],
     ],
 
     /*
@@ -97,6 +101,10 @@ return [
         'clients' => [
             'driver' => 'eloquent',
             'model' => User::class,
+        ],
+        'technicians' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Technician::class,
         ],
 
         // 'users' => [

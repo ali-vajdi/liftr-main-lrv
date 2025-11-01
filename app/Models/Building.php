@@ -58,6 +58,11 @@ class Building extends Model
         return $this->hasMany(Elevator::class);
     }
 
+    public function services()
+    {
+        return $this->hasMany(Service::class);
+    }
+
     // Accessors
     public function getBuildingTypeTextAttribute()
     {

@@ -30,6 +30,8 @@ Route::get('/users', [OrganizationViewController::class, 'showUsers'])->name('or
 Route::get('/technicians', [OrganizationViewController::class, 'showTechnicians'])->name('organization.technicians.view');
 Route::get('/buildings', [OrganizationViewController::class, 'showBuildings'])->name('organization.buildings.view');
 Route::get('/buildings/{building}/elevators', [OrganizationViewController::class, 'showBuildingElevators'])->name('organization.buildings.elevators.view');
+Route::get('/services/pending', [OrganizationViewController::class, 'showPendingServices'])->name('organization.services.pending');
+Route::get('/services/assigned', [OrganizationViewController::class, 'showAssignedServices'])->name('organization.services.assigned');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     // Auth Routes

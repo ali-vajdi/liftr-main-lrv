@@ -12,7 +12,10 @@ use App\Http\Controllers\Api\Organization\UserController as OrgUserController;
 use App\Http\Controllers\Api\Organization\TechnicianController as OrgTechnicianController;
 use App\Http\Controllers\Api\Organization\BuildingController as OrgBuildingController;
 use App\Http\Controllers\Api\Organization\ElevatorController as OrgElevatorController;
+use App\Http\Controllers\Api\Organization\ServiceController as OrgServiceController;
 use App\Http\Controllers\Organization\AuthController as OrganizationAuthController;
+use App\Http\Controllers\Api\TechnicianAuthController;
+use App\Http\Controllers\Api\Technician\ServiceController as TechnicianServiceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -102,5 +105,30 @@ Route::prefix('organization')->name('organization.')->group(function () {
         
         // Organization Elevators API
         Route::apiResource('buildings.elevators', OrgElevatorController::class);
+        
+        // Organization Services API
+        Route::get('services/pending', [OrgServiceController::class, 'pending']);
+        Route::get('services/assigned', [OrgServiceController::class, 'assigned']);
+        Route::post('services/{service}/assign-technician', [OrgServiceController::class, 'assignTechnician']);
+        Route::get('services/technicians', [OrgServiceController::class, 'getTechnicians']);
+    });
+});
+
+// Technician Panel API Routes
+Route::prefix('technician')->name('technician.')->group(function () {
+    // Technician Authentication Routes
+    Route::post('login', [TechnicianAuthController::class, 'login']);
+    Route::post('send-otp', [TechnicianAuthController::class, 'sendOtp']);
+    Route::post('verify-otp', [TechnicianAuthController::class, 'verifyOtp']);
+    
+    // Protected Technician API Routes
+    Route::middleware('auth:technician_api')->group(function () {
+        Route::post('logout', [TechnicianAuthController::class, 'logout']);
+        Route::get('check-auth', [TechnicianAuthController::class, 'checkAuth']);
+        Route::get('profile', [TechnicianAuthController::class, 'profile']);
+        
+        // Technician Services API
+        Route::get('services/assigned-buildings', [TechnicianServiceController::class, 'assignedBuildings']);
+        Route::get('services/{service}', [TechnicianServiceController::class, 'show']);
     });
 });

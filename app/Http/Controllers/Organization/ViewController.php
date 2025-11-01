@@ -123,4 +123,33 @@ class ViewController extends Controller
         
         return view('organization.elevators.index', compact('organization', 'building'));
     }
+
+    // Services Management Views
+    public function showPendingServices()
+    {
+        // Get organization from authenticated user
+        $user = auth('organization')->user();
+        if (!$user) {
+            // If no authenticated user, get first organization for display
+            $organization = Organization::first();
+        } else {
+            $organization = $user->organization;
+        }
+        
+        return view('organization.services.pending', compact('organization'));
+    }
+
+    public function showAssignedServices()
+    {
+        // Get organization from authenticated user
+        $user = auth('organization')->user();
+        if (!$user) {
+            // If no authenticated user, get first organization for display
+            $organization = Organization::first();
+        } else {
+            $organization = $user->organization;
+        }
+        
+        return view('organization.services.assigned', compact('organization'));
+    }
 }

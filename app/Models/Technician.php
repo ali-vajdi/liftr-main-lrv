@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Hash;
 
-class Technician extends Model
+class Technician extends Authenticatable
 {
-    use HasFactory;
+    use HasFactory, HasApiTokens, Notifiable;
 
     protected $fillable = [
         'organization_id',
@@ -24,6 +26,7 @@ class Technician extends Model
 
     protected $hidden = [
         'password',
+        'remember_token',
     ];
 
     protected $casts = [
@@ -88,5 +91,17 @@ class Technician extends Model
     public function organizationUser()
     {
         return $this->belongsTo(OrganizationUser::class);
+    }
+
+    // Relationship with services
+    public function services()
+    {
+        return $this->hasMany(Service::class);
+    }
+
+    // Get assigned services
+    public function assignedServices()
+    {
+        return $this->hasMany(Service::class)->where('status', 'assigned');
     }
 }
