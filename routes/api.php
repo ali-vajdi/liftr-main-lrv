@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\OrganizationController;
 use App\Http\Controllers\Api\OrganizationUserController;
 use App\Http\Controllers\Api\PackageController;
 use App\Http\Controllers\Api\OrganizationPackageController;
+use App\Http\Controllers\Api\UnitChecklistController;
+use App\Http\Controllers\Api\DescriptionChecklistController;
 use App\Http\Controllers\Api\Organization\PackageController as OrgPackageController;
 use App\Http\Controllers\Api\Organization\UserController as OrgUserController;
 use App\Http\Controllers\Api\Organization\TechnicianController as OrgTechnicianController;
@@ -62,6 +64,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Packages Management
         Route::apiResource('packages', PackageController::class);
+        
+        // Unit Checklists Management
+        Route::apiResource('unit-checklists', UnitChecklistController::class);
+        
+        // Description Checklists Management
+        Route::apiResource('description-checklists', DescriptionChecklistController::class);
         
         // Organization Packages Management
         Route::get('organizations/{organization}/packages', [OrganizationPackageController::class, 'index']);

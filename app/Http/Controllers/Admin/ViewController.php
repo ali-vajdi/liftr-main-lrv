@@ -58,4 +58,16 @@ class ViewController extends Controller
         return view('admin.organizations.packages.index', compact('organization'));
     }
 
+    // Unit Checklists Management Views
+    public function showUnitChecklists()
+    {
+        return view('admin.unit-checklists.index');
+    }
+
+    // Description Checklists Management Views
+    public function showDescriptionChecklists()
+    {
+        return view('admin.description-checklists.index');
+    }
+
 } 

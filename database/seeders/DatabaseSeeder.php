@@ -17,6 +17,8 @@ class DatabaseSeeder extends Seeder
             OrganizationSeeder::class,
             OrganizationUserSeeder::class,
             PackageSeeder::class,
+            UnitChecklistSeeder::class,
+            DescriptionChecklistSeeder::class,
             ProvinceSeeder::class,
             CitySeeder::class,
         ]);

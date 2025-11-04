@@ -59,4 +59,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Packages Management Routes
     Route::get('packages', [ViewController::class, 'showPackages'])->name('packages.view');
     
+    // Unit Checklists Management Routes
+    Route::get('unit-checklists', [ViewController::class, 'showUnitChecklists'])->name('unit-checklists.view');
+    
+    // Description Checklists Management Routes
+    Route::get('description-checklists', [ViewController::class, 'showDescriptionChecklists'])->name('description-checklists.view');
+    
 });

@@ -92,6 +92,67 @@
                     </li>
                 </ul>
             </li>
+
+            <li class="menu {{ request()->routeIs('admin.unit-checklists.*') ? 'active' : '' }}">
+                <a href="#unit-checklists" data-toggle="collapse"
+                    aria-expanded="{{ request()->routeIs('admin.unit-checklists.*') ? 'true' : 'false' }}"
+                    class="dropdown-toggle">
+                    <div class="">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-check-square">
+                            <polyline points="9 11 12 14 22 4"></polyline>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        </svg>
+                        <span>چک لیست های واحد</span>
+                    </div>
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-chevron-right">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </a>
+                <ul class="collapse submenu list-unstyled {{ request()->routeIs('admin.unit-checklists.*') ? 'show' : '' }}"
+                    id="unit-checklists" data-parent="#accordionExample">
+                    <li class="{{ request()->routeIs('admin.unit-checklists.view') ? 'active' : '' }}">
+                        <a href="{{ route('admin.unit-checklists.view') }}">مدیریت چک لیست های واحد</a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="menu {{ request()->routeIs('admin.description-checklists.*') ? 'active' : '' }}">
+                <a href="#description-checklists" data-toggle="collapse"
+                    aria-expanded="{{ request()->routeIs('admin.description-checklists.*') ? 'true' : 'false' }}"
+                    class="dropdown-toggle">
+                    <div class="">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-file-text">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        <span>چک لیست های توضیحات</span>
+                    </div>
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-chevron-right">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </a>
+                <ul class="collapse submenu list-unstyled {{ request()->routeIs('admin.description-checklists.*') ? 'show' : '' }}"
+                    id="description-checklists" data-parent="#accordionExample">
+                    <li class="{{ request()->routeIs('admin.description-checklists.view') ? 'active' : '' }}">
+                        <a href="{{ route('admin.description-checklists.view') }}">مدیریت چک لیست های توضیحات</a>
+                    </li>
+                </ul>
+            </li>
         </ul>
         
     </nav>

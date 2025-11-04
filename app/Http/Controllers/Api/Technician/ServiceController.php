@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\Technician;
 
 use App\Http\Controllers\Controller;
 use App\Models\Service;
+use App\Models\UnitChecklist;
+use App\Models\DescriptionChecklist;
 use Illuminate\Http\Request;
 use Morilog\Jalali\Jalalian;
 
@@ -83,9 +85,21 @@ class ServiceController extends Controller
             $service->completed_at_jalali = Jalalian::forge($service->completed_at)->format('Y/m/d H:i:s');
         }
 
+        // Get unit checklists ordered by order field
+        $unitChecklists = UnitChecklist::orderBy('order', 'asc')
+            ->select('id', 'title', 'order')
+            ->get();
+
+        // Get description checklists ordered by order field
+        $descriptionChecklists = DescriptionChecklist::orderBy('order', 'asc')
+            ->select('id', 'title', 'order')
+            ->get();
+
         return response()->json([
             'success' => true,
-            'data' => $service
+            'data' => $service,
+            'checklists' => $unitChecklists,
+            'description_checklists' => $descriptionChecklists
         ]);
     }
 }
