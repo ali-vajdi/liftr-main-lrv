@@ -221,6 +221,7 @@ class ServiceController extends Controller
 
         $validator = Validator::make($request->all(), [
             'technician_id' => 'required|exists:technicians,id',
+            'organization_note' => 'nullable|string|max:5000',
         ]);
 
         if ($validator->fails()) {
@@ -253,6 +254,7 @@ class ServiceController extends Controller
             'technician_id' => $request->technician_id,
             'status' => Service::STATUS_ASSIGNED,
             'assigned_at' => now(),
+            'organization_note' => $request->organization_note,
         ]);
 
         $service->load(['building.province', 'building.city', 'building.elevators', 'technician']);

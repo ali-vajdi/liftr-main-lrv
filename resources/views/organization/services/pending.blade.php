@@ -133,6 +133,10 @@
                             <option value="">در حال بارگذاری...</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="organization_note">یادداشت سازمان</label>
+                        <textarea class="form-control" id="organization_note" name="organization_note" rows="4" placeholder="یادداشت سازمان را وارد کنید..."></textarea>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">لغو</button>
@@ -213,7 +217,9 @@ window.onAssign = function(id) {
         $(document).on('click', '#saveAssign', function() {
         console.log("saveAssign button clicked");
         const technicianId = $('#technician_id').val();
+        const organizationNote = $('#organization_note').val();
         console.log("Technician ID:", technicianId);
+        console.log("Organization Note:", organizationNote);
         console.log("Current Service ID:", currentServiceId);
         
         if (!technicianId) {
@@ -256,7 +262,8 @@ window.onAssign = function(id) {
             url: `/api/organization/services/${currentServiceId}/assign-technician`,
             type: 'POST',
             data: {
-                technician_id: technicianId
+                technician_id: technicianId,
+                organization_note: organizationNote
             },
             headers: {
                 'Authorization': 'Bearer ' + token
@@ -266,6 +273,7 @@ window.onAssign = function(id) {
                 if (response.success) {
                     $('#assignModal').modal('hide');
                     $('#assignForm')[0].reset();
+                    $('#organization_note').val('');
                     currentServiceId = null;
                     
                     swal({

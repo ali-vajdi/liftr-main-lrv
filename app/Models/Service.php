@@ -16,6 +16,8 @@ class Service extends Model
         'service_year',
         'status',
         'notes',
+        'organization_note',
+        'user_note',
         'assigned_at',
         'completed_at',
     ];
