@@ -22,7 +22,6 @@ class ServiceController extends Controller
         // Get all active buildings with service_start_date
         $buildings = Building::where('organization_id', $organizationId)
             ->where('status', true)
-            ->whereNotNull('service_start_date')
             ->get();
 
         $currentJalali = Jalalian::now();
