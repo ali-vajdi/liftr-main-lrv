@@ -85,9 +85,14 @@
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map-pin"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>\';
                                 html += \'</button>\';
                                 
-                                // Elevators button
+                                // Elevators button (modal)
                                 html += \'<button type="button" class="btn btn-sm btn-success elevators-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="مدیریت آسانسورها">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-up"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>\';
+                                html += \'</button>\';
+                                
+                                // Elevators list button (page)
+                                html += \'<button type="button" class="btn btn-sm btn-primary elevators-list-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="لیست آسانسورها">\';
+                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>\';
                                 html += \'</button>\';
                             ',
                             'actionHandlers' => '
@@ -103,10 +108,16 @@
                                     window.onShowLocation(id);
                                 });
                                 
-                                // Handle elevators button click
+                                // Handle elevators button click (modal)
                                 $(".elevators-btn").on("click", function() {
                                     const id = $(this).data("id");
                                     window.onShowElevators(id);
+                                });
+                                
+                                // Handle elevators list button click (page)
+                                $(".elevators-list-btn").on("click", function() {
+                                    const id = $(this).data("id");
+                                    window.location.href = `/buildings/${id}/elevators`;
                                 });
                             ',
                         ])
@@ -187,6 +198,14 @@
                                 <input type="text" class="form-control" id="service_start_date" name="service_start_date">
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="elevators_count">تعداد آسانسورها</label>
+                                <input type="number" class="form-control" id="elevators_count" name="elevators_count" min="0" value="0">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="status">وضعیت <span class="text-danger">*</span></label>
@@ -286,6 +305,10 @@
                             <td id="detailLocation"></td>
                         </tr>
                         <tr>
+                            <th>تعداد آسانسورها</th>
+                            <td id="detailElevatorsCount"></td>
+                        </tr>
+                        <tr>
                             <th>وضعیت</th>
                             <td id="detailStatus"></td>
                         </tr>
@@ -319,6 +342,31 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Elevators Modal -->
+<div class="modal fade" id="elevatorsModal" tabindex="-1" role="dialog" aria-labelledby="elevatorsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="elevatorsModalLabel">مدیریت آسانسورها</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="elevatorsForm">
+                <div class="modal-body">
+                    <div id="elevatorsContainer">
+                        <!-- Elevator forms will be dynamically generated here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
+                    <button type="button" class="btn btn-primary" id="saveElevators">ذخیره آسانسورها</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -437,6 +485,7 @@ $(document).ready(function() {
                     $('#status').val(data.status ? 'true' : 'false');
                     $('#selected_latitude').val(data.selected_latitude);
                     $('#selected_longitude').val(data.selected_longitude);
+                    $('#elevators_count').val(data.elevators_count || 0);
                     
                 // Load cities for selected province
                 if (data.province_id) {
@@ -663,6 +712,7 @@ window.onShow = function(id) {
                         ? `${data.selected_latitude}, ${data.selected_longitude}`
                         : 'تعریف نشده'
                 );
+                $('#detailElevatorsCount').text(data.elevators_count || 0);
                 $('#detailStatus').html(data.status ? 
                     '<span class="badge badge-success">فعال</span>' : 
                     '<span class="badge badge-danger">غیرفعال</span>'
@@ -680,8 +730,213 @@ window.onShow = function(id) {
 
 // Show building elevators
 window.onShowElevators = function(id) {
-    window.location.href = `/buildings/${id}/elevators`;
+    currentBuildingId = id;
+    
+    // Load building data to get elevators_count
+    $.ajax({
+        url: `/api/organization/buildings/${id}`,
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
+        },
+        success: function(response) {
+            if (response.success) {
+                const building = response.data;
+                const elevatorsCount = building.elevators_count || 0;
+                
+                // Load existing elevators
+                $.ajax({
+                    url: `/api/organization/buildings/${id}/elevators?all=true`,
+                    type: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
+                    },
+                    success: function(elevatorsResponse) {
+                        if (elevatorsResponse.success) {
+                            const existingElevators = elevatorsResponse.data || [];
+                            renderElevatorsForm(elevatorsCount, existingElevators);
+                            $('#elevatorsModal').modal('show');
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error loading elevators:', xhr);
+                        renderElevatorsForm(elevatorsCount, []);
+                        $('#elevatorsModal').modal('show');
+                    }
+                });
+            }
+        },
+        error: function(xhr) {
+            console.error('Error loading building:', xhr);
+            swal({
+                title: 'خطا',
+                text: 'خطا در بارگذاری اطلاعات ساختمان',
+                type: 'error',
+                padding: '2em'
+            });
+        }
+    });
 };
+
+// Render elevators form
+function renderElevatorsForm(count, existingElevators) {
+    const container = $('#elevatorsContainer');
+    container.empty();
+    
+    if (count === 0) {
+        container.html('<div class="alert alert-info">تعداد آسانسورها برای این ساختمان تعریف نشده است. لطفاً ابتدا تعداد آسانسورها را در فرم ویرایش ساختمان مشخص کنید.</div>');
+        return;
+    }
+    
+    for (let i = 0; i < count; i++) {
+        const elevator = existingElevators[i] || null;
+        const elevatorHtml = `
+            <div class="card mb-3 elevator-form-item" data-index="${i}">
+                <div class="card-header">
+                    <h6 class="mb-0">آسانسور ${i + 1}</h6>
+                </div>
+                <div class="card-body">
+                    <input type="hidden" class="elevator-id" value="${elevator ? elevator.id : ''}">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>نام آسانسور <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control elevator-name" value="${elevator ? elevator.name : ''}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>تعداد توقف <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control elevator-stops-count" value="${elevator ? elevator.stops_count : ''}" min="1" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>ظرفیت <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control elevator-capacity" value="${elevator ? elevator.capacity : ''}" min="1" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>وضعیت <span class="text-danger">*</span></label>
+                                <select class="form-control elevator-status" required>
+                                    <option value="true" ${elevator && elevator.status ? 'selected' : ''}>فعال</option>
+                                    <option value="false" ${elevator && !elevator.status ? 'selected' : ''}>غیرفعال</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>توضیحات</label>
+                                <textarea class="form-control elevator-description" rows="3">${elevator ? (elevator.description || '') : ''}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.append(elevatorHtml);
+    }
+}
+
+// Handle save elevators
+$('#saveElevators').on('click', function() {
+    if (!currentBuildingId) {
+        swal({
+            title: 'خطا',
+            text: 'شناسه ساختمان نامعتبر است',
+            type: 'error',
+            padding: '2em'
+        });
+        return;
+    }
+    
+    const elevators = [];
+    let hasError = false;
+    
+    $('.elevator-form-item').each(function() {
+        if (hasError) return false;
+        
+        const id = $(this).find('.elevator-id').val();
+        const name = $(this).find('.elevator-name').val();
+        const stopsCount = $(this).find('.elevator-stops-count').val();
+        const capacity = $(this).find('.elevator-capacity').val();
+        const status = $(this).find('.elevator-status').val();
+        const description = $(this).find('.elevator-description').val();
+        
+        if (!name || !stopsCount || !capacity) {
+            swal({
+                title: 'خطا',
+                text: 'لطفاً تمام فیلدهای آسانسورها را پر کنید',
+                type: 'error',
+                padding: '2em'
+            });
+            hasError = true;
+            return false;
+        }
+        
+        elevators.push({
+            id: id || null,
+            name: name,
+            stops_count: parseInt(stopsCount),
+            capacity: parseInt(capacity),
+            status: status === 'true',
+            description: description || null
+        });
+    });
+    
+    if (hasError) {
+        return;
+    }
+    
+    // Save elevators
+    $.ajax({
+        url: `/api/organization/buildings/${currentBuildingId}/elevators/bulk`,
+        type: 'POST',
+        data: JSON.stringify({ elevators: elevators }),
+        contentType: 'application/json',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
+        },
+        success: function(response) {
+            if (response.success) {
+                $('#elevatorsModal').modal('hide');
+                swal({
+                    title: 'موفقیت',
+                    text: response.message,
+                    type: 'success',
+                    padding: '2em'
+                });
+            }
+        },
+        error: function(xhr) {
+            if (xhr.status === 422) {
+                const errors = xhr.responseJSON.errors;
+                let errorMessage = 'خطاهای اعتبارسنجی:\n';
+                for (const field in errors) {
+                    errorMessage += errors[field][0] + '\n';
+                }
+                swal({
+                    title: 'خطا',
+                    text: errorMessage,
+                    type: 'error',
+                    padding: '2em'
+                });
+            } else {
+                swal({
+                    title: 'خطا',
+                    text: 'خطا در ذخیره اطلاعات آسانسورها',
+                    type: 'error',
+                    padding: '2em'
+                });
+            }
+        }
+    });
+});
 
 // Show building location on map
 window.onShowLocation = function(id) {

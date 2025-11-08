@@ -36,6 +36,16 @@ class ElevatorController extends Controller
             $query->where('status', $request->status === 'true' || $request->status === true);
         }
 
+        // If all parameter is set, return all elevators without pagination
+        if ($request->has('all') && $request->all === 'true') {
+            $elevators = $query->orderBy('created_at', 'asc')->get();
+            
+            return response()->json([
+                'success' => true,
+                'data' => $elevators
+            ]);
+        }
+
         $elevators = $query->orderBy('created_at', 'desc')->paginate(10);
 
         return response()->json([
@@ -66,6 +76,7 @@ class ElevatorController extends Controller
             'stops_count' => 'required|integer|min:1',
             'capacity' => 'required|integer|min:1',
             'status' => 'required|in:true,false',
+            'description' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -128,6 +139,7 @@ class ElevatorController extends Controller
             'stops_count' => 'required|integer|min:1',
             'capacity' => 'required|integer|min:1',
             'status' => 'required|in:true,false',
+            'description' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -169,6 +181,96 @@ class ElevatorController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'آسانسور با موفقیت حذف شد'
+        ]);
+    }
+
+    /**
+     * Bulk create/update elevators for a building
+     */
+    public function bulk(Request $request, $buildingId)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Verify building belongs to organization
+        $building = Building::where('organization_id', $user->organization_id)
+            ->findOrFail($buildingId);
+
+        $validator = Validator::make($request->all(), [
+            'elevators' => 'required|array',
+            'elevators.*.id' => 'nullable|exists:elevators,id',
+            'elevators.*.name' => 'required|string|max:255',
+            'elevators.*.stops_count' => 'required|integer|min:1',
+            'elevators.*.capacity' => 'required|integer|min:1',
+            'elevators.*.status' => 'required|boolean',
+            'elevators.*.description' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $elevators = $request->elevators;
+        $created = 0;
+        $updated = 0;
+
+        // Get existing elevator IDs for this building
+        $existingIds = Elevator::where('building_id', $buildingId)
+            ->pluck('id')
+            ->toArray();
+
+        // Process each elevator
+        foreach ($elevators as $elevatorData) {
+            if (isset($elevatorData['id']) && in_array($elevatorData['id'], $existingIds)) {
+                // Update existing elevator
+                $elevator = Elevator::where('building_id', $buildingId)
+                    ->findOrFail($elevatorData['id']);
+                
+                $elevator->update([
+                    'name' => $elevatorData['name'],
+                    'stops_count' => $elevatorData['stops_count'],
+                    'capacity' => $elevatorData['capacity'],
+                    'status' => $elevatorData['status'],
+                    'description' => $elevatorData['description'] ?? null,
+                ]);
+                $updated++;
+            } else {
+                // Create new elevator
+                Elevator::create([
+                    'building_id' => $buildingId,
+                    'name' => $elevatorData['name'],
+                    'stops_count' => $elevatorData['stops_count'],
+                    'capacity' => $elevatorData['capacity'],
+                    'status' => $elevatorData['status'],
+                    'description' => $elevatorData['description'] ?? null,
+                ]);
+                $created++;
+            }
+        }
+
+        // Delete elevators that are not in the submitted list
+        $submittedIds = array_filter(array_column($elevators, 'id'));
+        $toDelete = array_diff($existingIds, $submittedIds);
+        if (!empty($toDelete)) {
+            Elevator::where('building_id', $buildingId)
+                ->whereIn('id', $toDelete)
+                ->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "آسانسورها با موفقیت ذخیره شدند. {$created} مورد ایجاد و {$updated} مورد به‌روزرسانی شد.",
+            'data' => [
+                'created' => $created,
+                'updated' => $updated,
+                'deleted' => count($toDelete)
+            ]
         ]);
     }
 }

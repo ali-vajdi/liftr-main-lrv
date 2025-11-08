@@ -15,6 +15,7 @@ class Elevator extends Model
         'stops_count',
         'capacity',
         'status',
+        'description',
     ];
 
     protected $casts = [

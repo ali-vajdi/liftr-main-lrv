@@ -102,6 +102,7 @@ class BuildingController extends Controller
             'selected_longitude' => 'nullable|numeric|between:-180,180',
             'service_start_date' => 'nullable|string',
             'status' => 'required|in:true,false',
+            'elevators_count' => 'nullable|integer|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -116,6 +117,7 @@ class BuildingController extends Controller
         $data['organization_id'] = $user->organization_id;
         $data['organization_user_id'] = $user->id;
         $data['status'] = $data['status'] === 'true' || $data['status'] === true;
+        $data['elevators_count'] = $data['elevators_count'] ?? 0;
 
         // Convert Jalali date to Gregorian
         if (!empty($data['service_start_date'])) {
@@ -164,7 +166,7 @@ class BuildingController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $building = Building::with(['province', 'city', 'organizationUser'])
+        $building = Building::with(['province', 'city', 'organizationUser', 'elevators'])
             ->where('organization_id', $user->organization_id)
             ->findOrFail($id);
 
@@ -204,6 +206,7 @@ class BuildingController extends Controller
             'selected_longitude' => 'nullable|numeric|between:-180,180',
             'service_start_date' => 'nullable|string',
             'status' => 'required|in:true,false',
+            'elevators_count' => 'nullable|integer|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -216,6 +219,7 @@ class BuildingController extends Controller
 
         $data = $validator->validated();
         $data['status'] = $data['status'] === 'true' || $data['status'] === true;
+        $data['elevators_count'] = $data['elevators_count'] ?? $building->elevators_count ?? 0;
 
         // Convert Jalali date to Gregorian
         if (!empty($data['service_start_date'])) {

@@ -23,6 +23,7 @@ class Building extends Model
         'selected_longitude',
         'service_start_date',
         'status',
+        'elevators_count',
     ];
 
     protected $casts = [

@@ -113,6 +113,7 @@ Route::prefix('organization')->name('organization.')->group(function () {
         
         // Organization Elevators API
         Route::apiResource('buildings.elevators', OrgElevatorController::class);
+        Route::post('buildings/{buildingId}/elevators/bulk', [OrgElevatorController::class, 'bulk']);
         
         // Organization Services API
         Route::get('services/pending', [OrgServiceController::class, 'pending']);
