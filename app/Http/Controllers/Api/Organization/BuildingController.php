@@ -65,6 +65,9 @@ class BuildingController extends Controller
             if ($building->service_start_date) {
                 $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d H:i:s');
             }
+            if ($building->service_end_date) {
+                $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d H:i:s');
+            }
             return $building;
         });
 
@@ -101,6 +104,7 @@ class BuildingController extends Controller
             'selected_latitude' => 'nullable|numeric|between:-90,90',
             'selected_longitude' => 'nullable|numeric|between:-180,180',
             'service_start_date' => 'nullable|string',
+            'service_end_date' => 'nullable|string',
             'status' => 'required|in:true,false',
             'elevators_count' => 'nullable|integer|min:0',
         ]);
@@ -141,12 +145,37 @@ class BuildingController extends Controller
             unset($data['service_start_date']);
         }
 
+        // Convert Jalali date to Gregorian for service_end_date
+        if (!empty($data['service_end_date'])) {
+            try {
+                // Try with time format first
+                try {
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d H:i:s', $data['service_end_date']);
+                } catch (\Exception $e) {
+                    // If that fails, try without time
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d H:i:s', $data['service_end_date']);
+                }
+                $data['service_end_date'] = $jalaliDate->toCarbon()->format('Y-m-d H:i:s');
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid date format for service_end_date',
+                    'errors' => ['service_end_date' => ['فرمت تاریخ نامعتبر است']]
+                ], 422);
+            }
+        } else {
+            unset($data['service_end_date']);
+        }
+
         $building = Building::create($data);
         $building = $building->load(['province', 'city', 'organizationUser']);
         
-        // Add Jalali formatted date
+        // Add Jalali formatted dates
         if ($building->service_start_date) {
             $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d H:i:s');
+        }
+        if ($building->service_end_date) {
+            $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d H:i:s');
         }
 
         return response()->json([
@@ -170,9 +199,12 @@ class BuildingController extends Controller
             ->where('organization_id', $user->organization_id)
             ->findOrFail($id);
 
-        // Add Jalali formatted date
+        // Add Jalali formatted dates
         if ($building->service_start_date) {
             $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d H:i:s');
+        }
+        if ($building->service_end_date) {
+            $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d H:i:s');
         }
 
         return response()->json([
@@ -244,12 +276,38 @@ class BuildingController extends Controller
             $data['service_start_date'] = null;
         }
 
+        // Convert Jalali date to Gregorian for service_end_date
+        if (!empty($data['service_end_date'])) {
+            try {
+                // Try with time format first
+                try {
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d H:i:s', $data['service_end_date']);
+                } catch (\Exception $e) {
+                    // If that fails, try without time
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d H:i:s', $data['service_end_date']);
+                }
+                $data['service_end_date'] = $jalaliDate->toCarbon()->format('Y-m-d H:i:s');
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid date format for service_end_date',
+                    'errors' => ['service_end_date' => ['فرمت تاریخ نامعتبر است']]
+                ], 422);
+            }
+        } else {
+            // If empty, set to null to allow clearing the date
+            $data['service_end_date'] = null;
+        }
+
         $building->update($data);
         $building = $building->load(['province', 'city', 'organizationUser']);
         
-        // Add Jalali formatted date
+        // Add Jalali formatted dates
         if ($building->service_start_date) {
             $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d H:i:s');
+        }
+        if ($building->service_end_date) {
+            $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d H:i:s');
         }
 
         return response()->json([

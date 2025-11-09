@@ -22,6 +22,7 @@ class Building extends Model
         'selected_latitude',
         'selected_longitude',
         'service_start_date',
+        'service_end_date',
         'status',
         'elevators_count',
     ];
@@ -30,6 +31,7 @@ class Building extends Model
         'selected_latitude' => 'decimal:8',
         'selected_longitude' => 'decimal:8',
         'service_start_date' => 'timestamp',
+        'service_end_date' => 'timestamp',
         'status' => 'boolean',
     ];
 

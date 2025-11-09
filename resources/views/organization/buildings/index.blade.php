@@ -200,6 +200,14 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
+                                <label for="service_end_date">تاریخ پایان سرویس</label>
+                                <input type="text" class="form-control" id="service_end_date" name="service_end_date">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
                                 <label for="elevators_count">تعداد آسانسورها</label>
                                 <input type="number" class="form-control" id="elevators_count" name="elevators_count" min="0" value="0">
                             </div>
@@ -299,6 +307,10 @@
                         <tr>
                             <th>تاریخ شروع سرویس</th>
                             <td id="detailServiceStartDate"></td>
+                        </tr>
+                        <tr>
+                            <th>تاریخ پایان سرویس</th>
+                            <td id="detailServiceEndDate"></td>
                         </tr>
                         <tr>
                             <th>موقعیت انتخابی</th>
@@ -418,7 +430,7 @@ $(document).ready(function() {
     // Load provinces on page load
     loadProvinces();
         
-    // Initialize JalaliDatePicker
+    // Initialize JalaliDatePicker for service_start_date
     jalaliDatepicker.startWatch({
         selector: '#service_start_date',
         date: true,
@@ -428,7 +440,30 @@ $(document).ready(function() {
         separatorChars: {
             date: '/',
             between: ' ',
-            time: ':'
+        },
+        persianDigits: false,
+        autoShow: true,
+        autoHide: true,
+        hideAfterChange: true,
+        showTodayBtn: true,
+        showEmptyBtn: true,
+        showCloseBtn: true,
+        useDropDownYears: true,
+        container: 'body',
+        zIndex: 10000,
+        maxDate: 'today'
+    });
+
+    // Initialize JalaliDatePicker for service_end_date
+    jalaliDatepicker.startWatch({
+        selector: '#service_end_date',
+        date: true,
+        time: false,
+        hasSecond: false,
+        format: 'YYYY/MM/DD',
+        separatorChars: {
+            date: '/',
+            between: ' ',
         },
         persianDigits: false,
         autoShow: true,
@@ -482,6 +517,7 @@ $(document).ready(function() {
                     $('#province_id').val(data.province_id);
                     $('#address').val(data.address);
                     $('#service_start_date').val(data.service_start_date_jalali || '');
+                    $('#service_end_date').val(data.service_end_date_jalali || '');
                     $('#status').val(data.status ? 'true' : 'false');
                     $('#selected_latitude').val(data.selected_latitude);
                     $('#selected_longitude').val(data.selected_longitude);
@@ -707,6 +743,7 @@ window.onShow = function(id) {
                 $('#detailCity').text(data.city ? data.city.name : '-');
                 $('#detailAddress').text(data.address);
                 $('#detailServiceStartDate').text(data.service_start_date_jalali || '-');
+                $('#detailServiceEndDate').text(data.service_end_date_jalali || '-');
                 $('#detailLocation').text(
                     data.selected_latitude && data.selected_longitude 
                         ? `${data.selected_latitude}, ${data.selected_longitude}`
