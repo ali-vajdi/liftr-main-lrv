@@ -33,6 +33,7 @@ class Service extends Model
     const STATUS_PENDING = 'pending';
     const STATUS_ASSIGNED = 'assigned';
     const STATUS_COMPLETED = 'completed';
+    const STATUS_EXPIRED = 'expired';
 
     // Relationships
     public function building()
@@ -45,6 +46,11 @@ class Service extends Model
         return $this->belongsTo(Technician::class);
     }
 
+    public function checklist()
+    {
+        return $this->hasOne(ServiceChecklist::class);
+    }
+
     // Accessors
     public function getStatusTextAttribute()
     {
@@ -52,6 +58,7 @@ class Service extends Model
             'pending' => 'در انتظار',
             'assigned' => 'اختصاص داده شده',
             'completed' => 'تکمیل شده',
+            'expired' => 'منقضی شده',
         ];
         
         return $statuses[$this->status] ?? $this->status;
@@ -63,6 +70,7 @@ class Service extends Model
             'pending' => 'badge-warning',
             'assigned' => 'badge-info',
             'completed' => 'badge-success',
+            'expired' => 'badge-danger',
         ];
         
         return $classes[$this->status] ?? 'badge-secondary';
@@ -110,5 +118,13 @@ class Service extends Model
     public function scopeCompleted($query)
     {
         return $query->where('status', self::STATUS_COMPLETED);
+    }
+
+    /**
+     * Scope for expired services
+     */
+    public function scopeExpired($query)
+    {
+        return $query->where('status', self::STATUS_EXPIRED);
     }
 }

@@ -118,6 +118,7 @@ Route::prefix('organization')->name('organization.')->group(function () {
         // Organization Services API
         Route::get('services/pending', [OrgServiceController::class, 'pending']);
         Route::get('services/assigned', [OrgServiceController::class, 'assigned']);
+        Route::get('services/all', [OrgServiceController::class, 'all']);
         Route::post('services/{service}/assign-technician', [OrgServiceController::class, 'assignTechnician']);
         Route::get('services/technicians', [OrgServiceController::class, 'getTechnicians']);
     });
@@ -139,5 +140,6 @@ Route::prefix('technician')->name('technician.')->group(function () {
         // Technician Services API
         Route::get('services/assigned-buildings', [TechnicianServiceController::class, 'assignedBuildings']);
         Route::get('services/{service}', [TechnicianServiceController::class, 'show']);
+        Route::post('services/{service}/submit-checklist', [TechnicianServiceController::class, 'submitChecklist']);
     });
 });

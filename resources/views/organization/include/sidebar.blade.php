@@ -167,6 +167,9 @@
                 </a>
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.services.*') ? 'show' : '' }}"
                     id="services" data-parent="#accordionExample">
+                    <li class="{{ request()->routeIs('organization.services.all') ? 'active' : '' }}">
+                        <a href="{{ route('organization.services.all') }}">همه سرویس‌ها</a>
+                    </li>
                     <li class="{{ request()->routeIs('organization.services.pending') ? 'active' : '' }}">
                         <a href="{{ route('organization.services.pending') }}">سرویس‌های در انتظار</a>
                     </li>
