@@ -138,6 +138,9 @@
                     <li class="{{ request()->routeIs('organization.buildings.view') ? 'active' : '' }}">
                         <a href="{{ route('organization.buildings.view') }}">مدیریت ساختمان‌ها/پروژه‌ها</a>
                     </li>
+                    <li class="{{ request()->routeIs('organization.buildings.expiring') ? 'active' : '' }}">
+                        <a href="{{ route('organization.buildings.expiring') }}">قراردادهای رو به اتمام</a>
+                    </li>
                 </ul>
             </li>
 

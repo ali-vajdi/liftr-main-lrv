@@ -106,6 +106,20 @@ class ViewController extends Controller
         return view('organization.buildings.index', compact('organization'));
     }
 
+    public function showExpiringBuildings()
+    {
+        // Get organization from authenticated user
+        $user = auth('organization')->user();
+        if (!$user) {
+            // If no authenticated user, get first organization for display
+            $organization = Organization::first();
+        } else {
+            $organization = $user->organization;
+        }
+        
+        return view('organization.buildings.expiring', compact('organization'));
+    }
+
     public function showBuildingElevators($buildingId)
     {
         // Get organization from authenticated user

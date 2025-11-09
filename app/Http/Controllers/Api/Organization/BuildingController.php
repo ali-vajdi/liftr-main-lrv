@@ -58,7 +58,18 @@ class BuildingController extends Controller
             $query->where('status', $request->status === 'true' || $request->status === true);
         }
 
-        $buildings = $query->orderBy('created_at', 'desc')->paginate(10);
+        // Filter expiring contracts (service_end_date within next 30 days)
+        if ($request->has('expiring') && $request->expiring === 'true') {
+            $today = Carbon::today();
+            $thirtyDaysLater = Carbon::today()->addDays(30);
+            $query->whereNotNull('service_end_date')
+                  ->whereBetween('service_end_date', [$today, $thirtyDaysLater])
+                  ->orderBy('service_end_date', 'asc');
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        $buildings = $query->paginate(10);
         
         // Add Jalali formatted dates
         $items = collect($buildings->items())->map(function ($building) {
