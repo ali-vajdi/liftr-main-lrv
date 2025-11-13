@@ -92,6 +92,45 @@ class ServiceController extends Controller
         if ($service->completed_at) {
             $service->completed_at_jalali = Jalalian::forge($service->completed_at)->format('Y/m/d H:i:s');
         }
+        
+        // Note: organization_note and user_note are automatically included in the response
+        // as they are in the Service model's fillable array
+
+        // Get last service (previous month's service for the same building)
+        $lastService = null;
+        $prevMonth = $service->service_month - 1;
+        $prevYear = $service->service_year;
+        
+        if ($prevMonth < 1) {
+            $prevMonth = 12;
+            $prevYear--;
+        }
+
+        $lastService = Service::with([
+            'building.province', 
+            'building.city', 
+            'building.elevators',
+            'checklist.elevatorChecklists.elevator',
+            'checklist.elevatorChecklists.descriptions.checklist',
+            'checklist.managerSignature',
+            'checklist.technicianSignature',
+        ])
+            ->where('building_id', $service->building_id)
+            ->where('service_month', $prevMonth)
+            ->where('service_year', $prevYear)
+            ->first();
+
+        if ($lastService) {
+            $lastService->status_text = $lastService->status_text;
+            $lastService->status_badge_class = $lastService->status_badge_class;
+            $lastService->service_date_text = $lastService->service_date_text;
+            if ($lastService->assigned_at) {
+                $lastService->assigned_at_jalali = Jalalian::forge($lastService->assigned_at)->format('Y/m/d H:i:s');
+            }
+            if ($lastService->completed_at) {
+                $lastService->completed_at_jalali = Jalalian::forge($lastService->completed_at)->format('Y/m/d H:i:s');
+            }
+        }
 
         // Get unit checklists ordered by order field
         $unitChecklists = UnitChecklist::orderBy('order', 'asc')
@@ -106,6 +145,7 @@ class ServiceController extends Controller
         return response()->json([
             'success' => true,
             'data' => $service,
+            'last_service' => $lastService,
             'checklists' => $unitChecklists,
             'description_checklists' => $descriptionChecklists
         ]);
