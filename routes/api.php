@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\Organization\ServiceController as OrgServiceControl
 use App\Http\Controllers\Organization\AuthController as OrganizationAuthController;
 use App\Http\Controllers\Api\TechnicianAuthController;
 use App\Http\Controllers\Api\Technician\ServiceController as TechnicianServiceController;
+use App\Http\Controllers\Api\Technician\ReportController as TechnicianReportController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -141,5 +142,8 @@ Route::prefix('technician')->name('technician.')->group(function () {
         Route::get('services/assigned-buildings', [TechnicianServiceController::class, 'assignedBuildings']);
         Route::get('services/{service}', [TechnicianServiceController::class, 'show']);
         Route::post('services/{service}/submit-checklist', [TechnicianServiceController::class, 'submitChecklist']);
+        
+        // Technician Reports API
+        Route::get('reports', [TechnicianReportController::class, 'index']);
     });
 });

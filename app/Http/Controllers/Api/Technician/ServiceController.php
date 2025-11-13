@@ -11,6 +11,7 @@ use App\Models\ServiceElevatorChecklist;
 use App\Models\ServiceChecklistDescription;
 use App\Models\ServiceSignature;
 use App\Models\ServiceChecklistHistory;
+use App\Rules\ChecklistIdRule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -126,7 +127,7 @@ class ServiceController extends Controller
             'elevators.*.elevator_id' => 'required|exists:elevators,id',
             'elevators.*.verified' => 'required|boolean',
             'elevators.*.descriptions' => 'nullable|array',
-            'elevators.*.descriptions.*.checklist_id' => 'required|exists:description_checklists,id',
+            'elevators.*.descriptions.*.checklist_id' => ['required', 'integer', new ChecklistIdRule()],
             'elevators.*.descriptions.*.title' => 'required|string|max:255',
             'elevators.*.descriptions.*.description' => 'nullable|string',
             'manager_signature.name' => 'required|string|max:255',
@@ -222,9 +223,12 @@ class ServiceController extends Controller
                 // Save descriptions for this elevator (if provided)
                 if (!empty($elevatorData['descriptions']) && is_array($elevatorData['descriptions'])) {
                     foreach ($elevatorData['descriptions'] as $descriptionData) {
+                        // Convert checklist_id 0 (or "0") to NULL for custom checklists
+                        $checklistId = ((int) $descriptionData['checklist_id']) == 0 ? null : (int) $descriptionData['checklist_id'];
+                        
                         ServiceChecklistDescription::create([
                             'service_elevator_checklist_id' => $elevatorChecklist->id,
-                            'checklist_id' => $descriptionData['checklist_id'],
+                            'checklist_id' => $checklistId,
                             'title' => $descriptionData['title'],
                             'description' => $descriptionData['description'] ?? null,
                         ]);
