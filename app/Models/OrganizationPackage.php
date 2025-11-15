@@ -18,6 +18,7 @@ class OrganizationPackage extends Model
         'package_duration_days',
         'package_duration_label',
         'package_price',
+        'payment_status',
         'started_at',
         'is_active',
         'moderator_id',
@@ -33,6 +34,11 @@ class OrganizationPackage extends Model
     const STATUS_ACTIVE = true;
     const STATUS_INACTIVE = false;
 
+    // Payment status constants
+    const PAYMENT_STATUS_UNPAID = 'unpaid';
+    const PAYMENT_STATUS_PARTIALLY_PAID = 'partially_paid';
+    const PAYMENT_STATUS_FULLY_PAID = 'fully_paid';
+
     // Relationships
     public function organization()
     {
@@ -47,6 +53,11 @@ class OrganizationPackage extends Model
     public function moderator()
     {
         return $this->belongsTo(Moderator::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(PackagePayment::class);
     }
 
     // Accessors
@@ -148,5 +159,72 @@ class OrganizationPackage extends Model
                $this->package->duration_days !== $this->package_duration_days ||
                $this->package->duration_label !== $this->package_duration_label ||
                $this->package->price != $this->package_price;
+    }
+
+    // Payment methods
+    public function getTotalPaidAmountAttribute()
+    {
+        return $this->payments()->sum('amount');
+    }
+
+    public function getRemainingAmountAttribute()
+    {
+        return max(0, $this->package_price - $this->total_paid_amount);
+    }
+
+    public function getPaymentStatusTextAttribute()
+    {
+        return match($this->payment_status) {
+            self::PAYMENT_STATUS_FULLY_PAID => 'پرداخت کامل',
+            self::PAYMENT_STATUS_PARTIALLY_PAID => 'پرداخت جزئی',
+            self::PAYMENT_STATUS_UNPAID => 'پرداخت نشده',
+            default => 'نامشخص',
+        };
+    }
+
+    public function getPaymentStatusBadgeClassAttribute()
+    {
+        return match($this->payment_status) {
+            self::PAYMENT_STATUS_FULLY_PAID => 'badge-success',
+            self::PAYMENT_STATUS_PARTIALLY_PAID => 'badge-warning',
+            self::PAYMENT_STATUS_UNPAID => 'badge-danger',
+            default => 'badge-secondary',
+        };
+    }
+
+    public function getFormattedTotalPaidAmountAttribute()
+    {
+        return number_format($this->total_paid_amount, 0) . ' تومان';
+    }
+
+    public function getFormattedRemainingAmountAttribute()
+    {
+        return number_format($this->remaining_amount, 0) . ' تومان';
+    }
+
+    /**
+     * Update payment status based on total paid amount
+     */
+    public function updatePaymentStatus()
+    {
+        $totalPaid = $this->total_paid_amount;
+        
+        if ($totalPaid >= $this->package_price) {
+            $this->payment_status = self::PAYMENT_STATUS_FULLY_PAID;
+        } elseif ($totalPaid > 0) {
+            $this->payment_status = self::PAYMENT_STATUS_PARTIALLY_PAID;
+        } else {
+            $this->payment_status = self::PAYMENT_STATUS_UNPAID;
+        }
+        
+        $this->save();
+    }
+
+    /**
+     * Check if package can accept partial payment
+     */
+    public function canAcceptPartialPayment()
+    {
+        return $this->package_duration_days > 30;
     }
 }

@@ -85,6 +85,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('organizations/{organization}/packages/{package}', [OrganizationPackageController::class, 'show']);
         Route::put('organizations/{organization}/packages/{package}', [OrganizationPackageController::class, 'update']);
         Route::delete('organizations/{organization}/packages/{package}', [OrganizationPackageController::class, 'destroy']);
+        
+        // Package Payments Management
+        Route::post('organizations/{organization}/packages/{package}/payments', [OrganizationPackageController::class, 'addPayment']);
+        Route::get('organizations/{organization}/packages/{package}/payments', [OrganizationPackageController::class, 'getPayments']);
+        Route::delete('organizations/{organization}/packages/{package}/payments/{payment}', [OrganizationPackageController::class, 'deletePayment']);
+        Route::post('organizations/{organization}/packages/{package}/force-disable', [OrganizationPackageController::class, 'forceDisable']);
+        
+        // Payment Methods
+        Route::get('payment-methods', [OrganizationPackageController::class, 'getPaymentMethods']);
+        
+        // Transactions/Accounting Management
+        Route::get('transactions', [\App\Http\Controllers\Api\TransactionController::class, 'index']);
+        Route::get('transactions/{transaction}', [\App\Http\Controllers\Api\TransactionController::class, 'show']);
     });
 });
 

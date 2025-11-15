@@ -76,4 +76,10 @@ class ViewController extends Controller
         return view('admin.sms.index');
     }
 
+    // Accounting/Transactions Management Views
+    public function showTransactions()
+    {
+        return view('admin.transactions.index');
+    }
+
 } 

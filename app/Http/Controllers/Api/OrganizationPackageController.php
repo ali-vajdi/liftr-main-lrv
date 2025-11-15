@@ -6,8 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\OrganizationPackage;
 use App\Models\Package;
+use App\Models\PackagePayment;
+use App\Models\PaymentMethod;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 
@@ -42,6 +46,14 @@ class OrganizationPackageController extends Controller
             $item->has_package_changed = $item->has_package_changed;
             $item->assigned_package_info = $item->assigned_package_info;
             $item->current_package_info = $item->current_package_info;
+            // Payment attributes
+            $item->total_paid_amount = $item->total_paid_amount;
+            $item->remaining_amount = $item->remaining_amount;
+            $item->payment_status_text = $item->payment_status_text;
+            $item->payment_status_badge_class = $item->payment_status_badge_class;
+            $item->formatted_total_paid_amount = $item->formatted_total_paid_amount;
+            $item->formatted_remaining_amount = $item->formatted_remaining_amount;
+            $item->can_accept_partial_payment = $item->canAcceptPartialPayment();
         }
 
         return response()->json([
@@ -83,30 +95,31 @@ class OrganizationPackageController extends Controller
         // Calculate start and end dates
         $startedAt = $request->started_at ? Carbon::parse($request->started_at) : Carbon::now();
         
-                // Check if organization has active packages
-                $activePackages = $organization->activePackages();
-                
-                if ($activePackages->count() > 0) {
-                    // If there are active packages, add remaining days from the one that expires first
-                    $expiringSoonPackage = $activePackages->sortBy('expires_at')->first();
-                    $remainingDays = $startedAt->diffInDays($expiringSoonPackage->expires_at, false);
-                    $remainingDays = max(0, $remainingDays);
-                } else {
-                    $remainingDays = 0;
-                }
-
+        // Use database transaction to ensure data consistency
+        DB::beginTransaction();
+        try {
         // Create new package assignment with stored package information
+            // All packages remain active and calculate remaining days dynamically
         $organizationPackage = OrganizationPackage::create([
             'organization_id' => $organizationId,
             'package_id' => $package->id,
             'package_name' => $package->name,
-            'package_duration_days' => $package->duration_days + $remainingDays, // Add remaining days to duration
-            'package_duration_label' => $package->duration_label,
+                'package_duration_days' => $package->duration_days, // Use original package duration
+                'package_duration_label' => $package->duration_label, // Use original package label
             'package_price' => $package->price,
+                'payment_status' => OrganizationPackage::PAYMENT_STATUS_UNPAID, // Default to unpaid
             'started_at' => $startedAt,
             'is_active' => true,
             'moderator_id' => Auth::id() ?? 1,
         ]);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'خطا در اختصاص پکیج: ' . $e->getMessage()
+            ], 500);
+        }
 
         // Add calculated attributes
         $organizationPackage->remaining_days = $organizationPackage->remaining_days;
@@ -147,6 +160,14 @@ class OrganizationPackageController extends Controller
         $organizationPackage->has_package_changed = $organizationPackage->has_package_changed;
         $organizationPackage->assigned_package_info = $organizationPackage->assigned_package_info;
         $organizationPackage->current_package_info = $organizationPackage->current_package_info;
+        // Payment attributes
+        $organizationPackage->total_paid_amount = $organizationPackage->total_paid_amount;
+        $organizationPackage->remaining_amount = $organizationPackage->remaining_amount;
+        $organizationPackage->payment_status_text = $organizationPackage->payment_status_text;
+        $organizationPackage->payment_status_badge_class = $organizationPackage->payment_status_badge_class;
+        $organizationPackage->formatted_total_paid_amount = $organizationPackage->formatted_total_paid_amount;
+        $organizationPackage->formatted_remaining_amount = $organizationPackage->formatted_remaining_amount;
+        $organizationPackage->can_accept_partial_payment = $organizationPackage->canAcceptPartialPayment();
         
         return response()->json([
             'data' => $organizationPackage
@@ -177,8 +198,29 @@ class OrganizationPackageController extends Controller
         }
 
         $data = $request->all();
-        $data['is_active'] = $data['is_active'] === 'true' || $data['is_active'] === true;
+        $newIsActive = $data['is_active'] === 'true' || $data['is_active'] === true;
+        $currentIsActive = $organizationPackage->is_active;
         
+        // Check if trying to disable a package with payments
+        if ($currentIsActive && !$newIsActive) {
+            $totalPaid = $organizationPackage->total_paid_amount;
+            if ($totalPaid > 0) {
+                // Return warning that package has payments
+                return response()->json([
+                    'message' => 'این پکیج دارای پرداخت است. آیا مطمئن هستید که می‌خواهید آن را غیرفعال کنید؟',
+                    'warning' => true,
+                    'package_info' => [
+                        'total_paid' => $totalPaid,
+                        'remaining_amount' => $organizationPackage->remaining_amount,
+                        'payment_status' => $organizationPackage->payment_status,
+                        'payment_status_text' => $organizationPackage->payment_status_text,
+                    ],
+                    'requires_confirmation' => true
+                ], 200);
+            }
+        }
+        
+        $data['is_active'] = $newIsActive;
         $organizationPackage->update($data);
 
         // Add calculated attributes
@@ -252,4 +294,247 @@ class OrganizationPackageController extends Controller
             'count' => $activePackages->count()
         ]);
     }
+
+    /**
+     * Add payment to a package
+     */
+    public function addPayment(Request $request, $organizationId, $packageId)
+    {
+        $validator = Validator::make($request->all(), [
+            'amount' => 'required|numeric|min:0',
+            'payment_date' => 'nullable|date',
+            'notes' => 'nullable|string|max:1000',
+            'payment_method_id' => 'required|exists:payment_methods,id',
+        ], [
+            'amount.required' => 'مبلغ پرداختی الزامی است',
+            'amount.numeric' => 'مبلغ پرداختی باید عدد باشد',
+            'amount.min' => 'مبلغ پرداختی نمی‌تواند منفی باشد',
+            'payment_date.date' => 'تاریخ پرداخت باید معتبر باشد',
+            'payment_method_id.required' => 'روش پرداخت الزامی است',
+            'payment_method_id.exists' => 'روش پرداخت معتبر نیست',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $organizationPackage = OrganizationPackage::where('organization_id', $organizationId)
+            ->where('id', $packageId)
+            ->first();
+
+        if (!$organizationPackage) {
+            return response()->json([
+                'message' => 'پکیج مورد نظر یافت نشد'
+            ], 404);
+        }
+
+        // Check if package is disabled
+        if (!$organizationPackage->is_active) {
+            return response()->json([
+                'message' => 'نمی‌توان برای پکیج غیرفعال پرداخت ثبت کرد'
+            ], 422);
+        }
+
+        $amount = $request->amount;
+        $totalPaid = $organizationPackage->total_paid_amount;
+        $remainingAmount = $organizationPackage->remaining_amount;
+
+        // Validate payment amount doesn't exceed remaining amount
+        if ($amount > $remainingAmount) {
+            return response()->json([
+                'message' => 'مبلغ پرداختی نمی‌تواند بیشتر از مبلغ باقی‌مانده (' . number_format($remainingAmount, 0) . ' تومان) باشد'
+            ], 422);
+        }
+
+        // Validate partial payment rules
+        if ($amount > 0 && $amount < $organizationPackage->package_price) {
+            if (!$organizationPackage->canAcceptPartialPayment()) {
+                return response()->json([
+                    'message' => 'پکیج‌های 30 روزه یا کمتر باید به صورت کامل پرداخت شوند'
+                ], 422);
+            }
+        }
+
+        $paymentMethod = PaymentMethod::findOrFail($request->payment_method_id);
+        $paymentDate = $request->payment_date ? Carbon::parse($request->payment_date) : Carbon::now();
+
+        DB::beginTransaction();
+        try {
+            // Create payment
+            $payment = PackagePayment::create([
+                'organization_package_id' => $organizationPackage->id,
+                'payment_method_id' => $paymentMethod->id,
+                'amount' => $amount,
+                'payment_date' => $paymentDate,
+                'notes' => $request->notes,
+                'moderator_id' => Auth::id() ?? 1,
+            ]);
+
+            // Create transaction
+            $transaction = Transaction::create([
+                'transactionable_type' => PackagePayment::class,
+                'transactionable_id' => $payment->id,
+                'payment_method_id' => $paymentMethod->id,
+                'amount' => $amount,
+                'type' => Transaction::TYPE_INCOME,
+                'status' => Transaction::STATUS_COMPLETED,
+                'description' => 'پرداخت پکیج: ' . $organizationPackage->package_name . ($request->notes ? ' - ' . $request->notes : ''),
+                'transaction_date' => $paymentDate,
+                'organization_id' => $organizationId,
+                'moderator_id' => Auth::id() ?? 1,
+            ]);
+
+            // Update payment status
+            $organizationPackage->updatePaymentStatus();
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'پرداخت با موفقیت ثبت شد',
+                'data' => [
+                    'payment' => $payment,
+                    'package' => $organizationPackage->fresh(['payments']),
+                    'total_paid' => $organizationPackage->total_paid_amount,
+                    'remaining_amount' => $organizationPackage->remaining_amount,
+                    'payment_status' => $organizationPackage->payment_status,
+                ]
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'خطا در ثبت پرداخت: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all payments for a package
+     */
+    public function getPayments($organizationId, $packageId)
+    {
+        $organizationPackage = OrganizationPackage::where('organization_id', $organizationId)
+            ->where('id', $packageId)
+            ->first();
+
+        if (!$organizationPackage) {
+            return response()->json([
+                'message' => 'پکیج مورد نظر یافت نشد'
+            ], 404);
+        }
+
+        $payments = $organizationPackage->payments()
+            ->with('moderator')
+            ->orderBy('payment_date', 'desc')
+            ->get();
+
+        return response()->json([
+            'data' => $payments,
+            'package' => [
+                'id' => $organizationPackage->id,
+                'package_name' => $organizationPackage->package_name,
+                'package_price' => $organizationPackage->package_price,
+                'total_paid_amount' => $organizationPackage->total_paid_amount,
+                'remaining_amount' => $organizationPackage->remaining_amount,
+                'payment_status' => $organizationPackage->payment_status,
+                'payment_status_text' => $organizationPackage->payment_status_text,
+            ]
+        ]);
+    }
+
+    /**
+     * Delete a payment
+     */
+    public function deletePayment($organizationId, $packageId, $paymentId)
+    {
+        $organizationPackage = OrganizationPackage::where('organization_id', $organizationId)
+            ->where('id', $packageId)
+            ->first();
+
+        if (!$organizationPackage) {
+            return response()->json([
+                'message' => 'پکیج مورد نظر یافت نشد'
+            ], 404);
+        }
+
+        $payment = PackagePayment::where('organization_package_id', $organizationPackage->id)
+            ->where('id', $paymentId)
+            ->first();
+
+        if (!$payment) {
+            return response()->json([
+                'message' => 'پرداخت مورد نظر یافت نشد'
+            ], 404);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Delete associated transaction
+            if ($payment->transaction) {
+                $payment->transaction->delete();
+            }
+            
+            // Delete payment
+            $payment->delete();
+
+            // Update payment status
+            $organizationPackage->updatePaymentStatus();
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'پرداخت با موفقیت حذف شد'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'خطا در حذف پرداخت: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get available payment methods
+     */
+    public function getPaymentMethods()
+    {
+        $paymentMethods = PaymentMethod::active()->orderBy('is_system', 'desc')->orderBy('name')->get();
+        
+        return response()->json([
+            'data' => $paymentMethods
+        ]);
+    }
+
+    /**
+     * Force disable package (after confirmation)
+     */
+    public function forceDisable(Request $request, $organizationId, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'confirm' => 'required|boolean',
+        ]);
+
+        if ($validator->fails() || !$request->confirm) {
+            return response()->json([
+                'message' => 'تأیید الزامی است'
+            ], 422);
+        }
+
+        $organizationPackage = OrganizationPackage::where('organization_id', $organizationId)
+            ->where('id', $id)
+            ->first();
+
+        if (!$organizationPackage) {
+            return response()->json([
+                'message' => 'پکیج مورد نظر یافت نشد'
+            ], 404);
+        }
+
+        $organizationPackage->update(['is_active' => false]);
+
+        return response()->json([
+            'message' => 'پکیج با موفقیت غیرفعال شد',
+            'data' => $organizationPackage->fresh()
+        ]);
+    }
+
 }

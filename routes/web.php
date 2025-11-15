@@ -70,4 +70,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // SMS Management Routes
     Route::get('sms', [ViewController::class, 'showSms'])->name('sms.view');
     
+    // Accounting/Transactions Management Routes
+    Route::get('transactions', [ViewController::class, 'showTransactions'])->name('transactions.view');
+    
 });

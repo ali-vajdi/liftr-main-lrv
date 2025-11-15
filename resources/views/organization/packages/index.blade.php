@@ -45,6 +45,15 @@
                                     }',
                                 ],
                                 [
+                                    'field' => 'remaining_days',
+                                    'label' => 'روزهای باقی‌مانده',
+                                    'formatter' => 'function(value) {
+                                        if (value === null || value === undefined) return "-";
+                                        var badgeClass = value <= 0 ? "badge-danger" : (value <= 7 ? "badge-warning" : "badge-success");
+                                        return `<span class="badge ${badgeClass}">${value} روز</span>`;
+                                    }',
+                                ],
+                                [
                                     'field' => 'is_active',
                                     'label' => 'وضعیت',
                                     'formatter' => 'function(value) {
@@ -253,11 +262,11 @@
                         
                         var longestPackage = activePackages.length > 0 ? 
                             activePackages.sort(function(a, b) { 
-                                return (b.package_duration_days || 0) - (a.package_duration_days || 0); 
+                                return (b.remaining_days || 0) - (a.remaining_days || 0); 
                             })[0] : null;
                         var shortestPackage = activePackages.length > 0 ? 
                             activePackages.sort(function(a, b) { 
-                                return (a.package_duration_days || 0) - (b.package_duration_days || 0); 
+                                return (a.remaining_days || 0) - (b.remaining_days || 0); 
                             })[0] : null;
                         var latestExpiry = activePackages.length > 0 ? 
                             new Date(Math.max.apply(null, activePackages.map(function(pkg) { 
@@ -277,8 +286,8 @@
                                 '<div class="col-md-2"><div class="text-center"><h6 class="text-muted">کل روزهای باقی‌مانده</h6><h4 class="text-warning">' + totalRemainingDays + ' روز</h4></div></div>' +
                                 '<div class="col-md-2"><div class="text-center"><h6 class="text-muted">میانگین روزها</h6><h4 class="text-info">' + averageDaysPerPackage + ' روز</h4></div></div>' +
                                 '<div class="col-md-2"><div class="text-center"><h6 class="text-muted">کل مبلغ پرداخت شده</h6><h4 class="text-success">' + parseFloat(totalAmountPaid).toLocaleString('fa-IR') + ' تومان</h4></div></div>' +
-                                '<div class="col-md-2"><div class="text-center"><h6 class="text-muted">طولانی‌ترین پکیج</h6><h4 class="text-primary">' + (longestPackage ? longestPackage.package_duration_days + ' روز' : '-') + '</h4></div></div>' +
-                                '<div class="col-md-2"><div class="text-center"><h6 class="text-muted">کوتاه‌ترین پکیج</h6><h4 class="text-secondary">' + (shortestPackage ? shortestPackage.package_duration_days + ' روز' : '-') + '</h4></div></div>' +
+                                '<div class="col-md-2"><div class="text-center"><h6 class="text-muted">بیشترین روز باقی‌مانده</h6><h4 class="text-primary">' + (longestPackage ? longestPackage.remaining_days + ' روز' : '-') + '</h4></div></div>' +
+                                '<div class="col-md-2"><div class="text-center"><h6 class="text-muted">کمترین روز باقی‌مانده</h6><h4 class="text-secondary">' + (shortestPackage ? shortestPackage.remaining_days + ' روز' : '-') + '</h4></div></div>' +
                                 '<div class="col-md-2"><div class="text-center"><h6 class="text-muted">آخرین انقضا</h6><h4 class="text-danger">' + (latestExpiry ? latestExpiry.toLocaleDateString('fa-IR') : '-') + '</h4></div></div>' +
                                 '</div></div></div></div></div>';
                         } else {
