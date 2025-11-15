@@ -15,10 +15,14 @@ class Organization extends Model
         'logo',
         'status',
         'moderator_id',
+        'sms_balance',
+        'sms_cost_per_message',
     ];
 
     protected $casts = [
         'status' => 'boolean',
+        'sms_balance' => 'decimal:2',
+        'sms_cost_per_message' => 'decimal:2',
     ];
 
     // Status constants
@@ -132,5 +136,11 @@ class Organization extends Model
             'expired' => $packages->where('is_active', false)->count(),
             'total_amount_paid' => $packages->sum('package_price'),
         ];
+    }
+
+    // Relationship with SMS
+    public function sms()
+    {
+        return $this->hasMany(Sms::class);
     }
 }

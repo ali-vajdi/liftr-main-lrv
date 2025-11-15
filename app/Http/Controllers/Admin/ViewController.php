@@ -70,4 +70,10 @@ class ViewController extends Controller
         return view('admin.description-checklists.index');
     }
 
+    // SMS Management Views
+    public function showSms()
+    {
+        return view('admin.sms.index');
+    }
+
 } 

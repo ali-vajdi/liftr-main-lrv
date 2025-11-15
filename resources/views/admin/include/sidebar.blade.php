@@ -93,6 +93,34 @@
                 </ul>
             </li>
 
+            <li class="menu {{ request()->routeIs('admin.sms.*') ? 'active' : '' }}">
+                <a href="#sms" data-toggle="collapse"
+                    aria-expanded="{{ request()->routeIs('admin.sms.*') ? 'true' : 'false' }}"
+                    class="dropdown-toggle">
+                    <div class="">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-message-square">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <span>مدیریت پیامک‌ها</span>
+                    </div>
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-chevron-right">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </a>
+                <ul class="collapse submenu list-unstyled {{ request()->routeIs('admin.sms.*') ? 'show' : '' }}"
+                    id="sms" data-parent="#accordionExample">
+                    <li class="{{ request()->routeIs('admin.sms.view') ? 'active' : '' }}">
+                        <a href="{{ route('admin.sms.view') }}">مدیریت پیامک‌ها</a>
+                    </li>
+                </ul>
+            </li>
+
             <li class="menu {{ request()->routeIs('admin.unit-checklists.*') ? 'active' : '' }}">
                 <a href="#unit-checklists" data-toggle="collapse"
                     aria-expanded="{{ request()->routeIs('admin.unit-checklists.*') ? 'true' : 'false' }}"

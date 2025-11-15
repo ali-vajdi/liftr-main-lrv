@@ -67,4 +67,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Description Checklists Management Routes
     Route::get('description-checklists', [ViewController::class, 'showDescriptionChecklists'])->name('description-checklists.view');
     
+    // SMS Management Routes
+    Route::get('sms', [ViewController::class, 'showSms'])->name('sms.view');
+    
 });

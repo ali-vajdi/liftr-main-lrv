@@ -129,11 +129,19 @@
                                 <div class="col-md-4 col-lg-3 mb-2">
                                     <label class="form-label small text-muted">{{ $filter['label'] ?? ucfirst(str_replace('_', ' ', $filter['name'])) }}</label>
                                     @if ($filter['type'] == 'select')
-                                        <select class="form-control form-control-sm filter-control" data-filter-name="{{ $filter['name'] }}">
+                                        <select class="form-control form-control-sm filter-control" data-filter-name="{{ $filter['name'] }}"
+                                            @if (isset($filter['apiUrl'])) data-api-url="{{ $filter['apiUrl'] }}" @endif
+                                            @if (isset($filter['optionValue'])) data-option-value="{{ $filter['optionValue'] }}" @endif
+                                            @if (isset($filter['optionLabel'])) data-option-label="{{ $filter['optionLabel'] }}" @endif
+                                            @if (isset($filter['includeNull']) && $filter['includeNull']) data-include-null="true" @endif
+                                            @if (isset($filter['nullLabel'])) data-null-label="{{ $filter['nullLabel'] }}" @endif
+                                            @if (isset($filter['nullValue'])) data-null-value="{{ $filter['nullValue'] }}" @endif>
                                             <option value="">{{ $filter['placeholder'] ?? 'همه' }}</option>
-                                            @foreach ($filter['options'] as $option)
-                                                <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
-                                            @endforeach
+                                            @if (isset($filter['options']) && is_array($filter['options']))
+                                                @foreach ($filter['options'] as $option)
+                                                    <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
+                                                @endforeach
+                                            @endif
                                         </select>
                                     @elseif($filter['type'] == 'date')
                                         <input type="date" class="form-control form-control-sm filter-control"
@@ -1541,6 +1549,41 @@
                 $('.filter-control').each(function() {
                     const filterName = $(this).data('filter-name');
                     filters[filterName] = '';
+                });
+
+                // Load dynamic options for select filters
+                $('.filter-control[data-api-url]').each(function() {
+                    const $select = $(this);
+                    const apiUrl = $select.data('api-url');
+                    const optionValue = $select.data('option-value') || 'id';
+                    const optionLabel = $select.data('option-label') || 'name';
+                    const includeNull = $select.data('include-null') === true;
+                    const nullLabel = $select.data('null-label') || 'بدون';
+                    const nullValue = $select.data('null-value') || '';
+
+                    $.ajax({
+                        url: apiUrl,
+                        type: 'GET',
+                        headers: {
+                            'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
+                        },
+                        success: function(response) {
+                            // Add null option if needed
+                            if (includeNull) {
+                                $select.append(`<option value="${nullValue}">${nullLabel}</option>`);
+                            }
+                            
+                            // Add options from API response
+                            if (response.data && Array.isArray(response.data)) {
+                                response.data.forEach(function(item) {
+                                    $select.append(`<option value="${item[optionValue]}">${item[optionLabel]}</option>`);
+                                });
+                            }
+                        },
+                        error: function(xhr) {
+                            console.error('Error loading filter options:', xhr);
+                        }
+                    });
                 });
 
                 // Initialize per-page selector

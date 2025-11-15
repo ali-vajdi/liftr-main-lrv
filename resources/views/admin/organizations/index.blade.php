@@ -45,6 +45,24 @@
                                     }',
                                 ],
                                 [
+                                    'field' => 'sms_balance',
+                                    'label' => 'موجودی پیامک',
+                                    'formatter' => 'function(value) {
+                                        return value ? 
+                                            `<span class="badge badge-info">${parseFloat(value).toLocaleString("fa-IR")} تومان</span>` : 
+                                            `<span class="badge badge-secondary">0 تومان</span>`;
+                                    }',
+                                ],
+                                [
+                                    'field' => 'sms_cost_per_message',
+                                    'label' => 'هزینه هر پیامک',
+                                    'formatter' => 'function(value) {
+                                        return value ? 
+                                            `<span class="badge badge-warning">${parseFloat(value).toLocaleString("fa-IR")} تومان</span>` : 
+                                            `<span class="badge badge-secondary">0 تومان</span>`;
+                                    }',
+                                ],
+                                [
                                     'field' => 'created_at',
                                     'label' => 'تاریخ ایجاد',
                                     'formatter' => 'function(value) {
@@ -131,6 +149,16 @@
                                     <option value="0">غیرفعال</option>
                                 </select>
                             </div>
+                            <div class="form-group">
+                                <label for="sms_balance">موجودی پیامک (تومان)</label>
+                                <input type="number" class="form-control" id="sms_balance" name="sms_balance" min="0" step="0.01" value="0">
+                                <small class="form-text text-muted">موجودی اولیه پنل پیامک برای این سازمان</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="sms_cost_per_message">هزینه هر پیامک (تومان)</label>
+                                <input type="number" class="form-control" id="sms_cost_per_message" name="sms_cost_per_message" min="0" step="0.01" value="0">
+                                <small class="form-text text-muted">هزینه هر پیامک برای این سازمان (مثال: 15 تومان)</small>
+                            </div>
                         </form>
                     </div>
                     <div class="modal-footer">
@@ -175,6 +203,14 @@
                                     <tr>
                                         <th>وضعیت</th>
                                         <td id="detailStatus"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>موجودی پیامک</th>
+                                        <td id="detailSmsBalance"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>هزینه هر پیامک</th>
+                                        <td id="detailSmsCostPerMessage"></td>
                                     </tr>
                                     <tr>
                                         <th>تاریخ ایجاد</th>
@@ -245,6 +281,14 @@
                         $('#detailStatus').html(data.status ? 
                             '<span class="badge badge-success">فعال</span>' : 
                             '<span class="badge badge-danger">غیرفعال</span>'
+                        );
+                        $('#detailSmsBalance').html(data.sms_balance ? 
+                            `<span class="badge badge-info">${parseFloat(data.sms_balance).toLocaleString('fa-IR')} تومان</span>` : 
+                            '<span class="badge badge-secondary">0 تومان</span>'
+                        );
+                        $('#detailSmsCostPerMessage').html(data.sms_cost_per_message ? 
+                            `<span class="badge badge-warning">${parseFloat(data.sms_cost_per_message).toLocaleString('fa-IR')} تومان</span>` : 
+                            '<span class="badge badge-secondary">0 تومان</span>'
                         );
                         $('#detailCreatedAt').text(new Date(data.created_at).toLocaleDateString('fa-IR'));
                         $('#detailUpdatedAt').text(new Date(data.updated_at).toLocaleDateString('fa-IR'));
@@ -346,6 +390,8 @@
                 formData.append('name', name);
                 formData.append('address', address);
                 formData.append('status', status);
+                formData.append('sms_balance', $('#sms_balance').val() || 0);
+                formData.append('sms_cost_per_message', $('#sms_cost_per_message').val() || 0);
                 
                 // Add logo file if selected
                 const logoFile = $('#logo')[0].files[0];
@@ -434,6 +480,8 @@
                         $('#name').val(organization.name);
                         $('#address').val(organization.address);
                         $('#status').val(organization.status ? '1' : '0');
+                        $('#sms_balance').val(organization.sms_balance || 0);
+                        $('#sms_cost_per_message').val(organization.sms_cost_per_message || 0);
                         
                         // Show current logo if exists
                         if (organization.logo) {

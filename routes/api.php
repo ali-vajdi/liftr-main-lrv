@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\PackageController;
 use App\Http\Controllers\Api\OrganizationPackageController;
 use App\Http\Controllers\Api\UnitChecklistController;
 use App\Http\Controllers\Api\DescriptionChecklistController;
+use App\Http\Controllers\Api\SmsController;
 use App\Http\Controllers\Api\Organization\PackageController as OrgPackageController;
 use App\Http\Controllers\Api\Organization\UserController as OrgUserController;
 use App\Http\Controllers\Api\Organization\TechnicianController as OrgTechnicianController;
@@ -72,6 +73,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Description Checklists Management
         Route::apiResource('description-checklists', DescriptionChecklistController::class);
         
+        // SMS Management
+        Route::apiResource('sms', SmsController::class);
+        
         // Organization Packages Management
         Route::get('organizations/{organization}/packages', [OrganizationPackageController::class, 'index']);
         Route::post('organizations/{organization}/packages', [OrganizationPackageController::class, 'store']);
@@ -122,6 +126,9 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::get('services/all', [OrgServiceController::class, 'all']);
         Route::post('services/{service}/assign-technician', [OrgServiceController::class, 'assignTechnician']);
         Route::get('services/technicians', [OrgServiceController::class, 'getTechnicians']);
+        
+        // Organization SMS API
+        Route::get('sms/statistics', [\App\Http\Controllers\Api\Organization\SmsController::class, 'statistics']);
     });
 });
 

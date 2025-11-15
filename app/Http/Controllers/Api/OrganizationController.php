@@ -97,6 +97,8 @@ class OrganizationController extends Controller
         $data = $request->all();
         $data['moderator_id'] = Auth::id();
         $data['status'] = $data['status'] === 'true' || $data['status'] === true;
+        $data['sms_balance'] = $request->input('sms_balance', 0);
+        $data['sms_cost_per_message'] = $request->input('sms_cost_per_message', 0);
 
         // Handle logo upload
         if ($request->hasFile('logo')) {
@@ -130,6 +132,8 @@ class OrganizationController extends Controller
             'address' => 'nullable|string',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'status' => 'required|in:true,false',
+            'sms_balance' => 'nullable|numeric|min:0',
+            'sms_cost_per_message' => 'nullable|numeric|min:0',
         ], [
             'name.required' => 'نام شرکت الزامی است',
             'name.max' => 'نام شرکت نمی‌تواند بیش از 255 کاراکتر باشد',
@@ -138,6 +142,10 @@ class OrganizationController extends Controller
             'logo.max' => 'حجم تصویر نمی‌تواند بیش از 2 مگابایت باشد',
             'status.required' => 'وضعیت الزامی است',
             'status.in' => 'وضعیت باید فعال یا غیرفعال باشد',
+            'sms_balance.numeric' => 'موجودی پیامک باید عدد باشد',
+            'sms_balance.min' => 'موجودی پیامک نمی‌تواند منفی باشد',
+            'sms_cost_per_message.numeric' => 'هزینه هر پیامک باید عدد باشد',
+            'sms_cost_per_message.min' => 'هزینه هر پیامک نمی‌تواند منفی باشد',
         ]);
 
         if ($validator->fails()) {
@@ -147,6 +155,16 @@ class OrganizationController extends Controller
         $organization = Organization::findOrFail($id);
         $data = $request->all();
         $data['status'] = $data['status'] === 'true' || $data['status'] === true;
+        
+        // Handle sms_balance - only update if provided
+        if ($request->has('sms_balance')) {
+            $data['sms_balance'] = $request->input('sms_balance', 0);
+        }
+        
+        // Handle sms_cost_per_message - only update if provided
+        if ($request->has('sms_cost_per_message')) {
+            $data['sms_cost_per_message'] = $request->input('sms_cost_per_message', 0);
+        }
 
         // Handle logo upload
         if ($request->hasFile('logo')) {

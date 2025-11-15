@@ -33,6 +33,7 @@ class AuthController extends Controller
         }
 
         $token = $organizationUser->createToken('organization-token')->accessToken;
+        $organizationUser->load('organization');
 
         return response()->json([
             'token' => $token,
@@ -77,6 +78,7 @@ class AuthController extends Controller
         
         // Generate a new token for the user
         $token = $organizationUser->createToken('organization-token')->accessToken;
+        $organizationUser->load('organization');
         
         return response()->json([
             'message' => 'قفل صفحه باز شد.',
@@ -87,9 +89,12 @@ class AuthController extends Controller
     
     public function checkAuth(Request $request)
     {
+        $user = $request->user();
+        $user->load('organization');
+        
         return response()->json([
             'authenticated' => true,
-            'user' => $request->user()
+            'user' => $user
         ]);
     }
 }
