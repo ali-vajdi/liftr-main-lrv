@@ -16,7 +16,7 @@ class ViewController extends Controller
     public function showDashboard()
     {
         // Get organization from authenticated user
-        $user = auth('organization')->user();
+        $user = auth('organization_api')->user();
         if (!$user) {
             // If no authenticated user, get first organization for display
             $organization = Organization::first();
@@ -35,7 +35,7 @@ class ViewController extends Controller
     public function showProfile()
     {
         // Get organization from authenticated user
-        $user = auth('organization')->user();
+        $user = auth('organization_api')->user();
         if (!$user) {
             // If no authenticated user, get first organization for display
             $organization = Organization::first();
@@ -50,7 +50,7 @@ class ViewController extends Controller
     public function showPackages()
     {
         // Get organization from authenticated user
-        $user = auth('organization')->user();
+        $user = auth('organization_api')->user();
         if (!$user) {
             // If no authenticated user, get first organization for display
             $organization = Organization::first();
@@ -65,7 +65,7 @@ class ViewController extends Controller
     public function showUsers()
     {
         // Get organization from authenticated user
-        $user = auth('organization')->user();
+        $user = auth('organization_api')->user();
         if (!$user) {
             // If no authenticated user, get first organization for display
             $organization = Organization::first();
@@ -80,7 +80,7 @@ class ViewController extends Controller
     public function showTechnicians()
     {
         // Get organization from authenticated user
-        $user = auth('organization')->user();
+        $user = auth('organization_api')->user();
         if (!$user) {
             // If no authenticated user, get first organization for display
             $organization = Organization::first();
@@ -95,7 +95,7 @@ class ViewController extends Controller
     public function showBuildings()
     {
         // Get organization from authenticated user
-        $user = auth('organization')->user();
+        $user = auth('organization_api')->user();
         if (!$user) {
             // If no authenticated user, get first organization for display
             $organization = Organization::first();
@@ -109,7 +109,7 @@ class ViewController extends Controller
     public function showExpiringBuildings()
     {
         // Get organization from authenticated user
-        $user = auth('organization')->user();
+        $user = auth('organization_api')->user();
         if (!$user) {
             // If no authenticated user, get first organization for display
             $organization = Organization::first();
@@ -123,7 +123,7 @@ class ViewController extends Controller
     public function showBuildingElevators($buildingId)
     {
         // Get organization from authenticated user
-        $user = auth('organization')->user();
+        $user = auth('organization_api')->user();
         if (!$user) {
             // If no authenticated user, get first organization for display
             $organization = Organization::first();
@@ -142,7 +142,7 @@ class ViewController extends Controller
     public function showPendingServices()
     {
         // Get organization from authenticated user
-        $user = auth('organization')->user();
+        $user = auth('organization_api')->user();
         if (!$user) {
             // If no authenticated user, get first organization for display
             $organization = Organization::first();
@@ -156,7 +156,7 @@ class ViewController extends Controller
     public function showAssignedServices()
     {
         // Get organization from authenticated user
-        $user = auth('organization')->user();
+        $user = auth('organization_api')->user();
         if (!$user) {
             // If no authenticated user, get first organization for display
             $organization = Organization::first();
@@ -170,7 +170,7 @@ class ViewController extends Controller
     public function showAllServices()
     {
         // Get organization from authenticated user
-        $user = auth('organization')->user();
+        $user = auth('organization_api')->user();
         if (!$user) {
             // If no authenticated user, get first organization for display
             $organization = Organization::first();

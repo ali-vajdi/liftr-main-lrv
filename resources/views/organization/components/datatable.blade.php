@@ -1693,7 +1693,7 @@
                         type: 'GET',
                         data: requestData,
                         headers: {
-                            'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
+                            'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
                         },
                         success: function(response) {
                             // Check if the response has meta or pagination property

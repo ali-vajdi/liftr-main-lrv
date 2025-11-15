@@ -3,12 +3,12 @@
 
         <ul class="navbar-item theme-brand flex-row  text-center">
             <li class="nav-item theme-logo">
-                <a href="{{ route('admin.dashboard') }}">
+                <a href="{{ route('organization.dashboard') }}">
                     <img src="{{ asset('assets/img/90x90.jpg')}}" class="navbar-logo" alt="logo">
                 </a>
             </li>
             <li class="nav-item theme-text">
-                <a href="{{ route('admin.dashboard') }}" class="nav-link"> پنل مدیریتی لیفتر </a>
+                <a href="{{ route('organization.dashboard') }}" class="nav-link"> پنل مدیریتی لیفتر </a>
             </li>
         </ul>
 
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Set user name from localStorage
-    var user = JSON.parse(localStorage.getItem('admin_user'));
+    var user = JSON.parse(localStorage.getItem('organization_user'));
     if (user) {
         $('.user-name').text(user.full_name);
     }
@@ -121,11 +121,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Lock screen
     $('.lock-screen-link').click(function() {
         $.ajax({
-            url: '/api/admin/lock-screen',
+            url: '/api/organization/lock-screen',
             type: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
+            },
             success: function() {
                 localStorage.setItem('screen_locked', 'true');
-                window.location.href = "{{ route('admin.lock') }}";
+                window.location.href = "{{ route('organization.lock') }}";
             }
         });
     });
@@ -133,13 +136,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Logout
     $('.logout-link').click(function() {
         $.ajax({
-            url: '/api/admin/logout',
+            url: '/api/organization/logout',
             type: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
+            },
             success: function() {
-                localStorage.removeItem('admin_token');
-                localStorage.removeItem('admin_user');
+                localStorage.removeItem('organization_token');
+                localStorage.removeItem('organization_user');
                 localStorage.removeItem('screen_locked');
-                window.location.href = "{{ route('admin.login') }}";
+                window.location.href = "{{ route('organization.login') }}";
             }
         });
     });
