@@ -19,6 +19,7 @@ class OrganizationPackage extends Model
         'package_duration_label',
         'package_price',
         'payment_status',
+        'paid_periods',
         'started_at',
         'is_active',
         'moderator_id',
@@ -28,6 +29,7 @@ class OrganizationPackage extends Model
         'started_at' => 'datetime',
         'is_active' => 'boolean',
         'package_price' => 'decimal:2',
+        'paid_periods' => 'array',
     ];
 
     // Status constants
@@ -60,6 +62,11 @@ class OrganizationPackage extends Model
         return $this->hasMany(PackagePayment::class);
     }
 
+    public function periods()
+    {
+        return $this->hasMany(PackagePeriod::class)->orderBy('period_number');
+    }
+
     // Accessors
     public function getStatusTextAttribute()
     {
@@ -84,7 +91,7 @@ class OrganizationPackage extends Model
 
     public function getFormattedPriceAttribute()
     {
-        return number_format($this->package_price) . ' تومان';
+        return number_format((float)$this->package_price, 0) . ' تومان';
     }
 
     // Get remaining days (calculated)
@@ -226,5 +233,224 @@ class OrganizationPackage extends Model
     public function canAcceptPartialPayment()
     {
         return $this->package_duration_days > 30;
+    }
+
+    /**
+     * Get current period (0-based)
+     * Determines which period the current date falls into based on actual period dates
+     */
+    public function getCurrentPeriod()
+    {
+        if (!$this->is_active || !$this->started_at) {
+            return 0;
+        }
+
+        // If periods exist, use them to determine current period
+        if ($this->relationLoaded('periods') || $this->periods()->exists()) {
+            $now = Carbon::now();
+            $period = $this->periods()
+                ->where('start_date', '<=', $now)
+                ->where('end_date', '>=', $now)
+                ->first();
+            
+            if ($period) {
+                return $period->period_number;
+            }
+            
+            // If no current period found, find the first unpaid period that should be paid
+            $firstUnpaid = $this->periods()
+                ->where('is_paid', false)
+                ->where('start_date', '<=', $now)
+                ->orderBy('period_number')
+                ->first();
+            
+            if ($firstUnpaid) {
+                return $firstUnpaid->period_number;
+            }
+            
+            // Fallback: return the first period
+            return 0;
+        }
+
+        // Fallback to old calculation if periods don't exist
+        $daysSinceStart = Carbon::now()->diffInDays($this->started_at, false);
+        if ($daysSinceStart < 0) {
+            return 0;
+        }
+
+        // Use average period length instead of fixed 30
+        $totalPeriods = $this->getTotalPeriods();
+        $avgDaysPerPeriod = $this->package_duration_days / $totalPeriods;
+        
+        return min((int) floor($daysSinceStart / $avgDaysPerPeriod), $totalPeriods - 1);
+    }
+
+    /**
+     * Get total number of 30-day periods in this package
+     * For packages that are multiples of months, return the number of months
+     * Otherwise, use ceil to ensure all days are covered
+     */
+    public function getTotalPeriods()
+    {
+        // For packages that are close to month multiples (like 365 days = 12 months)
+        // Return the number of months instead of using ceil
+        $months = round($this->package_duration_days / 30.44); // Average days per month
+        
+        // If the package is close to a whole number of months (within 5 days)
+        $expectedDays = $months * 30.44;
+        if (abs($this->package_duration_days - $expectedDays) <= 5) {
+            return (int) $months;
+        }
+        
+        // Otherwise, use ceil to ensure all days are covered
+        return (int) ceil($this->package_duration_days / 30);
+    }
+
+    /**
+     * Check if a specific period is paid
+     */
+    public function isPeriodPaid($period)
+    {
+        if ($this->package_duration_days <= 30) {
+            // For packages 30 days or less, check if fully paid
+            return $this->payment_status === self::PAYMENT_STATUS_FULLY_PAID;
+        }
+
+        $paidPeriods = $this->paid_periods ?? [];
+        return in_array($period, $paidPeriods);
+    }
+
+    /**
+     * Mark a period as paid
+     */
+    public function markPeriodAsPaid($period)
+    {
+        $paidPeriods = $this->paid_periods ?? [];
+        if (!in_array($period, $paidPeriods)) {
+            $paidPeriods[] = $period;
+            sort($paidPeriods);
+            $this->paid_periods = $paidPeriods;
+            $this->save();
+        }
+    }
+
+    /**
+     * Get amount for a specific period (30 days worth)
+     */
+    public function getPeriodAmount($period = null)
+    {
+        if ($period === null) {
+            $period = $this->getCurrentPeriod();
+        }
+
+        // Calculate price per day
+        $pricePerDay = $this->package_price / $this->package_duration_days;
+        
+        // Calculate amount for 30 days
+        $periodDays = min(30, $this->package_duration_days - ($period * 30));
+        return $pricePerDay * $periodDays;
+    }
+
+    /**
+     * Get remaining unpaid periods
+     */
+    public function getUnpaidPeriods()
+    {
+        if ($this->package_duration_days <= 30) {
+            return $this->payment_status !== self::PAYMENT_STATUS_FULLY_PAID ? [0] : [];
+        }
+
+        $totalPeriods = $this->getTotalPeriods();
+        $paidPeriods = $this->paid_periods ?? [];
+        $unpaidPeriods = [];
+
+        for ($i = 0; $i < $totalPeriods; $i++) {
+            if (!in_array($i, $paidPeriods)) {
+                $unpaidPeriods[] = $i;
+            }
+        }
+
+        return $unpaidPeriods;
+    }
+
+    /**
+     * Generate periods for packages longer than 30 days
+     */
+    public function generatePeriods()
+    {
+        // Only generate periods for packages longer than 30 days
+        if ($this->package_duration_days <= 30) {
+            return;
+        }
+
+        // Delete existing periods if any
+        $this->periods()->delete();
+
+        $totalPeriods = $this->getTotalPeriods();
+        $currentDate = $this->started_at ?? Carbon::now();
+        
+        // Calculate base days per period (integer division)
+        $baseDaysPerPeriod = (int) floor($this->package_duration_days / $totalPeriods);
+        $remainingDays = $this->package_duration_days % $totalPeriods;
+        
+        // Calculate total amount to distribute
+        $totalAmount = round((float)$this->package_price, 0);
+        
+        // Calculate base amount per period (rounded down to nearest 1000)
+        $baseAmountPerPeriod = (int) floor($totalAmount / $totalPeriods / 1000) * 1000;
+        
+        // Calculate remaining amount after distributing base amounts
+        $remainingAmount = $totalAmount - ($baseAmountPerPeriod * $totalPeriods);
+        
+        $accumulatedDays = 0;
+        
+        for ($i = 0; $i < $totalPeriods; $i++) {
+            // Distribute remaining days to the last period(s)
+            $periodDays = $baseDaysPerPeriod;
+            if ($i >= $totalPeriods - $remainingDays) {
+                $periodDays += 1; // Add one extra day to the last periods
+            }
+            
+            // Distribute remaining amount to the last period
+            $periodAmount = $baseAmountPerPeriod;
+            if ($i == $totalPeriods - 1) {
+                $periodAmount += $remainingAmount; // Add all remaining amount to last period
+            }
+            
+            $periodStartDate = $currentDate->copy()->addDays($accumulatedDays);
+            $periodEndDate = $periodStartDate->copy()->addDays($periodDays)->subSecond();
+            
+            \App\Models\PackagePeriod::create([
+                'organization_package_id' => $this->id,
+                'period_number' => $i,
+                'amount' => $periodAmount,
+                'days' => $periodDays,
+                'start_date' => $periodStartDate,
+                'end_date' => $periodEndDate,
+                'is_paid' => false,
+                'paid_at' => null,
+            ]);
+            
+            $accumulatedDays += $periodDays;
+        }
+    }
+
+    /**
+     * Get current unpaid period
+     */
+    public function getCurrentUnpaidPeriod()
+    {
+        if ($this->package_duration_days <= 30) {
+            return null;
+        }
+
+        $currentPeriod = $this->getCurrentPeriod();
+        $period = $this->periods()->where('period_number', $currentPeriod)->first();
+        
+        if ($period && !$period->is_paid) {
+            return $period;
+        }
+
+        return null;
     }
 }

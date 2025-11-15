@@ -498,17 +498,17 @@
             // Deactivate package
             window.onDeactivate = function(id) {
                 // First check if package has payments
-                $.ajax({
-                    url: `/api/admin/organizations/{{ $organization->id }}/packages/${id}`,
-                    type: 'PUT',
-                    data: {
-                        is_active: false
-                    },
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                        'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
-                    },
-                    success: function(response) {
+                        $.ajax({
+                            url: `/api/admin/organizations/{{ $organization->id }}/packages/${id}`,
+                            type: 'PUT',
+                            data: {
+                                is_active: false
+                            },
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                                'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
+                            },
+                            success: function(response) {
                         // Check if response requires confirmation
                         if (response.requires_confirmation && response.warning) {
                             const packageInfo = response.package_info;
@@ -567,37 +567,37 @@
                             });
                         } else {
                             // No payments, proceed normally
-                            swal({
-                                title: 'موفق',
-                                text: 'پکیج با موفقیت غیرفعال شد',
-                                type: 'success',
-                                padding: '2em'
-                            });
-                            window.datatableApi.refresh();
-                            setTimeout(function() {
-                                location.reload();
-                            }, 1500);
+                                swal({
+                                    title: 'موفق',
+                                    text: 'پکیج با موفقیت غیرفعال شد',
+                                    type: 'success',
+                                    padding: '2em'
+                                });
+                                window.datatableApi.refresh();
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1500);
                         }
-                    },
-                    error: function(xhr) {
-                        if (xhr.status === 401) {
-                            swal({
-                                title: 'خطای دسترسی',
-                                text: 'لطفا مجددا وارد سیستم شوید',
-                                type: 'error',
-                                padding: '2em'
-                            }).then(function() {
-                                window.location.href = '/admin/login';
-                            });
-                        } else {
-                            swal({
-                                title: 'خطا',
-                                text: 'خطا در غیرفعال کردن پکیج',
-                                type: 'error',
-                                padding: '2em'
-                            });
-                        }
-                    }
+                            },
+                            error: function(xhr) {
+                                if (xhr.status === 401) {
+                                    swal({
+                                        title: 'خطای دسترسی',
+                                        text: 'لطفا مجددا وارد سیستم شوید',
+                                        type: 'error',
+                                        padding: '2em'
+                                    }).then(function() {
+                                        window.location.href = '/admin/login';
+                                    });
+                                } else {
+                                    swal({
+                                        title: 'خطا',
+                                        text: 'خطا در غیرفعال کردن پکیج',
+                                        type: 'error',
+                                        padding: '2em'
+                                    });
+                                }
+                            }
                 });
             };
 

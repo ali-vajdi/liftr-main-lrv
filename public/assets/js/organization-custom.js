@@ -65,6 +65,34 @@ function getDashboardData(callback) {
     });
 }
 
+// Global AJAX interceptor for organization API calls
+$(document).ajaxError(function(event, xhr, settings) {
+    // Only handle organization API calls
+    if (settings.url && settings.url.indexOf('/api/organization/') !== -1) {
+        // Skip payment routes
+        if (settings.url.indexOf('/api/organization/payment/') !== -1) {
+            return;
+        }
+        
+        // Check if response indicates payment is required
+        if (xhr.status === 403 && xhr.responseJSON && xhr.responseJSON.locked && xhr.responseJSON.requires_payment) {
+            // Don't redirect if already on payment page
+            if (window.location.pathname !== '/packages/payment') {
+                swal({
+                    title: 'دسترسی محدود شده',
+                    text: xhr.responseJSON.message || 'برای دسترسی به سیستم، لطفا پرداخت خود را انجام دهید.',
+                    type: 'warning',
+                    confirmButtonText: 'رفتن به صفحه پرداخت',
+                    showCancelButton: false,
+                    padding: '2em'
+                }).then(function() {
+                    window.location.href = '/packages/payment';
+                });
+            }
+        }
+    }
+});
+
 $(document).ready(function() {
     // Set user name from localStorage (for organization users)
     var user = JSON.parse(localStorage.getItem('organization_user'));

@@ -23,7 +23,7 @@ class OrganizationPackageController extends Controller
         $search = $request->get('search');
 
         $query = OrganizationPackage::where('organization_id', $organizationId)
-            ->with(['package', 'moderator']);
+            ->with(['package', 'moderator', 'periods']);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -99,19 +99,24 @@ class OrganizationPackageController extends Controller
         DB::beginTransaction();
         try {
         // Create new package assignment with stored package information
-            // All packages remain active and calculate remaining days dynamically
+// All packages remain active and calculate remaining days dynamically
         $organizationPackage = OrganizationPackage::create([
             'organization_id' => $organizationId,
             'package_id' => $package->id,
             'package_name' => $package->name,
                 'package_duration_days' => $package->duration_days, // Use original package duration
                 'package_duration_label' => $package->duration_label, // Use original package label
-            'package_price' => $package->price,
+            'package_price' => round($package->price, 0), // Round price to no decimals
                 'payment_status' => OrganizationPackage::PAYMENT_STATUS_UNPAID, // Default to unpaid
             'started_at' => $startedAt,
             'is_active' => true,
             'moderator_id' => Auth::id() ?? 1,
         ]);
+
+            // Generate periods if package is longer than 30 days
+            if ($organizationPackage->package_duration_days > 30) {
+                $organizationPackage->generatePeriods();
+            }
 
             DB::commit();
         } catch (\Exception $e) {
@@ -141,7 +146,7 @@ class OrganizationPackageController extends Controller
     {
         $organizationPackage = OrganizationPackage::where('organization_id', $organizationId)
             ->where('id', $id)
-            ->with(['package', 'moderator', 'organization'])
+            ->with(['package', 'moderator', 'organization', 'periods'])
             ->first();
         
         if (!$organizationPackage) {

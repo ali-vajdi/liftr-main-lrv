@@ -34,6 +34,7 @@ Route::get('/buildings/{building}/elevators', [OrganizationViewController::class
 Route::get('/services/pending', [OrganizationViewController::class, 'showPendingServices'])->name('organization.services.pending');
 Route::get('/services/assigned', [OrganizationViewController::class, 'showAssignedServices'])->name('organization.services.assigned');
 Route::get('/services/all', [OrganizationViewController::class, 'showAllServices'])->name('organization.services.all');
+Route::get('/packages/payment', [OrganizationViewController::class, 'showPayment'])->name('organization.payment');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     // Auth Routes

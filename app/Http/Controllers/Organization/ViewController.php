@@ -86,6 +86,12 @@ class ViewController extends Controller
         // Organization data will be fetched via API in the view
         return view('organization.services.all');
     }
+
+    // Payment View
+    public function showPayment()
+    {
+        return view('organization.payment.index');
+    }
 }
 
 
