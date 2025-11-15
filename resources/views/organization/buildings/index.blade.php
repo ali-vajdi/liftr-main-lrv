@@ -8,7 +8,7 @@
         <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
             <div class="widget widget-chart-one">
                 <div class="widget-heading">
-                    <h5 class="mb-0">مدیریت ساختمان‌ها/پروژه‌ها - {{ $organization->name }}</h5>
+                    <h5 class="mb-0">مدیریت ساختمان‌ها/پروژه‌ها - <span id="org-name-buildings">...</span></h5>
                 </div>
                 <div class="widget-content">
                     <div class="widget-content widget-content-area br-6">
@@ -1061,6 +1061,13 @@ $('#confirmDelete').on('click', function() {
                 });
             }
         });
+    }
+});
+
+// Load organization name
+getOrganizationData(function(org, error) {
+    if (!error && org) {
+        $('#org-name-buildings').text(org.name);
     }
 });
 </script>

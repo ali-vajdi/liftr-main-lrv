@@ -8,7 +8,7 @@
             <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
                 <div class="widget widget-chart-one">
                     <div class="widget-heading">
-                        <h5 class="mb-0">کاربران شرکت - {{ $organization->name }}</h5>
+                        <h5 class="mb-0">کاربران شرکت - <span id="org-name-users">...</span></h5>
                     </div>
                     <div class="widget-content">
                         @include('organization.components.datatable', [
@@ -159,6 +159,13 @@
                     }
                 });
             };
+        });
+
+        // Load organization name
+        getOrganizationData(function(org, error) {
+            if (!error && org) {
+                $('#org-name-users').text(org.name);
+            }
         });
     </script>
 @endsection

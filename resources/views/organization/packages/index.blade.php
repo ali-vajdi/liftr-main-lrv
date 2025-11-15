@@ -8,11 +8,17 @@
             <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
                 <div class="widget widget-chart-one">
                     <div class="widget-heading">
-                        <h5 class="mb-0">پکیج‌های من - {{ $organization->name }}</h5>
+                        <h5 class="mb-0">پکیج‌های من - <span id="org-name-packages">...</span></h5>
                     </div>
                     <div class="widget-content">
                         <!-- Package Summary -->
-                        @include('organization.packages.partials.package-summary', ['organization' => $organization])
+                        <div id="package-summary-container">
+                            <div class="text-center p-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="sr-only">در حال بارگذاری...</span>
+                                </div>
+                            </div>
+                        </div>
 
                         @include('organization.components.datatable', [
                             'title' => 'پکیج‌های اختصاص داده شده',
@@ -215,5 +221,104 @@
                 });
             };
         });
+
+        // Load organization name
+        getOrganizationData(function(org, error) {
+            if (!error && org) {
+                $('#org-name-packages').text(org.name);
+            }
+        });
+
+        // Load package summary
+        var token = localStorage.getItem('organization_token');
+        if (token) {
+            $.ajax({
+                url: '/api/organization/packages',
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                },
+                success: function(response) {
+                    if (response.data && response.data.length > 0) {
+                        var packages = response.data;
+                        var activePackages = packages.filter(function(pkg) { return pkg.is_active; });
+                        var totalRemainingDays = activePackages.reduce(function(sum, pkg) { 
+                            return sum + (pkg.remaining_days || 0); 
+                        }, 0);
+                        var totalAmountPaid = activePackages.reduce(function(sum, pkg) { 
+                            return sum + (parseFloat(pkg.package_price || 0)); 
+                        }, 0);
+                        var averageDaysPerPackage = activePackages.length > 0 ? 
+                            Math.round(totalRemainingDays / activePackages.length * 10) / 10 : 0;
+                        
+                        var longestPackage = activePackages.length > 0 ? 
+                            activePackages.sort(function(a, b) { 
+                                return (b.package_duration_days || 0) - (a.package_duration_days || 0); 
+                            })[0] : null;
+                        var shortestPackage = activePackages.length > 0 ? 
+                            activePackages.sort(function(a, b) { 
+                                return (a.package_duration_days || 0) - (b.package_duration_days || 0); 
+                            })[0] : null;
+                        var latestExpiry = activePackages.length > 0 ? 
+                            new Date(Math.max.apply(null, activePackages.map(function(pkg) { 
+                                return new Date(pkg.expires_at); 
+                            }))) : null;
+
+                        var html = '';
+                        if (activePackages.length > 0) {
+                            html = '<div class="row mb-4">' +
+                                '<div class="col-12">' +
+                                '<div class="card border-success">' +
+                                '<div class="card-header bg-success text-white">' +
+                                '<h5 class="mb-0"><i class="fa fa-check-circle"></i> پکیج‌های فعال شما (' + activePackages.length + ' پکیج)</h5>' +
+                                '</div>' +
+                                '<div class="card-body">' +
+                                '<div class="row">' +
+                                '<div class="col-md-2"><div class="text-center"><h6 class="text-muted">کل روزهای باقی‌مانده</h6><h4 class="text-warning">' + totalRemainingDays + ' روز</h4></div></div>' +
+                                '<div class="col-md-2"><div class="text-center"><h6 class="text-muted">میانگین روزها</h6><h4 class="text-info">' + averageDaysPerPackage + ' روز</h4></div></div>' +
+                                '<div class="col-md-2"><div class="text-center"><h6 class="text-muted">کل مبلغ پرداخت شده</h6><h4 class="text-success">' + parseFloat(totalAmountPaid).toLocaleString('fa-IR') + ' تومان</h4></div></div>' +
+                                '<div class="col-md-2"><div class="text-center"><h6 class="text-muted">طولانی‌ترین پکیج</h6><h4 class="text-primary">' + (longestPackage ? longestPackage.package_duration_days + ' روز' : '-') + '</h4></div></div>' +
+                                '<div class="col-md-2"><div class="text-center"><h6 class="text-muted">کوتاه‌ترین پکیج</h6><h4 class="text-secondary">' + (shortestPackage ? shortestPackage.package_duration_days + ' روز' : '-') + '</h4></div></div>' +
+                                '<div class="col-md-2"><div class="text-center"><h6 class="text-muted">آخرین انقضا</h6><h4 class="text-danger">' + (latestExpiry ? latestExpiry.toLocaleDateString('fa-IR') : '-') + '</h4></div></div>' +
+                                '</div></div></div></div></div>';
+                        } else {
+                            html = '<div class="row mb-4"><div class="col-12"><div class="card border-warning">' +
+                                '<div class="card-header bg-warning text-dark"><h5 class="mb-0"><i class="fa fa-exclamation-triangle"></i> بدون پکیج فعال</h5></div>' +
+                                '<div class="card-body text-center"><h4 class="text-warning">شما در حال حاضر پکیج فعالی ندارید</h4>' +
+                                '<p class="text-muted">برای اطلاع از پکیج‌های خود، با مدیر سیستم تماس بگیرید</p></div></div></div></div>';
+                        }
+
+                        if (packages.length > 0) {
+                            var stats = {
+                                total: packages.length,
+                                active: activePackages.length,
+                                expired: packages.filter(function(pkg) { return !pkg.is_active; }).length
+                            };
+                            var activeRate = stats.total > 0 ? Math.round((stats.active / stats.total) * 100 * 10) / 10 : 0;
+                            var avgAmount = stats.total > 0 ? Math.round(totalAmountPaid / stats.total) : 0;
+
+                            html += '<div class="row mb-4"><div class="col-12"><div class="card border-info">' +
+                                '<div class="card-header bg-info text-white"><h5 class="mb-0"><i class="fa fa-chart-bar"></i> آمار کلی پکیج‌های شما</h5></div>' +
+                                '<div class="card-body">' +
+                                '<div class="row">' +
+                                '<div class="col-md-3"><div class="text-center"><h6 class="text-muted">کل پکیج‌ها</h6><h4 class="text-info">' + stats.total + '</h4></div></div>' +
+                                '<div class="col-md-3"><div class="text-center"><h6 class="text-muted">پکیج‌های فعال</h6><h4 class="text-success">' + stats.active + '</h4></div></div>' +
+                                '<div class="col-md-3"><div class="text-center"><h6 class="text-muted">پکیج‌های منقضی</h6><h4 class="text-danger">' + stats.expired + '</h4></div></div>' +
+                                '<div class="col-md-3"><div class="text-center"><h6 class="text-muted">نرخ فعال بودن</h6><h4 class="text-primary">' + activeRate + '%</h4></div></div>' +
+                                '</div>' +
+                                '<div class="row mt-3">' +
+                                '<div class="col-md-6"><div class="text-center"><h6 class="text-muted">کل مبلغ پرداخت شده</h6><h4 class="text-primary">' + parseFloat(totalAmountPaid).toLocaleString('fa-IR') + ' تومان</h4></div></div>' +
+                                '<div class="col-md-6"><div class="text-center"><h6 class="text-muted">میانگین مبلغ هر پکیج</h6><h4 class="text-secondary">' + parseFloat(avgAmount).toLocaleString('fa-IR') + ' تومان</h4></div></div>' +
+                                '</div></div></div></div></div>';
+                        }
+
+                        $('#package-summary-container').html(html);
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Error loading packages:', xhr);
+                }
+            });
+        }
     </script>
 @endsection

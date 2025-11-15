@@ -8,7 +8,7 @@
         <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
             <div class="widget widget-chart-one">
                 <div class="widget-heading">
-                    <h5 class="mb-0">سرویس‌های در انتظار - {{ $organization->name }}</h5>
+                    <h5 class="mb-0">سرویس‌های در انتظار - <span id="org-name-pending">...</span></h5>
                 </div>
                 <div class="widget-content">
                     <div class="widget-content widget-content-area br-6">
@@ -390,6 +390,13 @@ function loadTechnicians() {
         }
     });
 }
+
+// Load organization name
+getOrganizationData(function(org, error) {
+    if (!error && org) {
+        $('#org-name-pending').text(org.name);
+    }
+});
 </script>
 @endsection
 

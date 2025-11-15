@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\Organization\TechnicianController as OrgTechnicianC
 use App\Http\Controllers\Api\Organization\BuildingController as OrgBuildingController;
 use App\Http\Controllers\Api\Organization\ElevatorController as OrgElevatorController;
 use App\Http\Controllers\Api\Organization\ServiceController as OrgServiceController;
+use App\Http\Controllers\Api\Organization\DashboardController as OrgDashboardController;
 use App\Http\Controllers\Organization\AuthController as OrganizationAuthController;
 use App\Http\Controllers\Api\TechnicianAuthController;
 use App\Http\Controllers\Api\Technician\ServiceController as TechnicianServiceController;
@@ -98,6 +99,7 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::post('logout', [OrganizationAuthController::class, 'logout']);
         Route::post('lock-screen', [OrganizationAuthController::class, 'lockScreen']);
         Route::get('check-auth', [OrganizationAuthController::class, 'checkAuth']);
+        Route::get('dashboard-data', [OrgDashboardController::class, 'getDashboardData']);
         
         // Organization Packages API
         Route::get('packages', [OrgPackageController::class, 'index']);

@@ -1,6 +1,6 @@
 @extends('organization.layout.master')
 
-@section('title', 'مدیریت آسانسورها - ' . $building->name)
+@section('title', 'مدیریت آسانسورها')
 
 @section('content')
     <div class="layout-px-spacing">
@@ -8,7 +8,7 @@
             <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
                 <div class="widget widget-chart-one">
                     <div class="widget-heading">
-                        <h5 class="mb-0">مدیریت آسانسورها - {{ $building->name }}</h5>
+                        <h5 class="mb-0">مدیریت آسانسورها - <span id="building-name">...</span></h5>
                         <div class="widget-n">
                             <a href="{{ route('organization.buildings.view') }}" class="btn btn-primary btn-sm">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right">
@@ -22,7 +22,7 @@
                     <div class="widget-content">
                         @include('organization.components.datatable', [
                             'title' => 'آسانسورها',
-                            'apiUrl' => '/api/organization/buildings/' . $building->id . '/elevators?all=true',
+                            'apiUrl' => '/api/organization/buildings/' . $buildingId . '/elevators?all=true',
                             'createButton' => false,
                             'createButtonText' => '',
                             'columns' => [
@@ -140,9 +140,28 @@
 
 @section('page-scripts')
 <script>
-const buildingId = {{ $building->id }};
+const buildingId = {{ $buildingId }};
 
 $(document).ready(function() {
+    // Load building data
+    var token = localStorage.getItem('organization_token');
+    if (token) {
+        $.ajax({
+            url: '/api/organization/buildings/' + buildingId,
+            type: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            },
+            success: function(response) {
+                if (response.data) {
+                    $('#building-name').text(response.data.name);
+                }
+            },
+            error: function(xhr) {
+                console.error('Error loading building:', xhr);
+            }
+        });
+    }
     // Handle show button click (called by datatable component)
     window.onShow = function(id) {
         $.ajax({

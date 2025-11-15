@@ -8,7 +8,7 @@
         <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
             <div class="widget widget-chart-one">
                 <div class="widget-heading">
-                    <h5 class="mb-0">قراردادهای رو به اتمام - {{ $organization->name }}</h5>
+                    <h5 class="mb-0">قراردادهای رو به اتمام - <span id="org-name-expiring">...</span></h5>
                 </div>
                 <div class="widget-content">
                     <div class="alert alert-warning">
@@ -341,6 +341,13 @@ function showMap(lat, lng, title) {
             .openPopup();
     });
 }
+
+// Load organization name
+getOrganizationData(function(org, error) {
+    if (!error && org) {
+        $('#org-name-expiring').text(org.name);
+    }
+});
 </script>
 
 <!-- Leaflet CSS and JS for map -->
