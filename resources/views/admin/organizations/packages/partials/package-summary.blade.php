@@ -147,7 +147,7 @@
                     </h5>
                 </div>
                 <div class="card-body text-center">
-                    <h4 class="text-warning">این سازمان در حال حاضر پکیج فعالی ندارد</h4>
+                    <h4 class="text-warning">این شرکت در حال حاضر پکیج فعالی ندارد</h4>
                     <p class="text-muted">برای اختصاص پکیج جدید، از دکمه "اختصاص پکیج جدید" استفاده کنید</p>
                 </div>
             </div>

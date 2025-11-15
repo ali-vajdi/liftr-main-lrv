@@ -1,6 +1,6 @@
 @extends('organization.layout.master')
 
-@section('title', 'داشبورد سازمان')
+@section('title', 'داشبورد شرکت')
 
 @section('content')
 <div class="row layout-top-spacing">
@@ -32,7 +32,7 @@
                     <div class="col-md-4">
                         <div class="card border-info">
                             <div class="card-body text-center">
-                                <h5 class="card-title text-info">وضعیت سازمان</h5>
+                                <h5 class="card-title text-info">وضعیت شرکت</h5>
                                 <h2><span class="badge {{ $organization->organization_status_badge_class }}">{{ $organization->organization_status_text }}</span></h2>
                                 <p class="card-text">وضعیت فعلی پکیج‌ها</p>
                             </div>

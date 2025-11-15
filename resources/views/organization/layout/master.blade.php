@@ -3,7 +3,7 @@
 
 <head>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>پنل سازمانی لیفتر - @yield('title', 'پنل سازمان')</title>
+    <title>پنل شرکتی لیفتر - @yield('title', 'پنل شرکت')</title>
     @include('organization.include.head')
 
     @yield('page-styles')

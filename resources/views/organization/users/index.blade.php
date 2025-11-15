@@ -1,6 +1,6 @@
 @extends('organization.layout.master')
 
-@section('title', 'کاربران سازمان')
+@section('title', 'کاربران شرکت')
 
 @section('content')
     <div class="layout-px-spacing">
@@ -8,11 +8,11 @@
             <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
                 <div class="widget widget-chart-one">
                     <div class="widget-heading">
-                        <h5 class="mb-0">کاربران سازمان - {{ $organization->name }}</h5>
+                        <h5 class="mb-0">کاربران شرکت - {{ $organization->name }}</h5>
                     </div>
                     <div class="widget-content">
                         @include('organization.components.datatable', [
-                            'title' => 'لیست کاربران سازمان',
+                            'title' => 'لیست کاربران شرکت',
                             'apiUrl' => '/api/organization/users',
                             'createButton' => false,
                             'hideDefaultActions' => true,

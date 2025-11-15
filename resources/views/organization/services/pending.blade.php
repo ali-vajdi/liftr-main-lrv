@@ -134,8 +134,8 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="organization_note">یادداشت سازمان</label>
-                        <textarea class="form-control" id="organization_note" name="organization_note" rows="4" placeholder="یادداشت سازمان را وارد کنید..."></textarea>
+                        <label for="organization_note">یادداشت شرکت</label>
+                        <textarea class="form-control" id="organization_note" name="organization_note" rows="4" placeholder="یادداشت شرکت را وارد کنید..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">

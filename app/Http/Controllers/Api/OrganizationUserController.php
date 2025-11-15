@@ -113,7 +113,7 @@ class OrganizationUserController extends Controller
         $user = OrganizationUser::create($data);
 
         return response()->json([
-            'message' => 'کاربر سازمان با موفقیت ایجاد شد',
+            'message' => 'کاربر شرکت با موفقیت ایجاد شد',
             'data' => $user
         ], 201);
     }
@@ -164,7 +164,7 @@ class OrganizationUserController extends Controller
         $user->update($data);
 
         return response()->json([
-            'message' => 'کاربر سازمان با موفقیت ویرایش شد',
+            'message' => 'کاربر شرکت با موفقیت ویرایش شد',
             'data' => $user
         ]);
     }
@@ -175,7 +175,7 @@ class OrganizationUserController extends Controller
         $user->delete();
 
         return response()->json([
-            'message' => 'کاربر سازمان با موفقیت حذف شد'
+            'message' => 'کاربر شرکت با موفقیت حذف شد'
         ]);
     }
 

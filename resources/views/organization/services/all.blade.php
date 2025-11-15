@@ -160,8 +160,8 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="organization_note">یادداشت سازمان</label>
-                        <textarea class="form-control" id="organization_note" name="organization_note" rows="4" placeholder="یادداشت سازمان را وارد کنید..."></textarea>
+                        <label for="organization_note">یادداشت شرکت</label>
+                        <textarea class="form-control" id="organization_note" name="organization_note" rows="4" placeholder="یادداشت شرکت را وارد کنید..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -260,7 +260,7 @@ function displayServiceDetails(service) {
         html += '<tr><th>شماره تماس تکنسین:</th><td>' + (service.technician ? service.technician.phone_number : '-') + '</td></tr>';
         html += '<tr><th>تاریخ اختصاص:</th><td>' + (service.assigned_at_jalali || '-') + '</td></tr>';
         if (service.organization_note) {
-            html += '<tr><th>یادداشت سازمان:</th><td>' + service.organization_note + '</td></tr>';
+            html += '<tr><th>یادداشت شرکت:</th><td>' + service.organization_note + '</td></tr>';
         }
         html += '</table>';
         html += '</div></div>';

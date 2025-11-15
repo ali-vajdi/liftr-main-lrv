@@ -4,7 +4,7 @@
 @section('content')
     <div class="form-content">
 
-        <h1 class="">ورود به <a href=""><span class="brand-name">پنل سازمانی لیفتر</span></a></h1>
+        <h1 class="">ورود به <a href=""><span class="brand-name">پنل شرکتی لیفتر</span></a></h1>
         <form class="text-left" method="POST" action="{{ route('organization.login') }}">
             @csrf
         <div class="form">

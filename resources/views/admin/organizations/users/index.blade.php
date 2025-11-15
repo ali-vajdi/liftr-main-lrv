@@ -1,6 +1,6 @@
 @extends('admin.layout.master')
 
-@section('title', 'مدیریت کاربران سازمان')
+@section('title', 'مدیریت کاربران شرکت')
 
 @section('content')
     <div class="layout-px-spacing">
@@ -8,20 +8,20 @@
             <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 layout-spacing">
                 <div class="widget widget-chart-one">
                     <div class="widget-heading">
-                        <h5 class="">مدیریت کاربران سازمان: {{ $organization->name }}</h5>
+                        <h5 class="">مدیریت کاربران شرکت: {{ $organization->name }}</h5>
                         <div class="mt-2">
                             <a href="{{ route('admin.organizations.view') }}" class="btn btn-secondary btn-sm">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right">
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                     <polyline points="12 5 19 12 12 19"></polyline>
                                 </svg>
-                                بازگشت به لیست سازمان‌ها
+                                بازگشت به لیست شرکت‌ها
                             </a>
                         </div>
                     </div>
                     <div class="widget-content">
                         @include('admin.components.datatable', [
-                            'title' => 'کاربران سازمان',
+                            'title' => 'کاربران شرکت',
                             'apiUrl' => '/api/admin/organizations/' . $organization->id . '/users',
                             'createButton' => true,
                             'createButtonText' => 'افزودن کاربر جدید',

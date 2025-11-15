@@ -1,6 +1,6 @@
 @extends('organization.layout.master')
 
-@section('title', 'پروفایل سازمان')
+@section('title', 'پروفایل شرکت')
 
 @section('content')
     <div class="layout-px-spacing">
@@ -8,21 +8,21 @@
             <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
                 <div class="widget widget-chart-one">
                     <div class="widget-heading">
-                        <h5 class="mb-0">پروفایل سازمان - {{ $organization->name }}</h5>
+                        <h5 class="mb-0">پروفایل شرکت - {{ $organization->name }}</h5>
                     </div>
                     <div class="widget-content">
                         <div class="row">
                             <div class="col-md-8">
                                 <div class="card">
                                     <div class="card-header">
-                                        <h5 class="mb-0">اطلاعات سازمان</h5>
+                                        <h5 class="mb-0">اطلاعات شرکت</h5>
                                     </div>
                                     <div class="card-body">
                                         <div class="table-responsive">
                                             <table class="table table-bordered">
                                                 <tbody>
                                                     <tr>
-                                                        <th width="200">نام سازمان</th>
+                                                        <th width="200">نام شرکت</th>
                                                         <td>{{ $organization->name }}</td>
                                                     </tr>
                                                     <tr>
@@ -56,7 +56,7 @@
                             <div class="col-md-4">
                                 <div class="card">
                                     <div class="card-header">
-                                        <h5 class="mb-0">لوگو سازمان</h5>
+                                        <h5 class="mb-0">لوگو شرکت</h5>
                                     </div>
                                     <div class="card-body text-center">
                                         @if($organization->logo)
