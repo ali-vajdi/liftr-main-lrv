@@ -59,8 +59,10 @@ class CheckOrganizationPackagePayment
         $paymentInfo = [];
 
         foreach ($activePackages as $package) {
-            // For packages 30 days or less, check if fully paid
-            if ($package->package_duration_days <= 30) {
+            $package->load('periods');
+            
+            // If periods are not used, check if fully paid
+            if (!$package->use_periods) {
                 if ($package->payment_status === OrganizationPackage::PAYMENT_STATUS_FULLY_PAID) {
                     $hasAccess = true;
                 } else {
@@ -75,8 +77,7 @@ class CheckOrganizationPackagePayment
                     ];
                 }
             } else {
-                // For packages > 30 days, check 30-day periods using PackagePeriod records
-                $package->load('periods');
+                // For packages with periods, check current period payment
                 $currentPeriod = $package->getCurrentPeriod();
                 $currentPeriodRecord = $package->periods()->where('period_number', $currentPeriod)->first();
                 
@@ -84,7 +85,7 @@ class CheckOrganizationPackagePayment
                     $hasAccess = true;
                 } else {
                     $needsPayment = true;
-                    $periodAmount = $currentPeriodRecord ? $currentPeriodRecord->amount : $package->getPeriodAmount($currentPeriod);
+                    $periodAmount = $currentPeriodRecord ? $currentPeriodRecord->amount : 0;
                     $paymentInfo[] = [
                         'package_id' => $package->id,
                         'package_name' => $package->package_name,
@@ -93,7 +94,7 @@ class CheckOrganizationPackagePayment
                         'total_amount' => $package->package_price,
                         'paid_amount' => $package->total_paid_amount,
                         'remaining_amount' => $package->remaining_amount,
-                        'period' => $currentPeriod
+                        'period' => 'period'
                     ];
                 }
             }
@@ -101,7 +102,7 @@ class CheckOrganizationPackagePayment
 
         // If access is granted, continue
         if ($hasAccess && !$needsPayment) {
-            return $next($request);
+        return $next($request);
         }
 
         // Otherwise, lock access and return payment info

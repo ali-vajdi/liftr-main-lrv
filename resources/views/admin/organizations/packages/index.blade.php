@@ -195,29 +195,41 @@
                         
                         <div class="tab-content mt-3" id="paymentTabContent">
                             <div class="tab-pane fade show active" id="add-payment" role="tabpanel">
-                                <form id="addPaymentForm">
-                                    <div class="form-group">
-                                        <label for="payment_method_id">روش پرداخت <span class="text-danger">*</span></label>
-                                        <select class="form-control" id="payment_method_id" name="payment_method_id" required>
-                                            <option value="">انتخاب کنید...</option>
-                                        </select>
+                                <!-- Period Selection (for packages with periods) -->
+                                <div id="periodSelectionSection" style="display: none;">
+                                    <h6 class="mb-3">انتخاب دوره‌های پرداخت</h6>
+                                    <div id="periodsList" class="mb-3"></div>
+                                    <div class="alert alert-info">
+                                        <strong>مبلغ کل انتخاب شده:</strong> <span id="selectedPeriodsTotal">0</span> تومان
                                     </div>
-                                    <div class="form-group">
-                                        <label for="payment_amount">مبلغ پرداختی (تومان)</label>
-                                        <input type="number" class="form-control" id="payment_amount" name="amount" min="0" step="1000" required>
-                                        <small class="form-text text-muted" id="payment_amount_help"></small>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="payment_date">تاریخ پرداخت</label>
-                                        <input type="datetime-local" class="form-control" id="payment_date" name="payment_date">
-                                        <small class="form-text text-muted">اگر خالی باشد، تاریخ فعلی استفاده می‌شود</small>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="payment_notes">یادداشت (اختیاری)</label>
-                                        <textarea class="form-control" id="payment_notes" name="notes" rows="3"></textarea>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">ثبت پرداخت</button>
-                                </form>
+                                </div>
+                                
+                                <!-- Full Payment Form (for packages without periods or full payment) -->
+                                <div id="fullPaymentSection">
+                                    <form id="addPaymentForm">
+                                        <div class="form-group">
+                                            <label for="payment_method_id">روش پرداخت <span class="text-danger">*</span></label>
+                                            <select class="form-control" id="payment_method_id" name="payment_method_id" required>
+                                                <option value="">انتخاب کنید...</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="payment_amount">مبلغ پرداختی (تومان)</label>
+                                            <input type="number" class="form-control" id="payment_amount" name="amount" min="0" step="1000" required>
+                                            <small class="form-text text-muted" id="payment_amount_help"></small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="payment_date">تاریخ پرداخت</label>
+                                            <input type="datetime-local" class="form-control" id="payment_date" name="payment_date">
+                                            <small class="form-text text-muted">اگر خالی باشد، تاریخ فعلی استفاده می‌شود</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="payment_notes">یادداشت (اختیاری)</label>
+                                            <textarea class="form-control" id="payment_notes" name="notes" rows="3"></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">ثبت پرداخت</button>
+                                    </form>
+                                </div>
                             </div>
                             <div class="tab-pane fade" id="payments-list" role="tabpanel">
                                 <div id="paymentsListContainer">
@@ -611,6 +623,7 @@
                     },
                     success: function(response) {
                         const pkg = response.data;
+                        const usePeriods = pkg.use_periods || false;
                         const packageInfo = `
                             <div class="card">
                                 <div class="card-body">
@@ -619,14 +632,26 @@
                                     <p class="mb-1"><strong>پرداخت شده:</strong> <span class="text-success">${pkg.formatted_total_paid_amount || '0 تومان'}</span></p>
                                     <p class="mb-1"><strong>باقی‌مانده:</strong> <span class="text-danger">${pkg.formatted_remaining_amount || '0 تومان'}</span></p>
                                     <p class="mb-0"><strong>وضعیت:</strong> <span class="badge ${pkg.payment_status_badge_class}">${pkg.payment_status_text}</span></p>
-                                    ${!pkg.can_accept_partial_payment ? '<p class="text-warning mt-2"><small><i class="fa fa-info-circle"></i> این پکیج باید به صورت کامل پرداخت شود</small></p>' : ''}
+                                    ${usePeriods ? '<p class="text-info mt-2"><small><i class="fa fa-info-circle"></i> این پکیج دارای دوره‌های پرداخت است</small></p>' : (!pkg.can_accept_partial_payment ? '<p class="text-warning mt-2"><small><i class="fa fa-info-circle"></i> این پکیج باید به صورت کامل پرداخت شود</small></p>' : '')}
                                 </div>
                             </div>
                         `;
                         $('#paymentPackageInfo').html(packageInfo);
-                        $('#payment_amount').attr('max', pkg.remaining_amount || pkg.package_price);
-                        $('#payment_amount_help').text(`حداکثر مبلغ قابل پرداخت: ${pkg.formatted_remaining_amount || pkg.formatted_price}`);
                         $('#paymentModal').data('package-id', id);
+                        $('#paymentModal').data('package-data', pkg);
+                        
+                        // Show/hide sections based on use_periods
+                        if (usePeriods && pkg.periods && pkg.periods.length > 0) {
+                            $('#periodSelectionSection').show();
+                            $('#fullPaymentSection').hide();
+                            renderPeriodsSelection(pkg.periods);
+                        } else {
+                            $('#periodSelectionSection').hide();
+                            $('#fullPaymentSection').show();
+                            $('#payment_amount').attr('max', pkg.remaining_amount || pkg.package_price);
+                            $('#payment_amount_help').text(`حداکثر مبلغ قابل پرداخت: ${pkg.formatted_remaining_amount || pkg.formatted_price}`);
+                        }
+                        
                         $('#paymentModal').modal('show');
                         loadPaymentMethods();
                         loadPaymentsList(id);
@@ -641,6 +666,227 @@
                     }
                 });
             };
+
+            // Render periods selection
+            function renderPeriodsSelection(periods) {
+                let html = '<div class="table-responsive"><table class="table table-bordered table-hover">';
+                html += '<thead class="thead-light"><tr><th style="width: 50px;">انتخاب</th><th>دوره</th><th>روزها</th><th>مبلغ</th><th>وضعیت</th><th>تاریخ شروع</th><th>تاریخ پایان</th></tr></thead><tbody>';
+                
+                periods.forEach(function(period) {
+                    const isPaid = period.is_paid;
+                    const isDisabled = isPaid;
+                    const startDate = new Date(period.start_date).toLocaleDateString('fa-IR');
+                    const endDate = new Date(period.end_date).toLocaleDateString('fa-IR');
+                    
+                    html += `<tr class="${isPaid ? 'table-success' : ''}">
+                        <td class="text-center">
+                            <input type="checkbox" 
+                                   class="period-checkbox" 
+                                   data-period-id="${period.id}"
+                                   data-period-number="${period.period_number}"
+                                   data-period-amount="${period.amount}"
+                                   ${isDisabled ? 'disabled' : ''}
+                                   ${isPaid ? 'checked' : ''}>
+                        </td>
+                        <td><strong>دوره ${period.period_number + 1}</strong></td>
+                        <td>${period.days} روز</td>
+                        <td><strong class="text-primary">${parseFloat(period.amount).toLocaleString('fa-IR')} تومان</strong></td>
+                        <td>
+                            ${isPaid ? 
+                                '<span class="badge badge-success"><i class="fa fa-check-circle"></i> پرداخت شده</span>' : 
+                                '<span class="badge badge-danger"><i class="fa fa-times-circle"></i> پرداخت نشده</span>'
+                            }
+                        </td>
+                        <td>${startDate}</td>
+                        <td>${endDate}</td>
+                    </tr>`;
+                });
+                
+                html += '</tbody></table></div>';
+                html += '<div class="mt-3 text-center">';
+                html += '<button type="button" class="btn btn-success btn-lg" id="paySelectedPeriods">';
+                html += '<i class="fa fa-credit-card"></i> پرداخت دوره‌های انتخاب شده';
+                html += '</button>';
+                html += '</div>';
+                
+                $('#periodsList').html(html);
+                updateSelectedPeriodsTotal();
+                
+                // Handle checkbox changes
+                $(document).off('change', '.period-checkbox').on('change', '.period-checkbox', function() {
+                    updateSelectedPeriodsTotal();
+                });
+                
+                // Handle pay selected periods button
+                $(document).off('click', '#paySelectedPeriods').on('click', '#paySelectedPeriods', function() {
+                    paySelectedPeriods();
+                });
+            }
+            
+            // Update selected periods total
+            function updateSelectedPeriodsTotal() {
+                let total = 0;
+                let count = 0;
+                $('.period-checkbox:checked:not(:disabled)').each(function() {
+                    total += parseFloat($(this).data('period-amount'));
+                    count++;
+                });
+                $('#selectedPeriodsTotal').text(total.toLocaleString('fa-IR'));
+                
+                // Enable/disable button
+                if (count > 0) {
+                    $('#paySelectedPeriods').prop('disabled', false).removeClass('btn-secondary').addClass('btn-success');
+                } else {
+                    $('#paySelectedPeriods').prop('disabled', true).removeClass('btn-success').addClass('btn-secondary');
+                }
+            }
+            
+            // Pay selected periods
+            function paySelectedPeriods() {
+                const selectedPeriods = [];
+                $('.period-checkbox:checked:not(:disabled)').each(function() {
+                    selectedPeriods.push({
+                        id: $(this).data('period-id'),
+                        period_number: $(this).data('period-number'),
+                        amount: $(this).data('period-amount')
+                    });
+                });
+                
+                if (selectedPeriods.length === 0) {
+                    swal({
+                        title: 'خطا',
+                        text: 'لطفا حداقل یک دوره را انتخاب کنید',
+                        type: 'error',
+                        padding: '2em'
+                    });
+                    return;
+                }
+                
+                const totalAmount = selectedPeriods.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+                
+                // Load payment methods first
+                $.ajax({
+                    url: '/api/admin/payment-methods',
+                    type: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
+                    },
+                    success: function(response) {
+                        let paymentMethodsOptions = '<option value="">انتخاب کنید...</option>';
+                        response.data.forEach(function(method) {
+                            paymentMethodsOptions += `<option value="${method.id}">${method.name}${method.is_system ? ' (سیستمی)' : ''}</option>`;
+                        });
+                        
+                        swal({
+                            title: 'تأیید پرداخت',
+                            html: `
+                                <div class="text-right" style="direction: rtl;">
+                                    <p class="mb-3">آیا می‌خواهید برای <strong>${selectedPeriods.length} دوره</strong> پرداخت کنید؟</p>
+                                    <div class="alert alert-info">
+                                        <strong>مبلغ کل:</strong> <span style="font-size: 1.2rem; color: #007bff;">${totalAmount.toLocaleString('fa-IR')} تومان</span>
+                                    </div>
+                                    <div class="form-group mt-3">
+                                        <label><strong>روش پرداخت:</strong> <span class="text-danger">*</span></label>
+                                        <select class="form-control" id="swal_payment_method" required>
+                                            ${paymentMethodsOptions}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label><strong>یادداشت (اختیاری):</strong></label>
+                                        <textarea class="form-control" id="swal_payment_notes" rows="2"></textarea>
+                                    </div>
+                                </div>
+                            `,
+                            type: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'بله، پرداخت کن',
+                            cancelButtonText: 'انصراف',
+                            confirmButtonColor: '#28a745',
+                            padding: '2em',
+                            preConfirm: function() {
+                                const paymentMethodId = $('#swal_payment_method').val();
+                                if (!paymentMethodId) {
+                                    swal.showValidationError('لطفا روش پرداخت را انتخاب کنید');
+                                    return false;
+                                }
+                                return {
+                                    payment_method_id: paymentMethodId,
+                                    notes: $('#swal_payment_notes').val() || null
+                                };
+                            }
+                        }).then(function(result) {
+                            if (result.value) {
+                                const packageId = $('#paymentModal').data('package-id');
+                                
+                                // Show loading
+                                swal({
+                                    title: 'در حال پردازش...',
+                                    text: 'لطفا صبر کنید',
+                                    type: 'info',
+                                    allowOutsideClick: false,
+                                    allowEscapeKey: false,
+                                    showConfirmButton: false,
+                                    onOpen: function() {
+                                        swal.showLoading();
+                                    }
+                                });
+                                
+                                // Pay each selected period sequentially
+                                let paymentPromises = [];
+                                selectedPeriods.forEach(function(period) {
+                                    paymentPromises.push(
+                                        $.ajax({
+                                            url: `/api/admin/organizations/{{ $organization->id }}/packages/${packageId}/payments`,
+                                            type: 'POST',
+                                            data: {
+                                                amount: period.amount,
+                                                payment_method_id: result.value.payment_method_id,
+                                                payment_date: null,
+                                                notes: result.value.notes ? `پرداخت دوره ${period.period_number + 1} - ${result.value.notes}` : `پرداخت دوره ${period.period_number + 1}`,
+                                                period_number: period.period_number
+                                            },
+                                            headers: {
+                                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                                                'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
+                                            }
+                                        })
+                                    );
+                                });
+                                
+                                Promise.all(paymentPromises).then(function() {
+                                    swal({
+                                        title: 'موفقیت',
+                                        text: `پرداخت ${selectedPeriods.length} دوره با موفقیت انجام شد`,
+                                        type: 'success',
+                                        padding: '2em'
+                                    });
+                                    window.onPayment(packageId); // Reload payment info
+                                    window.datatableApi.refresh();
+                                }).catch(function(xhr) {
+                                    let errorMessage = 'خطا در پردازش پرداخت';
+                                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                                        errorMessage = xhr.responseJSON.message;
+                                    }
+                                    swal({
+                                        title: 'خطا',
+                                        text: errorMessage,
+                                        type: 'error',
+                                        padding: '2em'
+                                    });
+                                });
+                            }
+                        });
+                    },
+                    error: function() {
+                        swal({
+                            title: 'خطا',
+                            text: 'خطا در بارگذاری روش‌های پرداخت',
+                            type: 'error',
+                            padding: '2em'
+                        });
+                    }
+                });
+            }
 
             // Load payment methods
             function loadPaymentMethods() {

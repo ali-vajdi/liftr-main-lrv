@@ -121,37 +121,37 @@ Route::prefix('organization')->name('organization.')->group(function () {
         // All other routes require payment check
         Route::middleware('check.package.payment')->group(function () {
             Route::get('dashboard-data', [OrgDashboardController::class, 'getDashboardData']);
-            
-            // Organization Packages API
-            Route::get('packages', [OrgPackageController::class, 'index']);
-            Route::get('packages/{package}', [OrgPackageController::class, 'show']);
-            
-            // Organization Users API
-            Route::get('users', [OrgUserController::class, 'index']);
-            Route::get('users/{user}', [OrgUserController::class, 'show']);
-            
-            // Organization Technicians API
-            Route::apiResource('technicians', OrgTechnicianController::class);
-            Route::post('technicians/{technician}/credentials', [OrgTechnicianController::class, 'setCredentials']);
-            
-            // Organization Buildings API
-            Route::apiResource('buildings', OrgBuildingController::class);
-            Route::get('provinces', [OrgBuildingController::class, 'getProvinces']);
-            Route::get('cities-by-province', [OrgBuildingController::class, 'getCitiesByProvince']);
-            
-            // Organization Elevators API
-            Route::apiResource('buildings.elevators', OrgElevatorController::class);
-            Route::post('buildings/{buildingId}/elevators/bulk', [OrgElevatorController::class, 'bulk']);
-            
-            // Organization Services API
-            Route::get('services/pending', [OrgServiceController::class, 'pending']);
-            Route::get('services/assigned', [OrgServiceController::class, 'assigned']);
-            Route::get('services/all', [OrgServiceController::class, 'all']);
-            Route::post('services/{service}/assign-technician', [OrgServiceController::class, 'assignTechnician']);
-            Route::get('services/technicians', [OrgServiceController::class, 'getTechnicians']);
-            
-            // Organization SMS API
-            Route::get('sms/statistics', [\App\Http\Controllers\Api\Organization\SmsController::class, 'statistics']);
+        
+        // Organization Packages API
+        Route::get('packages', [OrgPackageController::class, 'index']);
+        Route::get('packages/{package}', [OrgPackageController::class, 'show']);
+        
+        // Organization Users API
+        Route::get('users', [OrgUserController::class, 'index']);
+        Route::get('users/{user}', [OrgUserController::class, 'show']);
+        
+        // Organization Technicians API
+        Route::apiResource('technicians', OrgTechnicianController::class);
+        Route::post('technicians/{technician}/credentials', [OrgTechnicianController::class, 'setCredentials']);
+        
+        // Organization Buildings API
+        Route::apiResource('buildings', OrgBuildingController::class);
+        Route::get('provinces', [OrgBuildingController::class, 'getProvinces']);
+        Route::get('cities-by-province', [OrgBuildingController::class, 'getCitiesByProvince']);
+        
+        // Organization Elevators API
+        Route::apiResource('buildings.elevators', OrgElevatorController::class);
+        Route::post('buildings/{buildingId}/elevators/bulk', [OrgElevatorController::class, 'bulk']);
+        
+        // Organization Services API
+        Route::get('services/pending', [OrgServiceController::class, 'pending']);
+        Route::get('services/assigned', [OrgServiceController::class, 'assigned']);
+        Route::get('services/all', [OrgServiceController::class, 'all']);
+        Route::post('services/{service}/assign-technician', [OrgServiceController::class, 'assignTechnician']);
+        Route::get('services/technicians', [OrgServiceController::class, 'getTechnicians']);
+        
+        // Organization SMS API
+        Route::get('sms/statistics', [\App\Http\Controllers\Api\Organization\SmsController::class, 'statistics']);
         });
     });
 });

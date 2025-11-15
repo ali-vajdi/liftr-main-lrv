@@ -67,13 +67,11 @@ class PaymentController extends Controller
         } else {
             // Check existing packages for payment requirements
             foreach ($activePackages as $package) {
-                // Load periods for packages > 30 days
-                if ($package->package_duration_days > 30) {
-                    $package->load('periods');
-                }
+                // Load periods
+                $package->load('periods');
                 
-                if ($package->package_duration_days <= 30) {
-                    // For packages 30 days or less
+                // If periods are not used, treat as full payment
+                if (!$package->use_periods) {
                     if ($package->payment_status !== OrganizationPackage::PAYMENT_STATUS_FULLY_PAID) {
                         $paymentInfo[] = [
                             'package_id' => $package->id,
@@ -83,13 +81,14 @@ class PaymentController extends Controller
                             'paid_amount' => $package->total_paid_amount,
                             'remaining_amount' => $package->remaining_amount,
                             'payment_type' => 'full',
+                            'use_periods' => false,
                             'current_period' => null,
                             'period_amount' => null,
                             'periods' => [],
                         ];
                     }
                 } else {
-                    // For packages > 30 days - use PackagePeriod records
+                    // For packages with periods - use PackagePeriod records
                     $currentPeriod = $package->getCurrentPeriod();
                     $currentPeriodRecord = $package->periods()->where('period_number', $currentPeriod)->first();
                     
@@ -118,9 +117,11 @@ class PaymentController extends Controller
                             'paid_amount' => $package->total_paid_amount,
                             'remaining_amount' => $package->remaining_amount,
                             'payment_type' => 'period',
+                            'use_periods' => true,
                             'current_period' => $currentPeriod,
                             'period_amount' => $currentPeriodRecord->amount,
                             'current_period_id' => $currentPeriodRecord->id,
+                            'total_periods' => $package->getTotalPeriods(),
                             'periods' => $allPeriods,
                         ];
                     }
@@ -262,11 +263,23 @@ class PaymentController extends Controller
 
             } else {
                 // Pay full amount
-                if ($amount > $package->remaining_amount) {
-                    DB::rollBack();
-                    return response()->json([
-                        'message' => 'مبلغ پرداختی نمی‌تواند بیشتر از مبلغ باقی‌مانده باشد'
-                    ], 422);
+                // If periods are not used, user must pay the full remaining amount
+                if (!$package->use_periods) {
+                    // For packages without periods, require full payment
+                    if (abs($amount - $package->remaining_amount) > 0.01) {
+                        DB::rollBack();
+                        return response()->json([
+                            'message' => "برای پکیج‌های بدون دوره، باید کل مبلغ باقی‌مانده ({$package->remaining_amount} تومان) پرداخت شود"
+                        ], 422);
+                    }
+                } else {
+                    // For packages with periods but paying full amount, allow partial payments
+                    if ($amount > $package->remaining_amount) {
+                        DB::rollBack();
+                        return response()->json([
+                            'message' => 'مبلغ پرداختی نمی‌تواند بیشتر از مبلغ باقی‌مانده باشد'
+                        ], 422);
+                    }
                 }
 
                 // Create payment
@@ -365,16 +378,16 @@ class PaymentController extends Controller
                 'package_duration_days' => $package->duration_days,
                 'package_duration_label' => $package->duration_label,
                 'package_price' => round((float)$package->price, 0), // Round price to no decimals
+                'use_periods' => $package->use_periods ?? false,
+                'period_days' => $package->period_days,
                 'payment_status' => OrganizationPackage::PAYMENT_STATUS_UNPAID,
                 'started_at' => Carbon::now(),
                 'is_active' => true,
                 'moderator_id' => null, // System activation
             ]);
 
-            // Generate periods if package is longer than 30 days
-            if ($organizationPackage->package_duration_days > 30) {
-                $organizationPackage->generatePeriods();
-            }
+            // Generate periods (will create single period if use_periods is false)
+            $organizationPackage->generatePeriods();
 
             DB::commit();
 

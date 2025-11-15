@@ -19,7 +19,7 @@ class PackageController extends Controller
         $organizationId = $user->organization_id;
         
         $query = OrganizationPackage::where('organization_id', $organizationId)
-            ->with(['package', 'moderator']);
+            ->with(['package', 'moderator', 'periods']);
 
         // Filtering and sorting
         $search = $request->get('search');
@@ -50,6 +50,16 @@ class PackageController extends Controller
             $item->has_package_changed = $item->has_package_changed;
             $item->assigned_package_info = $item->assigned_package_info;
             $item->current_package_info = $item->current_package_info;
+            // Payment attributes
+            $item->payment_status_text = $item->payment_status_text;
+            $item->payment_status_badge_class = $item->payment_status_badge_class;
+            $item->formatted_total_paid_amount = $item->formatted_total_paid_amount;
+            $item->formatted_remaining_amount = $item->formatted_remaining_amount;
+            $item->total_paid_amount = $item->total_paid_amount;
+            $item->remaining_amount = $item->remaining_amount;
+            $item->use_periods = $item->use_periods;
+            $item->period_days = $item->period_days;
+            $item->total_periods = $item->getTotalPeriods();
         }
 
         return response()->json([
@@ -73,7 +83,7 @@ class PackageController extends Controller
         
         $organizationPackage = OrganizationPackage::where('organization_id', $organizationId)
             ->where('id', $id)
-            ->with(['package', 'moderator', 'organization'])
+            ->with(['package', 'moderator', 'organization', 'periods'])
             ->first();
         
         if (!$organizationPackage) {
@@ -92,6 +102,16 @@ class PackageController extends Controller
         $organizationPackage->has_package_changed = $organizationPackage->has_package_changed;
         $organizationPackage->assigned_package_info = $organizationPackage->assigned_package_info;
         $organizationPackage->current_package_info = $organizationPackage->current_package_info;
+        // Payment attributes
+        $organizationPackage->payment_status_text = $organizationPackage->payment_status_text;
+        $organizationPackage->payment_status_badge_class = $organizationPackage->payment_status_badge_class;
+        $organizationPackage->formatted_total_paid_amount = $organizationPackage->formatted_total_paid_amount;
+        $organizationPackage->formatted_remaining_amount = $organizationPackage->formatted_remaining_amount;
+        $organizationPackage->total_paid_amount = $organizationPackage->total_paid_amount;
+        $organizationPackage->remaining_amount = $organizationPackage->remaining_amount;
+        $organizationPackage->use_periods = $organizationPackage->use_periods;
+        $organizationPackage->period_days = $organizationPackage->period_days;
+        $organizationPackage->total_periods = $organizationPackage->getTotalPeriods();
         
         return response()->json([
             'data' => $organizationPackage

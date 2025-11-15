@@ -18,6 +18,8 @@ class OrganizationPackage extends Model
         'package_duration_days',
         'package_duration_label',
         'package_price',
+        'use_periods',
+        'period_days',
         'payment_status',
         'paid_periods',
         'started_at',
@@ -28,6 +30,7 @@ class OrganizationPackage extends Model
     protected $casts = [
         'started_at' => 'datetime',
         'is_active' => 'boolean',
+        'use_periods' => 'boolean',
         'package_price' => 'decimal:2',
         'paid_periods' => 'array',
     ];
@@ -286,24 +289,31 @@ class OrganizationPackage extends Model
     }
 
     /**
-     * Get total number of 30-day periods in this package
-     * For packages that are multiples of months, return the number of months
-     * Otherwise, use ceil to ensure all days are covered
+     * Get total number of periods in this package
+     * Uses period_days if use_periods is true, otherwise returns 1
      */
     public function getTotalPeriods()
     {
+        // If periods are not used, return 1 (single period)
+        if (!$this->use_periods) {
+            return 1;
+        }
+        
+        // If period_days is not set, default to 30
+        $periodDays = $this->period_days ?? 30;
+        
         // For packages that are close to month multiples (like 365 days = 12 months)
         // Return the number of months instead of using ceil
         $months = round($this->package_duration_days / 30.44); // Average days per month
         
         // If the package is close to a whole number of months (within 5 days)
         $expectedDays = $months * 30.44;
-        if (abs($this->package_duration_days - $expectedDays) <= 5) {
+        if (abs($this->package_duration_days - $expectedDays) <= 5 && $periodDays == 30) {
             return (int) $months;
         }
         
         // Otherwise, use ceil to ensure all days are covered
-        return (int) ceil($this->package_duration_days / 30);
+        return (int) ceil($this->package_duration_days / $periodDays);
     }
 
     /**
@@ -374,27 +384,40 @@ class OrganizationPackage extends Model
     }
 
     /**
-     * Generate periods for packages longer than 30 days
+     * Generate periods for packages
+     * If use_periods is false, creates a single period with full duration and price
+     * If use_periods is true, creates multiple periods based on period_days
      */
     public function generatePeriods()
     {
-        // Only generate periods for packages longer than 30 days
-        if ($this->package_duration_days <= 30) {
-            return;
-        }
-
         // Delete existing periods if any
         $this->periods()->delete();
 
-        $totalPeriods = $this->getTotalPeriods();
         $currentDate = $this->started_at ?? Carbon::now();
+        $totalAmount = round((float)$this->package_price, 0);
+        
+        // If periods are not used, create a single period with full duration and price
+        if (!$this->use_periods) {
+            \App\Models\PackagePeriod::create([
+                'organization_package_id' => $this->id,
+                'period_number' => 0,
+                'amount' => $totalAmount,
+                'days' => $this->package_duration_days,
+                'start_date' => $currentDate,
+                'end_date' => $currentDate->copy()->addDays($this->package_duration_days)->subSecond(),
+                'is_paid' => false,
+                'paid_at' => null,
+            ]);
+            return;
+        }
+
+        // Generate multiple periods
+        $totalPeriods = $this->getTotalPeriods();
+        $periodDays = $this->period_days ?? 30;
         
         // Calculate base days per period (integer division)
         $baseDaysPerPeriod = (int) floor($this->package_duration_days / $totalPeriods);
         $remainingDays = $this->package_duration_days % $totalPeriods;
-        
-        // Calculate total amount to distribute
-        $totalAmount = round((float)$this->package_price, 0);
         
         // Calculate base amount per period (rounded down to nearest 1000)
         $baseAmountPerPeriod = (int) floor($totalAmount / $totalPeriods / 1000) * 1000;
@@ -406,9 +429,9 @@ class OrganizationPackage extends Model
         
         for ($i = 0; $i < $totalPeriods; $i++) {
             // Distribute remaining days to the last period(s)
-            $periodDays = $baseDaysPerPeriod;
+            $periodDaysCount = $baseDaysPerPeriod;
             if ($i >= $totalPeriods - $remainingDays) {
-                $periodDays += 1; // Add one extra day to the last periods
+                $periodDaysCount += 1; // Add one extra day to the last periods
             }
             
             // Distribute remaining amount to the last period
@@ -418,20 +441,20 @@ class OrganizationPackage extends Model
             }
             
             $periodStartDate = $currentDate->copy()->addDays($accumulatedDays);
-            $periodEndDate = $periodStartDate->copy()->addDays($periodDays)->subSecond();
+            $periodEndDate = $periodStartDate->copy()->addDays($periodDaysCount)->subSecond();
             
             \App\Models\PackagePeriod::create([
                 'organization_package_id' => $this->id,
                 'period_number' => $i,
                 'amount' => $periodAmount,
-                'days' => $periodDays,
+                'days' => $periodDaysCount,
                 'start_date' => $periodStartDate,
                 'end_date' => $periodEndDate,
                 'is_paid' => false,
                 'paid_at' => null,
             ]);
             
-            $accumulatedDays += $periodDays;
+            $accumulatedDays += $periodDaysCount;
         }
     }
 

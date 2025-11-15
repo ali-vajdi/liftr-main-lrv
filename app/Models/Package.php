@@ -16,11 +16,14 @@ class Package extends Model
         'duration_label',
         'price',
         'is_public',
+        'use_periods',
+        'period_days',
         'moderator_id',
     ];
 
     protected $casts = [
         'is_public' => 'boolean',
+        'use_periods' => 'boolean',
         'price' => 'decimal:2',
     ];
 

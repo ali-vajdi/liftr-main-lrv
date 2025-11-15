@@ -106,17 +106,17 @@ class OrganizationPackageController extends Controller
             'package_name' => $package->name,
                 'package_duration_days' => $package->duration_days, // Use original package duration
                 'package_duration_label' => $package->duration_label, // Use original package label
-            'package_price' => round($package->price, 0), // Round price to no decimals
+            'package_price' => round((float)$package->price, 0), // Round price to no decimals
+            'use_periods' => $package->use_periods ?? false,
+            'period_days' => $package->period_days,
                 'payment_status' => OrganizationPackage::PAYMENT_STATUS_UNPAID, // Default to unpaid
             'started_at' => $startedAt,
             'is_active' => true,
             'moderator_id' => Auth::id() ?? 1,
         ]);
 
-            // Generate periods if package is longer than 30 days
-            if ($organizationPackage->package_duration_days > 30) {
-                $organizationPackage->generatePeriods();
-            }
+            // Generate periods (will create single period if use_periods is false)
+            $organizationPackage->generatePeriods();
 
             DB::commit();
         } catch (\Exception $e) {

@@ -97,6 +97,8 @@ class PackageController extends Controller
             'duration_label' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'is_public' => 'required|in:true,false',
+            'use_periods' => 'nullable',
+            'period_days' => 'nullable|integer|min:1',
         ], [
             'name.required' => 'نام پکیج الزامی است',
             'name.max' => 'نام پکیج نمی‌تواند بیش از 255 کاراکتر باشد',
@@ -110,6 +112,8 @@ class PackageController extends Controller
             'price.min' => 'قیمت نمی‌تواند منفی باشد',
             'is_public.required' => 'وضعیت عمومی الزامی است',
             'is_public.in' => 'وضعیت عمومی باید فعال یا غیرفعال باشد',
+            'period_days.integer' => 'تعداد روزهای دوره باید عدد باشد',
+            'period_days.min' => 'تعداد روزهای دوره باید حداقل 1 روز باشد',
         ]);
 
         if ($validator->fails()) {
@@ -119,6 +123,29 @@ class PackageController extends Controller
         $data = $request->all();
         $data['moderator_id'] = Auth::id();
         $data['is_public'] = $data['is_public'] === 'true' || $data['is_public'] === true;
+        
+        // Handle use_periods - can be 1, 0, true, 'true', '1', or not set
+        $data['use_periods'] = isset($data['use_periods']) && (
+            $data['use_periods'] === true || 
+            $data['use_periods'] === 'true' || 
+            $data['use_periods'] === 1 || 
+            $data['use_periods'] === '1' ||
+            $data['use_periods'] === 'on'
+        );
+        
+        // Validate period_days if use_periods is true
+        if ($data['use_periods'] && empty($data['period_days'])) {
+            return response()->json([
+                'errors' => ['period_days' => ['تعداد روزهای دوره الزامی است وقتی استفاده از دوره‌ها فعال است']]
+            ], 422);
+        }
+        
+        // If use_periods is false, set period_days to null
+        if (!$data['use_periods']) {
+            $data['period_days'] = null;
+        } else {
+            $data['period_days'] = isset($data['period_days']) ? (int)$data['period_days'] : 30;
+        }
 
         $package = Package::create($data);
 
@@ -150,6 +177,8 @@ class PackageController extends Controller
             'duration_label' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'is_public' => 'required|in:true,false',
+            'use_periods' => 'nullable',
+            'period_days' => 'nullable|integer|min:1|required_if:use_periods,true,1',
         ], [
             'name.required' => 'نام پکیج الزامی است',
             'name.max' => 'نام پکیج نمی‌تواند بیش از 255 کاراکتر باشد',
@@ -163,6 +192,9 @@ class PackageController extends Controller
             'price.min' => 'قیمت نمی‌تواند منفی باشد',
             'is_public.required' => 'وضعیت عمومی الزامی است',
             'is_public.in' => 'وضعیت عمومی باید فعال یا غیرفعال باشد',
+            'period_days.integer' => 'تعداد روزهای دوره باید عدد باشد',
+            'period_days.min' => 'تعداد روزهای دوره باید حداقل 1 روز باشد',
+            'period_days.required_if' => 'تعداد روزهای دوره الزامی است وقتی استفاده از دوره‌ها فعال است',
         ]);
 
         if ($validator->fails()) {
@@ -172,6 +204,30 @@ class PackageController extends Controller
         $package = Package::findOrFail($id);
         $data = $request->all();
         $data['is_public'] = $data['is_public'] === 'true' || $data['is_public'] === true;
+        
+        // Handle use_periods - can be 1, 0, true, 'true', '1', or not set
+        $data['use_periods'] = isset($data['use_periods']) && (
+            $data['use_periods'] === true || 
+            $data['use_periods'] === 'true' || 
+            $data['use_periods'] === 1 || 
+            $data['use_periods'] === '1' ||
+            $data['use_periods'] === 'on'
+        );
+        
+        // Validate period_days if use_periods is true
+        if ($data['use_periods'] && empty($data['period_days'])) {
+            return response()->json([
+                'errors' => ['period_days' => ['تعداد روزهای دوره الزامی است وقتی استفاده از دوره‌ها فعال است']]
+            ], 422);
+        }
+        
+        // If use_periods is false, set period_days to null
+        if (!$data['use_periods']) {
+            $data['period_days'] = null;
+        } else {
+            $data['period_days'] = isset($data['period_days']) ? (int)$data['period_days'] : 30;
+        }
+        
         $package->update($data);
 
         // Add calculated attributes

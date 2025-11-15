@@ -22,6 +22,15 @@
                                 ['field' => 'duration_label', 'label' => 'مدت زمان'],
                                 ['field' => 'formatted_price', 'label' => 'قیمت'],
                                 [
+                                    'field' => 'use_periods',
+                                    'label' => 'دوره‌های پرداخت',
+                                    'formatter' => 'function(value) {
+                                        return value ? 
+                                            `<span class="badge badge-info">فعال</span>` : 
+                                            `<span class="badge badge-secondary">غیرفعال</span>`;
+                                    }',
+                                ],
+                                [
                                     'field' => 'is_public',
                                     'label' => 'وضعیت',
                                     'formatter' => 'function(value) {
@@ -95,6 +104,24 @@
                                     <option value="false">خصوصی</option>
                                 </select>
                             </div>
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="use_periods" name="use_periods">
+                                    <label class="form-check-label" for="use_periods">
+                                        استفاده از دوره‌های پرداخت
+                                    </label>
+                                    <small class="form-text text-muted d-block mt-1">
+                                        در صورت فعال بودن، پکیج به چند دوره تقسیم می‌شود و کاربر باید برای هر دوره جداگانه پرداخت کند
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="form-group" id="period_days_group" style="display: none;">
+                                <label for="period_days">تعداد روزهای هر دوره</label>
+                                <input type="number" class="form-control" id="period_days" name="period_days" min="1" placeholder="مثال: 30 برای دوره‌های ماهانه">
+                                <small class="form-text text-muted">
+                                    تعداد روزهایی که هر دوره شامل می‌شود (مثال: 30 برای دوره‌های ماهانه)
+                                </small>
+                            </div>
                         </form>
                     </div>
                     <div class="modal-footer">
@@ -148,6 +175,14 @@
                                         <th>آخرین ویرایش</th>
                                         <td id="detailUpdatedAt"></td>
                                     </tr>
+                                    <tr>
+                                        <th>استفاده از دوره‌ها</th>
+                                        <td id="detailUsePeriods"></td>
+                                    </tr>
+                                    <tr id="detailPeriodDaysRow" style="display: none;">
+                                        <th>تعداد روزهای هر دوره</th>
+                                        <td id="detailPeriodDays"></td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -188,6 +223,18 @@
         $(document).ready(function() {
             let currentPackageId = null;
 
+            // Toggle period_days field based on use_periods checkbox
+            $('#use_periods').change(function() {
+                if ($(this).is(':checked')) {
+                    $('#period_days_group').slideDown();
+                    $('#period_days').prop('required', true);
+                } else {
+                    $('#period_days_group').slideUp();
+                    $('#period_days').prop('required', false);
+                    $('#period_days').val('');
+                }
+            });
+
             // Show package details
             window.onShow = function(id) {
                 $.ajax({
@@ -209,6 +256,16 @@
                         );
                         $('#detailCreatedAt').text(new Date(data.created_at).toLocaleDateString('fa-IR'));
                         $('#detailUpdatedAt').text(new Date(data.updated_at).toLocaleDateString('fa-IR'));
+                        $('#detailUsePeriods').html(data.use_periods ? 
+                            '<span class="badge badge-info">فعال</span>' : 
+                            '<span class="badge badge-secondary">غیرفعال</span>'
+                        );
+                        if (data.use_periods && data.period_days) {
+                            $('#detailPeriodDaysRow').show();
+                            $('#detailPeriodDays').text(data.period_days + ' روز');
+                        } else {
+                            $('#detailPeriodDaysRow').hide();
+                        }
 
                         $('#detailsModal').modal('show');
                     },
@@ -239,6 +296,9 @@
                 $('#packageModalLabel').text('افزودن تعرفه');
                 $('#packageForm')[0].reset();
                 $('#packageId').val('');
+                $('#use_periods').prop('checked', false);
+                $('#period_days_group').hide();
+                $('#period_days').prop('required', false);
                 $('#packageModal').modal('show');
             });
 
@@ -261,12 +321,27 @@
                     return;
                 }
 
+                const usePeriods = $('#use_periods').is(':checked');
+                const periodDays = $('#period_days').val();
+
+                if (usePeriods && !periodDays) {
+                    swal({
+                        title: 'خطا',
+                        text: 'لطفا تعداد روزهای هر دوره را وارد کنید',
+                        type: 'error',
+                        padding: '2em'
+                    });
+                    return;
+                }
+
                 const data = {
                     name: name,
                     duration_days: parseInt(durationDays),
                     duration_label: durationLabel,
                     price: parseFloat(price),
-                    is_public: isPublic
+                    is_public: isPublic,
+                    use_periods: usePeriods ? 1 : 0, // Send as 1 or 0 instead of boolean
+                    period_days: usePeriods ? parseInt(periodDays) : null
                 };
 
                 const url = id ? `/api/admin/packages/${id}` : '/api/admin/packages';
@@ -347,6 +422,17 @@
                         $('#duration_label').val(package.duration_label);
                         $('#price').val(package.price);
                         $('#is_public').val(package.is_public ? 'true' : 'false');
+                        $('#use_periods').prop('checked', package.use_periods || false);
+                        $('#period_days').val(package.period_days || '');
+                        
+                        // Show/hide period_days field based on use_periods
+                        if (package.use_periods) {
+                            $('#period_days_group').show();
+                            $('#period_days').prop('required', true);
+                        } else {
+                            $('#period_days_group').hide();
+                            $('#period_days').prop('required', false);
+                        }
 
                         $('#packageModal').modal('show');
                     },
