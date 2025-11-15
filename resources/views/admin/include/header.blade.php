@@ -112,37 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTheme(newTheme);
     });
 
-    // Set user name from localStorage
-    var user = JSON.parse(localStorage.getItem('admin_user'));
-    if (user) {
-        $('.user-name').text(user.full_name);
-    }
-
-    // Lock screen
-    $('.lock-screen-link').click(function() {
-        $.ajax({
-            url: '/api/admin/lock-screen',
-            type: 'POST',
-            success: function() {
-                localStorage.setItem('screen_locked', 'true');
-                window.location.href = "{{ route('admin.lock') }}";
-            }
-        });
-    });
-
-    // Logout
-    $('.logout-link').click(function() {
-        $.ajax({
-            url: '/api/admin/logout',
-            type: 'POST',
-            success: function() {
-                localStorage.removeItem('admin_token');
-                localStorage.removeItem('admin_user');
-                localStorage.removeItem('screen_locked');
-                window.location.href = "{{ route('admin.login') }}";
-            }
-        });
-    });
+    // User name and logout/lock screen handlers are now in admin-custom.js
 });
 </script>
 

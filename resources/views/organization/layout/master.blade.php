@@ -86,7 +86,7 @@
     </script>
     <script src="{{ asset('plugins/highlight/highlight.pack.js')}}"></script>
     <script src="{{ asset('assets/js/custom.js')}}"></script>
-    <script src="{{ asset('assets/js/admin-custom.js')}}"></script>
+    <script src="{{ asset('assets/js/organization-custom.js')}}"></script>
 
     <script src="{{ asset('assets/js/scrollspyNav.js')}}"></script>
     <script src="{{ asset('plugins/sweetalerts/sweetalert2.min.js')}}"></script>

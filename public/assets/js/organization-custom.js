@@ -1,30 +1,30 @@
-// Admin custom JavaScript
+// Organization custom JavaScript
 $(document).ready(function() {
-    // Set user name from localStorage (for admin users)
-    var user = JSON.parse(localStorage.getItem('admin_user'));
+    // Set user name from localStorage (for organization users)
+    var user = JSON.parse(localStorage.getItem('organization_user'));
     if (user) {
         $('.user-name').text(user.full_name);
     }
 
-    // Lock screen (for admin users)
+    // Lock screen (for organization users)
     $(document).on('click', '.lock-screen-link', function(e) {
-        var adminToken = localStorage.getItem('admin_token');
-        if (!adminToken) {
-            return; // Not an admin user, let organization handler take over
+        var orgToken = localStorage.getItem('organization_token');
+        if (!orgToken) {
+            return; // Not an organization user, let admin handler take over
         }
         
         e.preventDefault();
         e.stopPropagation();
         
         $.ajax({
-            url: '/api/admin/lock-screen',
+            url: '/api/organization/lock-screen',
             type: 'POST',
             headers: {
-                'Authorization': 'Bearer ' + adminToken
+                'Authorization': 'Bearer ' + orgToken
             },
             success: function() {
                 localStorage.setItem('screen_locked', 'true');
-                window.location.href = "/admin/lock-screen";
+                window.location.href = "/lock-screen";
             },
             error: function(xhr, status, error) {
                 alert("خطا در قفل کردن صفحه");
@@ -32,34 +32,34 @@ $(document).ready(function() {
         });
     });
 
-    // Logout (for admin users)
+    // Logout (for organization users)
     $(document).on('click', '.logout-link', function(e) {
-        var adminToken = localStorage.getItem('admin_token');
-        if (!adminToken) {
-            return; // Not an admin user, let organization handler take over
+        var orgToken = localStorage.getItem('organization_token');
+        if (!orgToken) {
+            return; // Not an organization user, let admin handler take over
         }
         
         e.preventDefault();
         e.stopPropagation();
         
         $.ajax({
-            url: '/api/admin/logout',
+            url: '/api/organization/logout',
             type: 'POST',
             headers: {
-                'Authorization': 'Bearer ' + adminToken
+                'Authorization': 'Bearer ' + orgToken
             },
             success: function() {
-                localStorage.removeItem('admin_token');
-                localStorage.removeItem('admin_user');
+                localStorage.removeItem('organization_token');
+                localStorage.removeItem('organization_user');
                 localStorage.removeItem('screen_locked');
-                window.location.href = "/admin/login";
+                window.location.href = "/login";
             },
             error: function(xhr, status, error) {
                 // Even if there's an error, we should still redirect to login
-                localStorage.removeItem('admin_token');
-                localStorage.removeItem('admin_user');
+                localStorage.removeItem('organization_token');
+                localStorage.removeItem('organization_user');
                 localStorage.removeItem('screen_locked');
-                window.location.href = "/admin/login";
+                window.location.href = "/login";
             }
         });
     });
@@ -71,4 +71,5 @@ $(document).ready(function() {
             $(this).parent().addClass('active');
         }
     });
-}); 
+});
+

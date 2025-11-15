@@ -1710,7 +1710,7 @@
                                     type: 'error',
                                     padding: '2em'
                                 }).then(function() {
-                                    window.location.href = '/admin/login';
+                                    window.location.href = "{{ route('organization.login') }}";
                                 });
                                     reject(xhr);
                             } else {

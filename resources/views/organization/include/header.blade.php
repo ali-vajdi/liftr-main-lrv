@@ -112,43 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTheme(newTheme);
     });
 
-    // Set user name from localStorage
-    var user = JSON.parse(localStorage.getItem('organization_user'));
-    if (user) {
-        $('.user-name').text(user.full_name);
-    }
-
-    // Lock screen
-    $('.lock-screen-link').click(function() {
-        $.ajax({
-            url: '/api/organization/lock-screen',
-            type: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
-            },
-            success: function() {
-                localStorage.setItem('screen_locked', 'true');
-                window.location.href = "{{ route('organization.lock') }}";
-            }
-        });
-    });
-
-    // Logout
-    $('.logout-link').click(function() {
-        $.ajax({
-            url: '/api/organization/logout',
-            type: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
-            },
-            success: function() {
-                localStorage.removeItem('organization_token');
-                localStorage.removeItem('organization_user');
-                localStorage.removeItem('screen_locked');
-                window.location.href = "{{ route('organization.login') }}";
-            }
-        });
-    });
+    // User name and logout/lock screen handlers are now in organization-custom.js
 });
 </script>
 
