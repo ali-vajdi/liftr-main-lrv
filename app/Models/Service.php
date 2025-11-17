@@ -15,6 +15,7 @@ class Service extends Model
         'service_month',
         'service_year',
         'status',
+        'is_manual',
         'notes',
         'organization_note',
         'user_note',
@@ -25,6 +26,7 @@ class Service extends Model
     protected $casts = [
         'service_month' => 'integer',
         'service_year' => 'integer',
+        'is_manual' => 'boolean',
         'assigned_at' => 'datetime',
         'completed_at' => 'datetime',
     ];

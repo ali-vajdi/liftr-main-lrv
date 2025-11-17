@@ -147,6 +147,7 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::get('services/pending', [OrgServiceController::class, 'pending']);
         Route::get('services/assigned', [OrgServiceController::class, 'assigned']);
         Route::get('services/all', [OrgServiceController::class, 'all']);
+        Route::post('services', [OrgServiceController::class, 'store']);
         Route::post('services/{service}/assign-technician', [OrgServiceController::class, 'assignTechnician']);
         Route::post('services/{service}/change-technician', [OrgServiceController::class, 'changeTechnician']);
         Route::post('services/{service}/cancel', [OrgServiceController::class, 'cancelService']);

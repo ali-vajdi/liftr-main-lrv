@@ -34,10 +34,12 @@ class ServiceController extends Controller
         // FIRST: Mark expired services for ALL buildings in the organization at once
         // This must happen BEFORE generating new services
         // Expire services where service month/year is BEFORE current month/year
+        // NOTE: Only expire system-generated services (is_manual = false), not user-created ones
         Service::whereHas('building', function ($q) use ($organizationId) {
                 $q->where('organization_id', $organizationId);
             })
             ->whereIn('status', [Service::STATUS_PENDING, Service::STATUS_ASSIGNED])
+            ->where('is_manual', false) // Only expire system-generated services
             ->where(function ($query) use ($currentYear, $currentMonth) {
                 // Services from previous years
                 $query->where('service_year', '<', $currentYear)
@@ -73,83 +75,8 @@ class ServiceController extends Controller
                     // Allow generation for the end month itself
                 }
 
-                // Determine the range to generate services
-                // Start from the earliest missing month up to current month
-                if ($existingServices->isEmpty()) {
-                    // No services exist, generate from current month only
-                    $startYear = $currentYear;
-                    $startMonth = $currentMonth;
-                } else {
-                    // Find the latest service
-                    $latestService = $existingServices->last();
-                    $latestYear = $latestService->service_year;
-                    $latestMonth = $latestService->service_month;
-
-                    // Start from the month after the latest service, or current month if latest is in the future
-                    if ($latestYear > $currentYear || ($latestYear == $currentYear && $latestMonth >= $currentMonth)) {
-                        // Latest service is current or future month, only generate current month if missing
-                        $startYear = $currentYear;
-                        $startMonth = $currentMonth;
-                    } else {
-                        // Start from the month after the latest service
-                        $startMonth = $latestMonth + 1;
-                        $startYear = $latestYear;
-                        if ($startMonth > 12) {
-                            $startMonth = 1;
-                            $startYear++;
-                        }
-                    }
-                }
-
-                // Generate services from start to current month (or end date if earlier)
-                $year = $startYear;
-                $month = $startMonth;
-
-                while (true) {
-                    // Stop if we've passed the current month
-                    if ($year > $currentYear || ($year == $currentYear && $month > $currentMonth)) {
-                        break;
-                    }
-
-                    // Stop if we've passed the service_end_date month (but allow the end month itself)
-                    if ($endYear !== null && $endMonth !== null) {
-                        if ($year > $endYear || ($year == $endYear && $month > $endMonth)) {
-                            break;
-                        }
-                    }
-
-                    // Check if service already exists for this month/year (regardless of status)
-                    $existingService = Service::where('building_id', $building->id)
-                        ->where('service_month', $month)
-                        ->where('service_year', $year)
-                        ->first();
-
-                    if (!$existingService) {
-                        // Create new service - one service per month per building
-                        Service::create([
-                            'building_id' => $building->id,
-                            'service_month' => $month,
-                            'service_year' => $year,
-                            'status' => Service::STATUS_PENDING,
-                        ]);
-                    } else if ($existingService->status === Service::STATUS_EXPIRED) {
-                        // If service exists but is expired, and it's current month, reactivate it
-                        // Note: Cancelled services should NOT be reactivated
-                        if ($year == $currentYear && $month == $currentMonth) {
-                            $existingService->update(['status' => Service::STATUS_PENDING]);
-                        }
-                    }
-                    // If service is cancelled, do nothing - leave it as cancelled and don't create a new one
-
-                    // Move to next month
-                    $month++;
-                    if ($month > 12) {
-                        $month = 1;
-                        $year++;
-                    }
-                }
-
-                // Ensure current month always has a service (even if it was expired)
+                // Only generate service for the CURRENT month (not all missing months)
+                // This ensures services are created once per month when that month arrives
                 $currentMonthService = Service::where('building_id', $building->id)
                     ->where('service_month', $currentMonth)
                     ->where('service_year', $currentYear)
@@ -165,19 +92,21 @@ class ServiceController extends Controller
                     }
 
                     if ($shouldGenerate) {
+                        // Only create service for current month
                         Service::create([
                             'building_id' => $building->id,
                             'service_month' => $currentMonth,
                             'service_year' => $currentYear,
                             'status' => Service::STATUS_PENDING,
+                            'is_manual' => false,
                         ]);
                     }
-                } else if ($currentMonthService->status === Service::STATUS_EXPIRED) {
-                    // If current month service exists but is expired, reactivate it as pending
-                    // Note: Cancelled services should NOT be reactivated
+                } else if ($currentMonthService->status === Service::STATUS_EXPIRED && $currentMonthService->is_manual == false) {
+                    // If current month service exists but is expired (and system-generated), reactivate it
+                    // Note: Cancelled services and manual services should NOT be reactivated
                     $currentMonthService->update(['status' => Service::STATUS_PENDING]);
                 }
-                // If current month service is cancelled, do nothing - leave it as cancelled
+                // If current month service is cancelled or manual, do nothing - leave it as is
             } catch (\Exception $e) {
                 // Skip building if there's an error
                 Log::warning("Error generating services for building {$building->id}: " . $e->getMessage());
@@ -463,15 +392,24 @@ class ServiceController extends Controller
             })
             ->findOrFail($id);
 
-        // Check if service is assigned
-        if ($service->status !== Service::STATUS_ASSIGNED) {
+        // Check if service is completed - cannot cancel completed services
+        if ($service->status === Service::STATUS_COMPLETED) {
             return response()->json([
                 'success' => false,
-                'message' => 'فقط سرویس‌های اختصاص داده شده را می‌توان لغو کرد.'
+                'message' => 'سرویس‌های تکمیل شده را نمی‌توان لغو کرد.'
+            ], 400);
+        }
+
+        // Check if service is already cancelled
+        if ($service->status === Service::STATUS_CANCELLED) {
+            return response()->json([
+                'success' => false,
+                'message' => 'این سرویس قبلاً لغو شده است.'
             ], 400);
         }
 
         // Remove technician and set status to cancelled
+        // Can cancel pending, assigned, or expired services
         $service->update([
             'technician_id' => null,
             'status' => Service::STATUS_CANCELLED,
@@ -653,5 +591,91 @@ class ServiceController extends Controller
                 'total' => $services->total(),
             ]
         ]);
+    }
+
+    /**
+     * Create a new service manually
+     */
+    public function store(Request $request)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'building_id' => 'required|exists:buildings,id',
+            'service_month' => 'required|integer|min:1|max:12',
+            'service_year' => 'required|integer|min:1400|max:1500',
+        ], [
+            'building_id.required' => 'انتخاب ساختمان الزامی است',
+            'building_id.exists' => 'ساختمان انتخاب شده معتبر نیست',
+            'service_month.required' => 'انتخاب ماه الزامی است',
+            'service_month.integer' => 'ماه باید عدد باشد',
+            'service_month.min' => 'ماه باید بین 1 تا 12 باشد',
+            'service_month.max' => 'ماه باید بین 1 تا 12 باشد',
+            'service_year.required' => 'انتخاب سال الزامی است',
+            'service_year.integer' => 'سال باید عدد باشد',
+            'service_year.min' => 'سال باید معتبر باشد',
+            'service_year.max' => 'سال باید معتبر باشد',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $organizationId = $user->organization_id;
+        $buildingId = $request->building_id;
+        $serviceMonth = (int) $request->service_month;
+        $serviceYear = (int) $request->service_year;
+
+        // Verify building belongs to organization
+        $building = Building::where('organization_id', $organizationId)
+            ->findOrFail($buildingId);
+
+        // Check if service already exists for this building, month, and year
+        $existingService = Service::where('building_id', $buildingId)
+            ->where('service_month', $serviceMonth)
+            ->where('service_year', $serviceYear)
+            ->first();
+
+        if ($existingService) {
+            // If service exists and is cancelled, don't allow creating a new one
+            if ($existingService->status === Service::STATUS_CANCELLED) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'سرویس این ماه برای این ساختمان لغو شده است و نمی‌توان سرویس جدیدی ایجاد کرد.'
+                ], 400);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'سرویس این ماه برای این ساختمان از قبل وجود دارد.'
+            ], 400);
+        }
+
+        // Create the service (user-created, so is_manual = true)
+        $service = Service::create([
+            'building_id' => $buildingId,
+            'service_month' => $serviceMonth,
+            'service_year' => $serviceYear,
+            'status' => Service::STATUS_PENDING,
+            'is_manual' => true, // Mark as user-created to prevent automatic expiration
+        ]);
+
+        $service->load(['building.province', 'building.city', 'building.elevators']);
+        $service->status_text = $service->status_text;
+        $service->status_badge_class = $service->status_badge_class;
+        $service->service_date_text = $service->service_date_text;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'سرویس با موفقیت ایجاد شد.',
+            'data' => $service
+        ], 201);
     }
 }

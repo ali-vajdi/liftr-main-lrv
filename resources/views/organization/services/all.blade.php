@@ -8,7 +8,16 @@
         <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
             <div class="widget widget-chart-one">
                 <div class="widget-heading">
-                    <h5 class="mb-0">همه سرویس‌ها - <span id="org-name-all-services">...</span></h5>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">همه سرویس‌ها - <span id="org-name-all-services">...</span></h5>
+                        <button type="button" class="btn btn-primary btn-sm" id="add-service-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 5px;">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            افزودن سرویس
+                        </button>
+                    </div>
                 </div>
                 <div class="widget-content">
                     <div class="widget-content widget-content-area br-6">
@@ -87,11 +96,15 @@
                                     html += \'</button>\';
                                 }
                                 
-                                // Change technician and cancel buttons (only for assigned)
+                                // Change technician button (only for assigned)
                                 if (item.status === "assigned") {
                                     html += \'<button type="button" class="btn btn-sm btn-warning change-technician-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="تغییر تکنسین">\';
                                     html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user-x"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="18" y1="8" x2="23" y2="13"></line><line x1="23" y1="8" x2="18" y2="13"></line></svg>\';
                                     html += \'</button>\';
+                                }
+                                
+                                // Cancel button (for all services except completed and cancelled)
+                                if (item.status !== "completed" && item.status !== "cancelled") {
                                     html += \'<button type="button" class="btn btn-sm btn-danger cancel-service-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="لغو سرویس">\';
                                     html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x-circle"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>\';
                                     html += \'</button>\';
@@ -234,6 +247,59 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">لغو</button>
                     <button type="button" class="btn btn-warning" id="saveChangeTechnician">تغییر تکنسین</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Service Modal -->
+<div class="modal fade" id="addServiceModal" tabindex="-1" role="dialog" aria-labelledby="addServiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addServiceModalLabel">افزودن سرویس جدید</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="addServiceForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="add_building_id">ساختمان <span class="text-danger">*</span></label>
+                        <select class="form-control" id="add_building_id" name="building_id" required>
+                            <option value="">در حال بارگذاری...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="add_service_month">ماه <span class="text-danger">*</span></label>
+                        <select class="form-control" id="add_service_month" name="service_month" required>
+                            <option value="">انتخاب ماه</option>
+                            <option value="1">فروردین</option>
+                            <option value="2">اردیبهشت</option>
+                            <option value="3">خرداد</option>
+                            <option value="4">تیر</option>
+                            <option value="5">مرداد</option>
+                            <option value="6">شهریور</option>
+                            <option value="7">مهر</option>
+                            <option value="8">آبان</option>
+                            <option value="9">آذر</option>
+                            <option value="10">دی</option>
+                            <option value="11">بهمن</option>
+                            <option value="12">اسفند</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="add_service_year">سال <span class="text-danger">*</span></label>
+                        <select class="form-control" id="add_service_year" name="service_year" required>
+                            <option value="">انتخاب سال</option>
+                        </select>
+                    </div>
+                    <div class="alert alert-danger" id="add-service-error" style="display: none; border-radius: 8px; margin-top: 15px;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">لغو</button>
+                    <button type="button" class="btn btn-primary" id="saveAddService">افزودن سرویس</button>
                 </div>
             </form>
         </div>
@@ -470,7 +536,7 @@ window.onCancelService = function(id) {
     
     swal({
         title: 'آیا مطمئن هستید؟',
-        text: 'با لغو این سرویس، تکنسین حذف شده و سرویس به حالت در انتظار بازمی‌گردد.',
+        text: 'با لغو این سرویس، تکنسین (در صورت وجود) حذف شده و سرویس لغو می‌شود.',
         type: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
@@ -545,8 +611,105 @@ window.onCancelService = function(id) {
             });
         }
         
-        // Load technicians
+        // Load technicians and buildings
         loadTechnicians();
+        loadBuildings();
+        
+        // Populate year dropdown
+        populateYearDropdown();
+        
+        // Open add service modal
+        $('#add-service-btn').on('click', function() {
+            $('#addServiceModal').modal('show');
+            $('#add-service-error').hide();
+            $('#addServiceForm')[0].reset();
+        });
+        
+        // Handle add service form submission
+        $(document).on('click', '#saveAddService', function() {
+            const buildingId = $('#add_building_id').val();
+            const serviceMonth = $('#add_service_month').val();
+            const serviceYear = $('#add_service_year').val();
+            
+            if (!buildingId) {
+                $('#add-service-error').text('لطفاً ساختمان را انتخاب کنید').show();
+                return false;
+            }
+            
+            if (!serviceMonth) {
+                $('#add-service-error').text('لطفاً ماه را انتخاب کنید').show();
+                return false;
+            }
+            
+            if (!serviceYear) {
+                $('#add-service-error').text('لطفاً سال را انتخاب کنید').show();
+                return false;
+            }
+            
+            $('#add-service-error').hide();
+            
+            const token = localStorage.getItem('organization_token');
+            if (!token) {
+                $('#add-service-error').text('لطفاً مجدداً وارد شوید').show();
+                return false;
+            }
+            
+            const btn = $(this);
+            btn.prop('disabled', true).text('در حال ایجاد...');
+            
+            $.ajax({
+                url: '/api/organization/services',
+                type: 'POST',
+                data: {
+                    building_id: buildingId,
+                    service_month: serviceMonth,
+                    service_year: serviceYear
+                },
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#addServiceModal').modal('hide');
+                        $('#addServiceForm')[0].reset();
+                        
+                        swal({
+                            title: 'موفقیت',
+                            text: response.message,
+                            type: 'success',
+                            padding: '2em'
+                        });
+                        
+                        if (typeof window.datatableApi !== 'undefined' && window.datatableApi.refresh) {
+                            window.datatableApi.refresh();
+                        }
+                    } else {
+                        $('#add-service-error').text(response.message || 'خطا در ایجاد سرویس').show();
+                    }
+                },
+                error: function(xhr) {
+                    const response = xhr.responseJSON;
+                    let errorMessage = 'خطا در ایجاد سرویس';
+                    
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON.errors;
+                        errorMessage = 'خطاهای اعتبارسنجی:\n';
+                        for (const field in errors) {
+                            errorMessage += errors[field][0] + '\n';
+                        }
+                    } else if (response && response.message) {
+                        errorMessage = response.message;
+                    }
+                    
+                    $('#add-service-error').text(errorMessage).show();
+                },
+                complete: function() {
+                    btn.prop('disabled', false).text('افزودن سرویس');
+                }
+            });
+            
+            return false;
+        });
         
         // Handle assign form submission
         $(document).on('click', '#saveAssign', function() {
@@ -804,6 +967,71 @@ function loadTechnicians() {
             $('#change_technician_id').html(`<option value="">${errorMessage}</option>`);
         }
     });
+}
+
+function loadBuildings() {
+    const $ = jQuery || window.$;
+    const token = localStorage.getItem('organization_token');
+    if (!token) {
+        $('#add_building_id').html('<option value="">خطا در احراز هویت</option>');
+        return;
+    }
+
+    $.ajax({
+        url: '/api/organization/buildings?per_page=1000',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(response) {
+            if (response.success && response.data) {
+                buildings = response.data;
+                const select = $('#add_building_id');
+                
+                select.html('<option value="">انتخاب ساختمان</option>');
+                
+                if (buildings.length > 0) {
+                    buildings.forEach(function(building) {
+                        select.append(`<option value="${building.id}">${building.name} - ${building.manager_name}</option>`);
+                    });
+                } else {
+                    select.html('<option value="">ساختمانی یافت نشد</option>');
+                }
+            } else {
+                $('#add_building_id').html('<option value="">خطا در بارگذاری</option>');
+            }
+        },
+        error: function(xhr) {
+            let errorMessage = 'خطا در بارگذاری ساختمان‌ها';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+            $('#add_building_id').html(`<option value="">${errorMessage}</option>`);
+        }
+    });
+}
+
+function populateYearDropdown() {
+    const $ = jQuery || window.$;
+    const select = $('#add_service_year');
+    
+    // Get current Jalali year from server or use approximate
+    // Calculate approximate Jalali year from Gregorian
+    const now = new Date();
+    const gregorianYear = now.getFullYear();
+    // Approximate conversion: Jalali year ≈ Gregorian year - 621
+    const currentYear = gregorianYear - 621;
+    const startYear = 1395; // Start from 1395 as requested
+    
+    select.html('<option value="">انتخاب سال</option>');
+    
+    // Add years from 1395 to current year
+    for (let year = startYear; year <= currentYear; year++) {
+        select.append(`<option value="${year}">${year}</option>`);
+    }
+    
+    // Set current year as default
+    select.val(currentYear);
 }
 
 // Load organization name
