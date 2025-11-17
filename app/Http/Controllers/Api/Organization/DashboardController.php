@@ -3,7 +3,11 @@
 namespace App\Http\Controllers\Api\Organization;
 
 use App\Http\Controllers\Controller;
+use App\Models\Organization;
+use App\Models\PaymentMethod;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -102,6 +106,81 @@ class DashboardController extends Controller
                 ]
             ]
         ]);
+    }
+
+    public function increaseSmsBalance(Request $request)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $organization = $user->organization;
+        if (!$organization) {
+            return response()->json(['message' => 'Organization not found'], 404);
+        }
+
+        // Validate request
+        $request->validate([
+            'amount' => 'required|numeric|min:50000',
+            'payment_method_id' => 'required|exists:payment_methods,id',
+            'description' => 'nullable|string|max:500',
+        ], [
+            'amount.required' => 'مبلغ الزامی است',
+            'amount.numeric' => 'مبلغ باید عدد باشد',
+            'amount.min' => 'حداقل مبلغ افزایش موجودی 50,000 تومان است',
+            'payment_method_id.required' => 'روش پرداخت الزامی است',
+            'payment_method_id.exists' => 'روش پرداخت معتبر نیست',
+        ]);
+
+        $amount = (float) $request->amount;
+        $paymentMethodId = $request->payment_method_id;
+        $description = $request->description ?? 'افزایش موجودی پیامک';
+
+        // Get payment method
+        $paymentMethod = PaymentMethod::findOrFail($paymentMethodId);
+
+        DB::beginTransaction();
+        try {
+            // Update organization SMS balance
+            $currentBalance = (float) ($organization->sms_balance ?? 0);
+            $newBalance = $currentBalance + $amount;
+            $organization->update([
+                'sms_balance' => $newBalance,
+            ]);
+
+            // Create transaction
+            $transaction = Transaction::create([
+                'transactionable_type' => Organization::class,
+                'transactionable_id' => $organization->id,
+                'payment_method_id' => $paymentMethodId,
+                'amount' => round($amount, 0),
+                'type' => Transaction::TYPE_INCOME,
+                'status' => Transaction::STATUS_COMPLETED,
+                'description' => $description,
+                'transaction_date' => now(),
+                'organization_id' => $organization->id,
+                'moderator_id' => null,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'موجودی پیامک با موفقیت افزایش یافت',
+                'data' => [
+                    'transaction' => $transaction,
+                    'old_balance' => $currentBalance,
+                    'new_balance' => $newBalance,
+                    'amount_added' => $amount,
+                ]
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'خطا در افزایش موجودی',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
 

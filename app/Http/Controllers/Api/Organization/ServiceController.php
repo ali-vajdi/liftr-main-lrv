@@ -52,16 +52,16 @@ class ServiceController extends Controller
         foreach ($buildings as $building) {
             try {
 
-                // Get all existing services for this building (including expired for checking, but excluding for latest calculation)
-                // We need to check ALL services (including expired) to see if a month already has a service
-                // But we only use non-expired services to determine the latest service
+                // Get all existing services for this building (including expired and cancelled for checking, but excluding for latest calculation)
+                // We need to check ALL services (including expired and cancelled) to see if a month already has a service
+                // But we only use non-expired and non-cancelled services to determine the latest service
                 $allServices = Service::where('building_id', $building->id)
                     ->orderBy('service_year', 'asc')
                     ->orderBy('service_month', 'asc')
                     ->get();
 
-                // Get non-expired services to find the latest
-                $existingServices = $allServices->where('status', '!=', Service::STATUS_EXPIRED)->values();
+                // Get non-expired and non-cancelled services to find the latest
+                $existingServices = $allServices->whereNotIn('status', [Service::STATUS_EXPIRED, Service::STATUS_CANCELLED])->values();
 
                 // Check service_end_date - if contract has ended, don't generate beyond that month
                 $endYear = null;
@@ -134,10 +134,12 @@ class ServiceController extends Controller
                         ]);
                     } else if ($existingService->status === Service::STATUS_EXPIRED) {
                         // If service exists but is expired, and it's current month, reactivate it
+                        // Note: Cancelled services should NOT be reactivated
                         if ($year == $currentYear && $month == $currentMonth) {
                             $existingService->update(['status' => Service::STATUS_PENDING]);
                         }
                     }
+                    // If service is cancelled, do nothing - leave it as cancelled and don't create a new one
 
                     // Move to next month
                     $month++;
@@ -172,8 +174,10 @@ class ServiceController extends Controller
                     }
                 } else if ($currentMonthService->status === Service::STATUS_EXPIRED) {
                     // If current month service exists but is expired, reactivate it as pending
+                    // Note: Cancelled services should NOT be reactivated
                     $currentMonthService->update(['status' => Service::STATUS_PENDING]);
                 }
+                // If current month service is cancelled, do nothing - leave it as cancelled
             } catch (\Exception $e) {
                 // Skip building if there's an error
                 Log::warning("Error generating services for building {$building->id}: " . $e->getMessage());
@@ -376,6 +380,112 @@ class ServiceController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'تکنسین با موفقیت اختصاص داده شد.',
+            'data' => $service
+        ]);
+    }
+
+    /**
+     * Change technician for an assigned service
+     */
+    public function changeTechnician(Request $request, $id)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'technician_id' => 'required|exists:technicians,id',
+            'organization_note' => 'nullable|string|max:5000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $service = Service::with(['building'])
+            ->whereHas('building', function ($q) use ($user) {
+                $q->where('organization_id', $user->organization_id);
+            })
+            ->findOrFail($id);
+
+        // Check if service is assigned
+        if ($service->status !== Service::STATUS_ASSIGNED) {
+            return response()->json([
+                'success' => false,
+                'message' => 'فقط سرویس‌های اختصاص داده شده را می‌توان تغییر داد.'
+            ], 400);
+        }
+
+        // Verify technician belongs to same organization
+        $technician = Technician::where('organization_id', $user->organization_id)
+            ->findOrFail($request->technician_id);
+
+        // Update technician
+        $service->update([
+            'technician_id' => $request->technician_id,
+            'assigned_at' => now(), // Update assignment time
+            'organization_note' => $request->organization_note ?? $service->organization_note,
+        ]);
+
+        $service->load(['building.province', 'building.city', 'building.elevators', 'technician']);
+        $service->status_text = $service->status_text;
+        $service->status_badge_class = $service->status_badge_class;
+        $service->service_date_text = $service->service_date_text;
+        if ($service->assigned_at) {
+            $service->assigned_at_jalali = Jalalian::forge($service->assigned_at)->format('Y/m/d H:i:s');
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تکنسین با موفقیت تغییر یافت.',
+            'data' => $service
+        ]);
+    }
+
+    /**
+     * Cancel service (remove technician and set status to pending)
+     */
+    public function cancelService($id)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $service = Service::with(['building'])
+            ->whereHas('building', function ($q) use ($user) {
+                $q->where('organization_id', $user->organization_id);
+            })
+            ->findOrFail($id);
+
+        // Check if service is assigned
+        if ($service->status !== Service::STATUS_ASSIGNED) {
+            return response()->json([
+                'success' => false,
+                'message' => 'فقط سرویس‌های اختصاص داده شده را می‌توان لغو کرد.'
+            ], 400);
+        }
+
+        // Remove technician and set status to cancelled
+        $service->update([
+            'technician_id' => null,
+            'status' => Service::STATUS_CANCELLED,
+            'assigned_at' => null,
+        ]);
+
+        $service->load(['building.province', 'building.city', 'building.elevators']);
+        $service->status_text = $service->status_text;
+        $service->status_badge_class = $service->status_badge_class;
+        $service->service_date_text = $service->service_date_text;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'سرویس با موفقیت لغو شد و تکنسین حذف شد.',
             'data' => $service
         ]);
     }

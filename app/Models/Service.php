@@ -34,6 +34,7 @@ class Service extends Model
     const STATUS_ASSIGNED = 'assigned';
     const STATUS_COMPLETED = 'completed';
     const STATUS_EXPIRED = 'expired';
+    const STATUS_CANCELLED = 'cancelled';
 
     // Relationships
     public function building()
@@ -59,6 +60,7 @@ class Service extends Model
             'assigned' => 'اختصاص داده شده',
             'completed' => 'تکمیل شده',
             'expired' => 'منقضی شده',
+            'cancelled' => 'لغو شده',
         ];
         
         return $statuses[$this->status] ?? $this->status;
@@ -71,6 +73,7 @@ class Service extends Model
             'assigned' => 'badge-info',
             'completed' => 'badge-success',
             'expired' => 'badge-danger',
+            'cancelled' => 'badge-secondary',
         ];
         
         return $classes[$this->status] ?? 'badge-secondary';
@@ -126,5 +129,13 @@ class Service extends Model
     public function scopeExpired($query)
     {
         return $query->where('status', self::STATUS_EXPIRED);
+    }
+
+    /**
+     * Scope for cancelled services
+     */
+    public function scopeCancelled($query)
+    {
+        return $query->where('status', self::STATUS_CANCELLED);
     }
 }

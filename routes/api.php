@@ -148,10 +148,16 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::get('services/assigned', [OrgServiceController::class, 'assigned']);
         Route::get('services/all', [OrgServiceController::class, 'all']);
         Route::post('services/{service}/assign-technician', [OrgServiceController::class, 'assignTechnician']);
+        Route::post('services/{service}/change-technician', [OrgServiceController::class, 'changeTechnician']);
+        Route::post('services/{service}/cancel', [OrgServiceController::class, 'cancelService']);
         Route::get('services/technicians', [OrgServiceController::class, 'getTechnicians']);
         
         // Organization SMS API
         Route::get('sms/statistics', [\App\Http\Controllers\Api\Organization\SmsController::class, 'statistics']);
+        Route::post('sms/increase-balance', [\App\Http\Controllers\Api\Organization\DashboardController::class, 'increaseSmsBalance']);
+        
+        // Payment Methods
+        Route::get('payment-methods', [\App\Http\Controllers\Api\OrganizationPackageController::class, 'getPaymentMethods']);
         });
     });
 });

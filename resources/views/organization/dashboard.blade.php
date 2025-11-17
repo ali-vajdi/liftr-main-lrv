@@ -34,6 +34,13 @@
                         <span id="sms-balance">0</span>
                     </h2>
                     <p style="color: rgba(255,255,255,0.8); margin-bottom: 20px; font-size: 14px;">تومان</p>
+                    <button type="button" class="btn btn-light btn-sm" id="increase-sms-balance-btn" style="border-radius: 50px; padding: 8px 20px; font-weight: 600; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 5px;">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        افزایش موجودی
+                    </button>
                     <div class="row mt-4" style="border-top: 1px solid rgba(255,255,255,0.25); padding-top: 20px; margin-top: 20px;">
                         <div class="col-4 text-center">
                             <div style="font-size: 24px; font-weight: 700; margin-bottom: 5px;"><span id="sms-total">0</span></div>
@@ -48,6 +55,78 @@
                             <div style="font-size: 11px; opacity: 0.85; font-weight: 500;">در انتظار</div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Increase SMS Balance Modal -->
+    <div class="modal fade" id="increaseSmsBalanceModal" tabindex="-1" role="dialog" aria-labelledby="increaseSmsBalanceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h5 class="modal-title text-white" id="increaseSmsBalanceModalLabel">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 8px;">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        افزایش موجودی پیامک
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" style="padding: 25px;">
+                    <form id="increaseSmsBalanceForm">
+                        <div class="form-group">
+                            <label for="amount-select" style="font-weight: 600; margin-bottom: 15px; color: #3b3f5c;">انتخاب مبلغ:</label>
+                            <div class="row mb-3">
+                                <div class="col-4 mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-block amount-btn" data-amount="50000" style="border-radius: 8px; padding: 12px; font-weight: 600;">
+                                        50,000 تومان
+                                    </button>
+                                </div>
+                                <div class="col-4 mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-block amount-btn" data-amount="100000" style="border-radius: 8px; padding: 12px; font-weight: 600;">
+                                        100,000 تومان
+                                    </button>
+                                </div>
+                                <div class="col-4 mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-block amount-btn" data-amount="200000" style="border-radius: 8px; padding: 12px; font-weight: 600;">
+                                        200,000 تومان
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="custom-amount" style="font-weight: 600; margin-bottom: 10px; color: #3b3f5c;">یا مبلغ دلخواه:</label>
+                            <input type="text" class="form-control" id="custom-amount" name="custom_amount" placeholder="حداقل 50,000 تومان" style="border-radius: 8px; padding: 12px;">
+                            <small class="form-text text-muted" style="margin-top: 5px;">حداقل مبلغ افزایش موجودی 50,000 تومان است</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="payment-method" style="font-weight: 600; margin-bottom: 10px; color: #3b3f5c;">روش پرداخت:</label>
+                            <select class="form-control" id="payment-method" name="payment_method_id" required style="border-radius: 8px; padding: 12px;">
+                                <option value="">انتخاب روش پرداخت</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="description" style="font-weight: 600; margin-bottom: 10px; color: #3b3f5c;">توضیحات (اختیاری):</label>
+                            <textarea class="form-control" id="description" name="description" rows="2" placeholder="توضیحات اضافی..." style="border-radius: 8px; padding: 12px;"></textarea>
+                        </div>
+                        
+                        <input type="hidden" id="selected-amount" name="amount" value="">
+                        
+                        <div class="alert alert-danger" id="balance-error" style="display: none; border-radius: 8px; margin-top: 15px;"></div>
+                    </form>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #e0e6ed; padding: 15px 25px;">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 8px; padding: 10px 20px;">انصراف</button>
+                    <button type="button" class="btn btn-primary" id="submit-increase-balance" style="border-radius: 8px; padding: 10px 30px; font-weight: 600; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                        افزایش موجودی
+                    </button>
                 </div>
             </div>
         </div>
@@ -242,12 +321,181 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
+.amount-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+}
 </style>
 @endsection
 
 @section('page-scripts')
 <script>
 $(document).ready(function() {
+    let paymentMethods = [];
+    
+    // Load payment methods
+    function loadPaymentMethods() {
+        $.ajax({
+            url: '/api/organization/payment-methods',
+            type: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
+            },
+            success: function(response) {
+                paymentMethods = response.data || [];
+                var select = $('#payment-method');
+                select.empty();
+                select.append('<option value="">انتخاب روش پرداخت</option>');
+                paymentMethods.forEach(function(method) {
+                    select.append('<option value="' + method.id + '">' + method.name + '</option>');
+                });
+            },
+            error: function(xhr) {
+                console.error('Error loading payment methods:', xhr);
+            }
+        });
+    }
+    
+    // Load payment methods on page load
+    loadPaymentMethods();
+    
+    // Open modal when button is clicked
+    $('#increase-sms-balance-btn').on('click', function() {
+        $('#increaseSmsBalanceModal').modal('show');
+        $('#balance-error').hide();
+        $('#selected-amount').val('');
+        $('#custom-amount').val('');
+        $('.amount-btn').removeClass('active');
+        loadPaymentMethods();
+    });
+    
+    // Handle amount button clicks (using event delegation to ensure it works)
+    $(document).on('click', '.amount-btn', function() {
+        $('.amount-btn').removeClass('active');
+        $(this).addClass('active');
+        var amount = $(this).data('amount');
+        $('#selected-amount').val(amount);
+        // Set the value in the custom amount field (without formatting for now, user can see the number)
+        $('#custom-amount').val(parseFloat(amount));
+    });
+    
+    // Handle custom amount input (using event delegation)
+    $(document).on('input', '#custom-amount', function() {
+        var customAmount = $(this).val().replace(/,/g, '').replace(/[^\d]/g, ''); // Remove commas and non-digits
+        var numericAmount = parseFloat(customAmount);
+        
+        if (customAmount && !isNaN(numericAmount)) {
+            // Check if it matches any predefined amount
+            var predefinedAmounts = [50000, 100000, 200000];
+            var matchesPredefined = predefinedAmounts.includes(numericAmount);
+            
+            if (matchesPredefined) {
+                // If it matches, activate the corresponding button
+                $('.amount-btn').removeClass('active');
+                $('.amount-btn[data-amount="' + numericAmount + '"]').addClass('active');
+            } else {
+                // If it doesn't match, disable all buttons
+                $('.amount-btn').removeClass('active');
+            }
+            
+            $('#selected-amount').val(numericAmount);
+        } else {
+            // If empty or invalid, clear selection
+            $('.amount-btn').removeClass('active');
+            $('#selected-amount').val('');
+        }
+    });
+    
+    // Format custom amount on blur
+    $(document).on('blur', '#custom-amount', function() {
+        var value = $(this).val().replace(/,/g, '').replace(/[^\d]/g, '');
+        if (value && !isNaN(parseFloat(value))) {
+            $(this).val(parseFloat(value).toLocaleString('fa-IR'));
+        }
+    });
+    
+    // Clear formatting on focus for easier editing
+    $(document).on('focus', '#custom-amount', function() {
+        var value = $(this).val().replace(/,/g, '').replace(/[^\d]/g, '');
+        if (value) {
+            $(this).val(value);
+        }
+    });
+    
+    // Submit form
+    $('#submit-increase-balance').on('click', function() {
+        var amount = $('#selected-amount').val();
+        var paymentMethodId = $('#payment-method').val();
+        var description = $('#description').val();
+        
+        // Validation
+        if (!amount || parseFloat(amount) < 50000) {
+            $('#balance-error').text('لطفا مبلغی معتبر انتخاب کنید (حداقل 50,000 تومان)').show();
+            return;
+        }
+        
+        if (!paymentMethodId) {
+            $('#balance-error').text('لطفا روش پرداخت را انتخاب کنید').show();
+            return;
+        }
+        
+        $('#balance-error').hide();
+        
+        // Disable submit button
+        var submitBtn = $(this);
+        submitBtn.prop('disabled', true).text('در حال پردازش...');
+        
+        $.ajax({
+            url: '/api/organization/sms/increase-balance',
+            type: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('organization_token'),
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({
+                amount: parseFloat(amount),
+                payment_method_id: parseInt(paymentMethodId),
+                description: description || 'افزایش موجودی پیامک'
+            }),
+            success: function(response) {
+                swal({
+                    title: 'موفق',
+                    text: response.message || 'موجودی پیامک با موفقیت افزایش یافت',
+                    type: 'success',
+                    padding: '2em'
+                }).then(function() {
+                    $('#increaseSmsBalanceModal').modal('hide');
+                    // Reload dashboard data
+                    getDashboardData(function(data, error) {
+                        if (!error && data) {
+                            $('#sms-balance').text(parseFloat(data.organization.sms_balance).toLocaleString('fa-IR'));
+                        }
+                    });
+                });
+            },
+            error: function(xhr) {
+                var errorMessage = 'خطا در افزایش موجودی';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    var errors = xhr.responseJSON.errors;
+                    var errorText = '';
+                    for (var key in errors) {
+                        if (errors.hasOwnProperty(key)) {
+                            errorText += errors[key][0] + '\n';
+                        }
+                    }
+                    errorMessage = errorText;
+                }
+                $('#balance-error').text(errorMessage).show();
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false).text('افزایش موجودی');
+            }
+        });
+    });
+    
     // Load dashboard data from API
     getDashboardData(function(data, error) {
         if (error) {

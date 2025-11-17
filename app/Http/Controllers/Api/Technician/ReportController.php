@@ -131,6 +131,7 @@ class ReportController extends Controller
                 'assigned' => 0,
                 'completed' => 0,
                 'expired' => 0,
+                'cancelled' => 0,
             ];
         }
 
@@ -153,6 +154,7 @@ class ReportController extends Controller
             'assigned' => $services->where('status', Service::STATUS_ASSIGNED)->count(),
             'completed' => $services->where('status', Service::STATUS_COMPLETED)->count(),
             'expired' => $services->where('status', Service::STATUS_EXPIRED)->count(),
+            'cancelled' => $services->where('status', Service::STATUS_CANCELLED)->count(),
         ];
 
         return response()->json([
@@ -186,6 +188,7 @@ class ReportController extends Controller
             'assigned' => $services->where('status', Service::STATUS_ASSIGNED)->count(),
             'completed' => $services->where('status', Service::STATUS_COMPLETED)->count(),
             'expired' => $services->where('status', Service::STATUS_EXPIRED)->count(),
+            'cancelled' => $services->where('status', Service::STATUS_CANCELLED)->count(),
         ];
 
         // Calculate completion rate
@@ -201,6 +204,7 @@ class ReportController extends Controller
                 'assigned' => $yearServices->where('status', Service::STATUS_ASSIGNED)->count(),
                 'completed' => $yearServices->where('status', Service::STATUS_COMPLETED)->count(),
                 'expired' => $yearServices->where('status', Service::STATUS_EXPIRED)->count(),
+                'cancelled' => $yearServices->where('status', Service::STATUS_CANCELLED)->count(),
             ];
         })->sortKeysDesc()->toArray();
 
@@ -277,6 +281,7 @@ class ReportController extends Controller
         $assigned = $services->where('status', Service::STATUS_ASSIGNED)->count();
         $completed = $services->where('status', Service::STATUS_COMPLETED)->count();
         $expired = $services->where('status', Service::STATUS_EXPIRED)->count();
+        $cancelled = $services->where('status', Service::STATUS_CANCELLED)->count();
 
         $completionRate = $total > 0 
             ? round(($completed / $total) * 100, 2)
@@ -288,6 +293,7 @@ class ReportController extends Controller
             'assigned' => $assigned,
             'completed' => $completed,
             'expired' => $expired,
+            'cancelled' => $cancelled,
             'completion_rate' => $completionRate,
         ];
     }
