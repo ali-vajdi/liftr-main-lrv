@@ -92,6 +92,17 @@ class ViewController extends Controller
     {
         return view('organization.payment.index');
     }
+
+    // Messages Management Views
+    public function showMessages()
+    {
+        return view('organization.messages.index');
+    }
+
+    public function showSentMessages()
+    {
+        return view('organization.messages.sent');
+    }
 }
 
 

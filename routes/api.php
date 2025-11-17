@@ -98,6 +98,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Transactions/Accounting Management
         Route::get('transactions', [\App\Http\Controllers\Api\TransactionController::class, 'index']);
         Route::get('transactions/{transaction}', [\App\Http\Controllers\Api\TransactionController::class, 'show']);
+        
+        // Messages Management (Admin to Organizations)
+        Route::apiResource('messages', \App\Http\Controllers\Api\Admin\MessageController::class);
     });
 });
 
@@ -159,6 +162,14 @@ Route::prefix('organization')->name('organization.')->group(function () {
         
         // Payment Methods
         Route::get('payment-methods', [\App\Http\Controllers\Api\OrganizationPackageController::class, 'getPaymentMethods']);
+        
+        // Messages Management (Organization)
+        Route::get('messages', [\App\Http\Controllers\Api\Organization\MessageController::class, 'index']);
+        Route::get('messages/sent', [\App\Http\Controllers\Api\Organization\MessageController::class, 'sent']);
+        Route::get('messages/sent/{message}', [\App\Http\Controllers\Api\Organization\MessageController::class, 'showSent']);
+        Route::post('messages', [\App\Http\Controllers\Api\Organization\MessageController::class, 'store']);
+        Route::get('messages/{message}', [\App\Http\Controllers\Api\Organization\MessageController::class, 'show']);
+        Route::post('messages/{message}/mark-read', [\App\Http\Controllers\Api\Organization\MessageController::class, 'markAsRead']);
         });
     });
 });
@@ -175,6 +186,11 @@ Route::prefix('technician')->name('technician.')->group(function () {
         Route::post('logout', [TechnicianAuthController::class, 'logout']);
         Route::get('check-auth', [TechnicianAuthController::class, 'checkAuth']);
         Route::get('profile', [TechnicianAuthController::class, 'profile']);
+        
+        // Technician Messages API
+        Route::get('messages', [\App\Http\Controllers\Api\Technician\MessageController::class, 'index']);
+        Route::get('messages/{message}', [\App\Http\Controllers\Api\Technician\MessageController::class, 'show']);
+        Route::post('messages/{message}/mark-read', [\App\Http\Controllers\Api\Technician\MessageController::class, 'markAsRead']);
         
         // Technician Services API
         Route::get('services/assigned-buildings', [TechnicianServiceController::class, 'assignedBuildings']);

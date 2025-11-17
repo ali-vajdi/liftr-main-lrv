@@ -35,6 +35,8 @@ Route::get('/services/pending', [OrganizationViewController::class, 'showPending
 Route::get('/services/assigned', [OrganizationViewController::class, 'showAssignedServices'])->name('organization.services.assigned');
 Route::get('/services/all', [OrganizationViewController::class, 'showAllServices'])->name('organization.services.all');
 Route::get('/packages/payment', [OrganizationViewController::class, 'showPayment'])->name('organization.payment');
+Route::get('/messages', [OrganizationViewController::class, 'showMessages'])->name('organization.messages.view');
+Route::get('/messages/sent', [OrganizationViewController::class, 'showSentMessages'])->name('organization.messages.sent');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     // Auth Routes
@@ -73,5 +75,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     
     // Accounting/Transactions Management Routes
     Route::get('transactions', [ViewController::class, 'showTransactions'])->name('transactions.view');
+    
+    // Messages Management Routes
+    Route::get('messages', [ViewController::class, 'showMessages'])->name('messages.view');
     
 });

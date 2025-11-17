@@ -82,4 +82,9 @@ class ViewController extends Controller
         return view('admin.transactions.index');
     }
 
+    // Messages Management Views
+    public function showMessages()
+    {
+        return view('admin.messages.index');
+    }
 } 

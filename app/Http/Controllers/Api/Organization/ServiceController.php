@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Service;
 use App\Models\Building;
 use App\Models\Technician;
+use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
@@ -298,6 +299,25 @@ class ServiceController extends Controller
             'organization_note' => $request->organization_note,
         ]);
 
+        // Create automatic message to technician
+        $service->load(['building']);
+        $monthNames = [
+            1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
+            5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
+            9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
+        ];
+        $monthName = $monthNames[$service->service_month] ?? $service->service_month;
+        
+        Message::create([
+            'sender_type' => Message::SENDER_TYPE_ORGANIZATION,
+            'sender_id' => $user->organization_id,
+            'receiver_type' => Message::RECEIVER_TYPE_TECHNICIAN,
+            'receiver_id' => $request->technician_id,
+            'subject' => 'اختصاص سرویس جدید',
+            'message' => "یک سرویس جدید به شما اختصاص داده شد.\n\nساختمان: {$service->building->name}\nماه: {$monthName} {$service->service_year}\n" . ($request->organization_note ? "یادداشت: {$request->organization_note}" : ''),
+            'service_id' => $service->id,
+        ]);
+
         $service->load(['building.province', 'building.city', 'building.elevators', 'technician']);
         $service->status_text = $service->status_text;
         $service->status_badge_class = $service->status_badge_class;
@@ -355,10 +375,30 @@ class ServiceController extends Controller
             ->findOrFail($request->technician_id);
 
         // Update technician
+        $oldTechnicianId = $service->technician_id;
         $service->update([
             'technician_id' => $request->technician_id,
             'assigned_at' => now(), // Update assignment time
             'organization_note' => $request->organization_note ?? $service->organization_note,
+        ]);
+
+        // Create automatic message to new technician about change
+        $service->load(['building']);
+        $monthNames = [
+            1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
+            5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
+            9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
+        ];
+        $monthName = $monthNames[$service->service_month] ?? $service->service_month;
+        
+        Message::create([
+            'sender_type' => Message::SENDER_TYPE_ORGANIZATION,
+            'sender_id' => $user->organization_id,
+            'receiver_type' => Message::RECEIVER_TYPE_TECHNICIAN,
+            'receiver_id' => $request->technician_id,
+            'subject' => 'تغییر تکنسین سرویس',
+            'message' => "تکنسین یک سرویس تغییر کرد و به شما اختصاص داده شد.\n\nساختمان: {$service->building->name}\nماه: {$monthName} {$service->service_year}\n" . ($request->organization_note ? "یادداشت: {$request->organization_note}" : ''),
+            'service_id' => $service->id,
         ]);
 
         $service->load(['building.province', 'building.city', 'building.elevators', 'technician']);
