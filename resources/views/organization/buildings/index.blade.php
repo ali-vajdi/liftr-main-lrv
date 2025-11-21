@@ -571,6 +571,9 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response.success) {
+                    const isNewBuilding = !currentBuildingId;
+                    const buildingId = response.data.id;
+                    
                     $('#buildingModal').modal('hide');
                     
                     swal({
@@ -583,6 +586,23 @@ $(document).ready(function() {
                     // Reload datatable
                     if (typeof window.datatableApi !== 'undefined' && window.datatableApi.refresh) {
                         window.datatableApi.refresh();
+                    }
+                    
+                    // If it's a new building, show elevators modal immediately
+                    if (isNewBuilding && buildingId) {
+                        // Wait for building modal to fully close, then show elevators modal
+                        const showElevatorsModal = function() {
+                            window.onShowElevators(buildingId);
+                        };
+                        
+                        // Check if modal is already hidden
+                        if (!$('#buildingModal').hasClass('show')) {
+                            // Modal is already hidden, show elevators modal after a short delay
+                            setTimeout(showElevatorsModal, 300);
+                        } else {
+                            // Wait for modal to close
+                            $('#buildingModal').one('hidden.bs.modal', showElevatorsModal);
+                        }
                     }
                 }
             },
