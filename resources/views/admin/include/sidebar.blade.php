@@ -121,6 +121,35 @@
                 </ul>
             </li>
 
+            <li class="menu {{ request()->routeIs('admin.application-versions.*') ? 'active' : '' }}">
+                <a href="#application-versions" data-toggle="collapse"
+                    aria-expanded="{{ request()->routeIs('admin.application-versions.*') ? 'true' : 'false' }}"
+                    class="dropdown-toggle">
+                    <div class="">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-smartphone">
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                        </svg>
+                        <span>مدیریت نسخه‌های اپلیکیشن</span>
+                    </div>
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-chevron-right">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </a>
+                <ul class="collapse submenu list-unstyled {{ request()->routeIs('admin.application-versions.*') ? 'show' : '' }}"
+                    id="application-versions" data-parent="#accordionExample">
+                    <li class="{{ request()->routeIs('admin.application-versions.view') ? 'active' : '' }}">
+                        <a href="{{ route('admin.application-versions.view') }}">مدیریت نسخه‌های اپلیکیشن</a>
+                    </li>
+                </ul>
+            </li>
+
             <li class="menu {{ request()->routeIs('admin.unit-checklists.*') ? 'active' : '' }}">
                 <a href="#unit-checklists" data-toggle="collapse"
                     aria-expanded="{{ request()->routeIs('admin.unit-checklists.*') ? 'true' : 'false' }}"
@@ -192,6 +221,20 @@
                             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                         </svg>
                         <span>حسابداری و تراکنش‌ها</span>
+                    </div>
+                </a>
+            </li>
+
+            <li class="menu {{ request()->routeIs('admin.messages.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.messages.view') }}">
+                    <div class="">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-mail">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                        <span>پیام‌ها</span>
                     </div>
                 </a>
             </li>

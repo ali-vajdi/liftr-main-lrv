@@ -103,6 +103,12 @@ class ViewController extends Controller
     {
         return view('organization.messages.sent');
     }
+
+    // Transactions Management View
+    public function showTransactions()
+    {
+        return view('organization.transactions.index');
+    }
 }
 
 

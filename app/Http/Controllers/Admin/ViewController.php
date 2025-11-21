@@ -87,4 +87,10 @@ class ViewController extends Controller
     {
         return view('admin.messages.index');
     }
+
+    // Application Versions Management Views
+    public function showApplicationVersions()
+    {
+        return view('admin.application-versions.index');
+    }
 } 

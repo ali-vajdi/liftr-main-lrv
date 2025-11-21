@@ -37,6 +37,7 @@ Route::get('/services/all', [OrganizationViewController::class, 'showAllServices
 Route::get('/packages/payment', [OrganizationViewController::class, 'showPayment'])->name('organization.payment');
 Route::get('/messages', [OrganizationViewController::class, 'showMessages'])->name('organization.messages.view');
 Route::get('/messages/sent', [OrganizationViewController::class, 'showSentMessages'])->name('organization.messages.sent');
+Route::get('/transactions', [OrganizationViewController::class, 'showTransactions'])->name('organization.transactions.view');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     // Auth Routes
@@ -78,5 +79,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     
     // Messages Management Routes
     Route::get('messages', [ViewController::class, 'showMessages'])->name('messages.view');
+    
+    // Application Versions Management Routes
+    Route::get('application-versions', [ViewController::class, 'showApplicationVersions'])->name('application-versions.view');
     
 });

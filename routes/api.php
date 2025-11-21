@@ -21,6 +21,8 @@ use App\Http\Controllers\Organization\AuthController as OrganizationAuthControll
 use App\Http\Controllers\Api\TechnicianAuthController;
 use App\Http\Controllers\Api\Technician\ServiceController as TechnicianServiceController;
 use App\Http\Controllers\Api\Technician\ReportController as TechnicianReportController;
+use App\Http\Controllers\Api\Technician\VersionController as TechnicianVersionController;
+use App\Http\Controllers\Api\Admin\ApplicationVersionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -101,6 +103,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         
         // Messages Management (Admin to Organizations)
         Route::apiResource('messages', \App\Http\Controllers\Api\Admin\MessageController::class);
+        
+        // Application Versions Management
+        Route::apiResource('application-versions', ApplicationVersionController::class);
     });
 });
 
@@ -170,6 +175,10 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::post('messages', [\App\Http\Controllers\Api\Organization\MessageController::class, 'store']);
         Route::get('messages/{message}', [\App\Http\Controllers\Api\Organization\MessageController::class, 'show']);
         Route::post('messages/{message}/mark-read', [\App\Http\Controllers\Api\Organization\MessageController::class, 'markAsRead']);
+        
+        // Transactions Management (Organization)
+        Route::get('transactions', [\App\Http\Controllers\Api\Organization\TransactionController::class, 'index']);
+        Route::get('transactions/{transaction}', [\App\Http\Controllers\Api\Organization\TransactionController::class, 'show']);
         });
     });
 });
@@ -180,6 +189,9 @@ Route::prefix('technician')->name('technician.')->group(function () {
     Route::post('login', [TechnicianAuthController::class, 'login']);
     Route::post('send-otp', [TechnicianAuthController::class, 'sendOtp']);
     Route::post('verify-otp', [TechnicianAuthController::class, 'verifyOtp']);
+    
+    // Public Version Check API (no authentication required)
+    Route::post('check-update', [TechnicianVersionController::class, 'checkUpdate']);
     
     // Protected Technician API Routes
     Route::middleware('auth:technician_api')->group(function () {
