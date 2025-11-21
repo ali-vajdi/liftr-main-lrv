@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('packages', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // پکیج یک ماهه
+            $table->string('name'); // اشتراک یک ماهه
             $table->integer('duration_days'); // مدت زمان به روز (1, 15, 30, 180, 365)
             $table->string('duration_label'); // برچسب مدت (1 month, 15 days, 6 months, 1 year)
             $table->decimal('price', 10, 2); // قیمت

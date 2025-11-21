@@ -1,6 +1,6 @@
 @extends('admin.layout.master')
 
-@section('title', 'مدیریت پکیج‌های شرکت')
+@section('title', 'مدیریت اشتراک‌های شرکت')
 
 @section('content')
     <div class="layout-px-spacing">
@@ -9,10 +9,10 @@
                 <div class="widget widget-chart-one">
                     <div class="widget-heading">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">مدیریت پکیج‌های شرکت: {{ $organization->name }}</h5>
+                            <h5 class="mb-0">مدیریت اشتراک‌های شرکت: {{ $organization->name }}</h5>
                             <div>
                                 <button type="button" class="btn btn-primary create-new-button">
-                                    <i class="fa fa-plus"></i> اختصاص پکیج جدید
+                                    <i class="fa fa-plus"></i> اختصاص اشتراک جدید
                                 </button>
                             </div>
                         </div>
@@ -22,13 +22,13 @@
                         @include('admin.organizations.packages.partials.package-summary', ['organization' => $organization])
 
                         @include('admin.components.datatable', [
-                            'title' => 'پکیج‌های اختصاص داده شده',
+                            'title' => 'اشتراک‌های اختصاص داده شده',
                             'apiUrl' => '/api/admin/organizations/' . $organization->id . '/packages',
                             'createButton' => false,
                             'hideDefaultActions' => true,
                             'columns' => [
                                 ['field' => 'id', 'label' => 'شناسه'],
-                                ['field' => 'package_name', 'label' => 'نام پکیج (اختصاص داده شده)'],
+                                ['field' => 'package_name', 'label' => 'نام اشتراک (اختصاص داده شده)'],
                                 ['field' => 'package_duration_label', 'label' => 'مدت زمان (اختصاص داده شده)'],
                                 ['field' => 'formatted_price', 'label' => 'قیمت (اختصاص داده شده)'],
                                 [
@@ -54,7 +54,7 @@
                                 ],
                                 [
                                     'field' => 'has_package_changed',
-                                    'label' => 'تغییر پکیج',
+                                    'label' => 'تغییر اشتراک',
                                     'formatter' => 'function(value) {
                                         if (value) {
                                             return `<span class="badge badge-warning">تغییر کرده</span>`;
@@ -138,7 +138,7 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="assignPackageModalLabel">اختصاص پکیج جدید</h5>
+                        <h5 class="modal-title" id="assignPackageModalLabel">اختصاص اشتراک جدید</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -146,7 +146,7 @@
                     <div class="modal-body">
                         <form id="assignPackageForm">
                             <div class="form-group">
-                                <label for="package_id">انتخاب پکیج</label>
+                                <label for="package_id">انتخاب اشتراک</label>
                                 <select class="form-control" id="package_id" name="package_id" required>
                                     <option value="">انتخاب کنید...</option>
                                 </select>
@@ -158,13 +158,13 @@
                             </div>
                             <div class="alert alert-info">
                                 <i class="fa fa-info-circle"></i>
-                                <strong>نکته:</strong> اگر شرکت پکیج‌های فعالی داشته باشد، روزهای باقی‌مانده از همه پکیج‌های فعال به پکیج جدید اضافه خواهد شد.
+                                <strong>نکته:</strong> اگر شرکت اشتراک‌های فعالی داشته باشد، روزهای باقی‌مانده از همه اشتراک‌های فعال به اشتراک جدید اضافه خواهد شد.
                             </div>
                         </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
-                        <button type="button" class="btn btn-primary" id="saveAssignPackage">اختصاص پکیج</button>
+                        <button type="button" class="btn btn-primary" id="saveAssignPackage">اختصاص اشتراک</button>
                     </div>
                 </div>
             </div>
@@ -176,7 +176,7 @@
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="paymentModalLabel">مدیریت پرداخت پکیج</h5>
+                        <h5 class="modal-title" id="paymentModalLabel">مدیریت پرداخت اشتراک</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -255,7 +255,7 @@
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="detailsModalLabel">جزئیات پکیج</h5>
+                        <h5 class="modal-title" id="detailsModalLabel">جزئیات اشتراک</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -269,7 +269,7 @@
                                         <td id="detailId"></td>
                                     </tr>
                                     <tr>
-                                        <th>نام پکیج (اختصاص داده شده)</th>
+                                        <th>نام اشتراک (اختصاص داده شده)</th>
                                         <td id="detailPackageName"></td>
                                     </tr>
                                     <tr>
@@ -289,7 +289,7 @@
                                         <td id="detailExpiresAt"></td>
                                     </tr>
                                     <tr>
-                                        <th>تغییر پکیج</th>
+                                        <th>تغییر اشتراک</th>
                                         <td id="detailPackageChanged"></td>
                                     </tr>
                                     <tr>
@@ -303,12 +303,12 @@
                         <!-- Current vs Assigned Package Info -->
                         <div id="packageComparison" style="display: none;">
                             <hr>
-                            <h6>مقایسه اطلاعات پکیج</h6>
+                            <h6>مقایسه اطلاعات اشتراک</h6>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="card">
                                         <div class="card-header bg-success text-white">
-                                            <h6 class="mb-0">اطلاعات فعلی پکیج</h6>
+                                            <h6 class="mb-0">اطلاعات فعلی اشتراک</h6>
                                         </div>
                                         <div class="card-body">
                                             <p><strong>نام:</strong> <span id="currentPackageName"></span></p>
@@ -394,7 +394,7 @@
                         if (xhr.status === 404) {
                             swal({
                                 title: 'خطا',
-                                text: 'پکیج مورد نظر یافت نشد',
+                                text: 'اشتراک مورد نظر یافت نشد',
                                 type: 'error',
                                 padding: '2em'
                             });
@@ -421,7 +421,7 @@
 
             // Create new package assignment
             $('.create-new-button').click(function() {
-                $('#assignPackageModalLabel').text('اختصاص پکیج جدید');
+                $('#assignPackageModalLabel').text('اختصاص اشتراک جدید');
                 $('#assignPackageForm')[0].reset();
                 loadAvailablePackages();
                 $('#assignPackageModal').modal('show');
@@ -435,7 +435,7 @@
                 if (!packageId) {
                     swal({
                         title: 'خطا',
-                        text: 'لطفا پکیج را انتخاب کنید',
+                        text: 'لطفا اشتراک را انتخاب کنید',
                         type: 'error',
                         padding: '2em'
                     });
@@ -525,15 +525,15 @@
                         if (response.requires_confirmation && response.warning) {
                             const packageInfo = response.package_info;
                             swal({
-                                title: 'هشدار: پکیج دارای پرداخت است',
+                                title: 'هشدار: اشتراک دارای پرداخت است',
                                 html: `
-                                    <p>این پکیج دارای پرداخت است:</p>
+                                    <p>این اشتراک دارای پرداخت است:</p>
                                     <ul style="text-align: right; direction: rtl;">
                                         <li>مبلغ پرداخت شده: <strong>${parseFloat(packageInfo.total_paid).toLocaleString('fa-IR')} تومان</strong></li>
                                         <li>مبلغ باقی‌مانده: <strong>${parseFloat(packageInfo.remaining_amount).toLocaleString('fa-IR')} تومان</strong></li>
                                         <li>وضعیت پرداخت: <strong>${packageInfo.payment_status_text}</strong></li>
                                     </ul>
-                                    <p>آیا مطمئن هستید که می‌خواهید این پکیج را غیرفعال کنید؟</p>
+                                    <p>آیا مطمئن هستید که می‌خواهید این اشتراک را غیرفعال کنید؟</p>
                                 `,
                                 type: 'warning',
                                 showCancelButton: true,
@@ -569,7 +569,7 @@
                                         error: function() {
                                             swal({
                                                 title: 'خطا',
-                                                text: 'خطا در غیرفعال کردن پکیج',
+                                                text: 'خطا در غیرفعال کردن اشتراک',
                                                 type: 'error',
                                                 padding: '2em'
                                             });
@@ -581,7 +581,7 @@
                             // No payments, proceed normally
                                 swal({
                                     title: 'موفق',
-                                    text: 'پکیج با موفقیت غیرفعال شد',
+                                    text: 'اشتراک با موفقیت غیرفعال شد',
                                     type: 'success',
                                     padding: '2em'
                                 });
@@ -604,7 +604,7 @@
                                 } else {
                                     swal({
                                         title: 'خطا',
-                                        text: 'خطا در غیرفعال کردن پکیج',
+                                        text: 'خطا در غیرفعال کردن اشتراک',
                                         type: 'error',
                                         padding: '2em'
                                     });
@@ -632,7 +632,7 @@
                                     <p class="mb-1"><strong>پرداخت شده:</strong> <span class="text-success">${pkg.formatted_total_paid_amount || '0 تومان'}</span></p>
                                     <p class="mb-1"><strong>باقی‌مانده:</strong> <span class="text-danger">${pkg.formatted_remaining_amount || '0 تومان'}</span></p>
                                     <p class="mb-0"><strong>وضعیت:</strong> <span class="badge ${pkg.payment_status_badge_class}">${pkg.payment_status_text}</span></p>
-                                    ${usePeriods ? '<p class="text-info mt-2"><small><i class="fa fa-info-circle"></i> این پکیج دارای دوره‌های پرداخت است</small></p>' : (!pkg.can_accept_partial_payment ? '<p class="text-warning mt-2"><small><i class="fa fa-info-circle"></i> این پکیج باید به صورت کامل پرداخت شود</small></p>' : '')}
+                                    ${usePeriods ? '<p class="text-info mt-2"><small><i class="fa fa-info-circle"></i> این اشتراک دارای دوره‌های پرداخت است</small></p>' : (!pkg.can_accept_partial_payment ? '<p class="text-warning mt-2"><small><i class="fa fa-info-circle"></i> این اشتراک باید به صورت کامل پرداخت شود</small></p>' : '')}
                                 </div>
                             </div>
                         `;
@@ -659,7 +659,7 @@
                     error: function(xhr) {
                         swal({
                             title: 'خطا',
-                            text: 'خطا در دریافت اطلاعات پکیج',
+                            text: 'خطا در دریافت اطلاعات اشتراک',
                             type: 'error',
                             padding: '2em'
                         });
@@ -1088,7 +1088,7 @@
                 error: function() {
                     swal({
                         title: 'خطا',
-                        text: 'خطا در دریافت لیست پکیج‌ها',
+                        text: 'خطا در دریافت لیست اشتراک‌ها',
                         type: 'error',
                         padding: '2em'
                     });

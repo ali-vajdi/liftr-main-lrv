@@ -13,7 +13,7 @@
             <div class="card border-success">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0">
-                        <i class="fa fa-check-circle"></i> پکیج‌های فعال شما ({{ $activePackages->count() }} پکیج)
+                        <i class="fa fa-check-circle"></i> اشتراک‌های فعال شما ({{ $activePackages->count() }} اشتراک)
                     </h5>
                 </div>
                 <div class="card-body">
@@ -38,13 +38,13 @@
                         </div>
                         <div class="col-md-2">
                             <div class="text-center">
-                                <h6 class="text-muted">طولانی‌ترین پکیج</h6>
+                                <h6 class="text-muted">طولانی‌ترین اشتراک</h6>
                                 <h4 class="text-primary">{{ $longestPackage ? $longestPackage->package_duration_days . ' روز' : '-' }}</h4>
                             </div>
                         </div>
                         <div class="col-md-2">
                             <div class="text-center">
-                                <h6 class="text-muted">کوتاه‌ترین پکیج</h6>
+                                <h6 class="text-muted">کوتاه‌ترین اشتراک</h6>
                                 <h4 class="text-secondary">{{ $shortestPackage ? $shortestPackage->package_duration_days . ' روز' : '-' }}</h4>
                             </div>
                         </div>
@@ -59,13 +59,13 @@
                     <!-- Active Packages List -->
                     <div class="row mt-3">
                         <div class="col-12">
-                            <h6>پکیج‌های فعال شما:</h6>
+                            <h6>اشتراک‌های فعال شما:</h6>
                             <div class="table-responsive">
                                 <table class="table table-sm table-bordered table-hover">
                                     <thead class="thead-light">
                                         <tr>
                                             <th class="text-center">#</th>
-                                            <th>نام پکیج</th>
+                                            <th>نام اشتراک</th>
                                             <th class="text-center">مدت زمان</th>
                                             <th class="text-center">قیمت</th>
                                             <th class="text-center">روزهای باقی‌مانده</th>
@@ -143,12 +143,12 @@
             <div class="card border-warning">
                 <div class="card-header bg-warning text-dark">
                     <h5 class="mb-0">
-                        <i class="fa fa-exclamation-triangle"></i> بدون پکیج فعال
+                        <i class="fa fa-exclamation-triangle"></i> بدون اشتراک فعال
                     </h5>
                 </div>
                 <div class="card-body text-center">
-                    <h4 class="text-warning">شما در حال حاضر پکیج فعالی ندارید</h4>
-                    <p class="text-muted">برای اطلاع از پکیج‌های خود، با مدیر سیستم تماس بگیرید</p>
+                    <h4 class="text-warning">شما در حال حاضر اشتراک فعالی ندارید</h4>
+                    <p class="text-muted">برای اطلاع از اشتراک‌های خود، با مدیر سیستم تماس بگیرید</p>
                 </div>
             </div>
         </div>
@@ -161,7 +161,7 @@
             <div class="card border-info">
                 <div class="card-header bg-info text-white">
                     <h5 class="mb-0">
-                        <i class="fa fa-chart-bar"></i> آمار کلی پکیج‌های شما
+                        <i class="fa fa-chart-bar"></i> آمار کلی اشتراک‌های شما
                     </h5>
                 </div>
                 <div class="card-body">
@@ -173,19 +173,19 @@
                     <div class="row">
                         <div class="col-md-3">
                             <div class="text-center">
-                                <h6 class="text-muted">کل پکیج‌ها</h6>
+                                <h6 class="text-muted">کل اشتراک‌ها</h6>
                                 <h4 class="text-info">{{ $stats['total'] }}</h4>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="text-center">
-                                <h6 class="text-muted">پکیج‌های فعال</h6>
+                                <h6 class="text-muted">اشتراک‌های فعال</h6>
                                 <h4 class="text-success">{{ $stats['active'] }}</h4>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="text-center">
-                                <h6 class="text-muted">پکیج‌های منقضی</h6>
+                                <h6 class="text-muted">اشتراک‌های منقضی</h6>
                                 <h4 class="text-danger">{{ $stats['expired'] }}</h4>
                             </div>
                         </div>
@@ -205,7 +205,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="text-center">
-                                <h6 class="text-muted">میانگین مبلغ هر پکیج</h6>
+                                <h6 class="text-muted">میانگین مبلغ هر اشتراک</h6>
                                 <h4 class="text-secondary">{{ number_format($avgAmount) }} تومان</h4>
                             </div>
                         </div>

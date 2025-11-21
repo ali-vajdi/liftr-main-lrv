@@ -1,6 +1,6 @@
 @extends('organization.layout.master')
 
-@section('title', 'پکیج‌های من')
+@section('title', 'اشتراک‌های من')
 
 @section('content')
     <div class="layout-px-spacing">
@@ -8,7 +8,7 @@
             <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
                 <div class="widget widget-chart-one">
                     <div class="widget-heading">
-                        <h5 class="mb-0 text-white">پکیج‌های من - <span id="org-name-packages">...</span></h5>
+                        <h5 class="mb-0 text-white">اشتراک‌های من - <span id="org-name-packages">...</span></h5>
                     </div>
                     <div class="widget-content">
                         <!-- Package Summary -->
@@ -21,13 +21,13 @@
                         </div>
 
                         @include('organization.components.datatable', [
-                            'title' => 'پکیج‌های اختصاص داده شده',
+                            'title' => 'اشتراک‌های اختصاص داده شده',
                             'apiUrl' => '/api/organization/packages',
                             'createButton' => false,
                             'hideDefaultActions' => true,
                             'columns' => [
                                 ['field' => 'id', 'label' => 'شناسه'],
-                                ['field' => 'package_name', 'label' => 'نام پکیج'],
+                                ['field' => 'package_name', 'label' => 'نام اشتراک'],
                                 ['field' => 'package_duration_label', 'label' => 'مدت زمان'],
                                 ['field' => 'formatted_price', 'label' => 'قیمت کل'],
                                 [
@@ -126,7 +126,7 @@
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="detailsModalLabel">جزئیات پکیج</h5>
+                        <h5 class="modal-title" id="detailsModalLabel">جزئیات اشتراک</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -134,7 +134,7 @@
                     <div class="modal-body">
                         <ul class="nav nav-tabs" id="packageDetailTabs" role="tablist">
                             <li class="nav-item">
-                                <a class="nav-link active" id="info-tab" data-toggle="tab" href="#info" role="tab">اطلاعات پکیج</a>
+                                <a class="nav-link active" id="info-tab" data-toggle="tab" href="#info" role="tab">اطلاعات اشتراک</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="payment-tab" data-toggle="tab" href="#payment" role="tab">وضعیت پرداخت</a>
@@ -155,7 +155,7 @@
                                                 <td id="detailId"></td>
                                             </tr>
                                             <tr>
-                                                <th>نام پکیج (اختصاص یافته)</th>
+                                                <th>نام اشتراک (اختصاص یافته)</th>
                                                 <td id="detailAssignedPackageName"></td>
                                             </tr>
                                             <tr>
@@ -167,7 +167,7 @@
                                                 <td id="detailAssignedPrice"></td>
                                             </tr>
                                             <tr>
-                                                <th>نام پکیج (فعلی)</th>
+                                                <th>نام اشتراک (فعلی)</th>
                                                 <td id="detailCurrentPackageName"></td>
                                             </tr>
                                             <tr>
@@ -284,7 +284,7 @@
                             $('#detailCurrentPrice').text(data.current_package_info.formatted_price);
                             $('#detailHasChanged').html(data.has_package_changed ? '<span class="badge badge-warning">بله</span>' : '<span class="badge badge-success">خیر</span>');
                         } else {
-                            $('#detailCurrentPackageName').text('پکیج اصلی حذف شده');
+                            $('#detailCurrentPackageName').text('اشتراک اصلی حذف شده');
                             $('#detailCurrentDuration').text('-');
                             $('#detailCurrentPrice').text('-');
                             $('#detailHasChanged').html('<span class="badge badge-danger">بله (حذف شده)</span>');
@@ -320,7 +320,7 @@
                         if (usePeriods && data.periods && data.periods.length > 0) {
                             renderPeriodsList(data.periods);
                         } else {
-                            $('#periodsListContainer').html('<div class="alert alert-info text-center">این پکیج از دوره استفاده نمی‌کند</div>');
+                            $('#periodsListContainer').html('<div class="alert alert-info text-center">این اشتراک از دوره استفاده نمی‌کند</div>');
                         }
                         
                         // Reset tabs to first tab
@@ -332,7 +332,7 @@
                         if (xhr.status === 404) {
                             swal({
                                 title: 'خطا',
-                                text: 'پکیج مورد نظر یافت نشد',
+                                text: 'اشتراک مورد نظر یافت نشد',
                                 type: 'error',
                                 padding: '2em'
                             });
@@ -444,7 +444,7 @@
                                 '<div class="col-12">' +
                                 '<div class="card border-success">' +
                                 '<div class="card-header bg-success text-white">' +
-                                '<h5 class="mb-0"><i class="fa fa-check-circle"></i> پکیج‌های فعال شما (' + activePackages.length + ' پکیج)</h5>' +
+                                '<h5 class="mb-0"><i class="fa fa-check-circle"></i> اشتراک‌های فعال شما (' + activePackages.length + ' اشتراک)</h5>' +
                                 '</div>' +
                                 '<div class="card-body">' +
                                 '<div class="row">' +
@@ -457,9 +457,9 @@
                                 '</div></div></div></div></div>';
                         } else {
                             html = '<div class="row mb-4"><div class="col-12"><div class="card border-warning">' +
-                                '<div class="card-header bg-warning text-dark"><h5 class="mb-0"><i class="fa fa-exclamation-triangle"></i> بدون پکیج فعال</h5></div>' +
-                                '<div class="card-body text-center"><h4 class="text-warning">شما در حال حاضر پکیج فعالی ندارید</h4>' +
-                                '<p class="text-muted">برای اطلاع از پکیج‌های خود، با مدیر سیستم تماس بگیرید</p></div></div></div></div>';
+                                '<div class="card-header bg-warning text-dark"><h5 class="mb-0"><i class="fa fa-exclamation-triangle"></i> بدون اشتراک فعال</h5></div>' +
+                                '<div class="card-body text-center"><h4 class="text-warning">شما در حال حاضر اشتراک فعالی ندارید</h4>' +
+                                '<p class="text-muted">برای اطلاع از اشتراک‌های خود، با مدیر سیستم تماس بگیرید</p></div></div></div></div>';
                         }
 
                         if (packages.length > 0) {
@@ -472,16 +472,16 @@
                             var avgAmount = stats.total > 0 ? Math.round(totalPackagePrice / stats.total) : 0;
 
                             html += '<div class="row mb-4"><div class="col-12"><div class="card border-info">' +
-                                '<div class="card-header bg-info text-white"><h5 class="mb-0"><i class="fa fa-chart-bar"></i> آمار کلی پکیج‌های شما</h5></div>' +
+                                '<div class="card-header bg-info text-white"><h5 class="mb-0"><i class="fa fa-chart-bar"></i> آمار کلی اشتراک‌های شما</h5></div>' +
                                 '<div class="card-body">' +
                                 '<div class="row">' +
-                                '<div class="col-md-3"><div class="text-center"><h6 class="text-muted">کل پکیج‌ها</h6><h4 class="text-info">' + stats.total + '</h4></div></div>' +
-                                '<div class="col-md-3"><div class="text-center"><h6 class="text-muted">پکیج‌های فعال</h6><h4 class="text-success">' + stats.active + '</h4></div></div>' +
-                                '<div class="col-md-3"><div class="text-center"><h6 class="text-muted">پکیج‌های منقضی</h6><h4 class="text-danger">' + stats.expired + '</h4></div></div>' +
+                                '<div class="col-md-3"><div class="text-center"><h6 class="text-muted">کل اشتراک‌ها</h6><h4 class="text-info">' + stats.total + '</h4></div></div>' +
+                                '<div class="col-md-3"><div class="text-center"><h6 class="text-muted">اشتراک‌های فعال</h6><h4 class="text-success">' + stats.active + '</h4></div></div>' +
+                                '<div class="col-md-3"><div class="text-center"><h6 class="text-muted">اشتراک‌های منقضی</h6><h4 class="text-danger">' + stats.expired + '</h4></div></div>' +
                                 '<div class="col-md-3"><div class="text-center"><h6 class="text-muted">نرخ فعال بودن</h6><h4 class="text-primary">' + activeRate + '%</h4></div></div>' +
                                 '</div>' +
                                 '<div class="row mt-3">' +
-                                '<div class="col-md-4"><div class="text-center"><h6 class="text-muted">کل مبلغ پکیج‌ها</h6><h4 class="text-primary">' + parseFloat(totalPackagePrice).toLocaleString('fa-IR') + ' تومان</h4></div></div>' +
+                                '<div class="col-md-4"><div class="text-center"><h6 class="text-muted">کل مبلغ اشتراک‌ها</h6><h4 class="text-primary">' + parseFloat(totalPackagePrice).toLocaleString('fa-IR') + ' تومان</h4></div></div>' +
                                 '<div class="col-md-4"><div class="text-center"><h6 class="text-muted">کل مبلغ پرداخت شده</h6><h4 class="text-success">' + parseFloat(totalAmountPaid).toLocaleString('fa-IR') + ' تومان</h4></div></div>' +
                                 '<div class="col-md-4"><div class="text-center"><h6 class="text-muted">کل مبلغ باقی‌مانده</h6><h4 class="text-danger">' + parseFloat(totalRemainingAmount).toLocaleString('fa-IR') + ' تومان</h4></div></div>' +
                                 '</div></div></div></div></div>';

@@ -32,7 +32,7 @@
                             <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                             <line x1="12" y1="22.08" x2="12" y2="12"></line>
                         </svg>
-                        <span>پکیج‌های من</span>
+                        <span>اشتراک‌های من</span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -45,7 +45,7 @@
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.packages.*') ? 'show' : '' }}"
                     id="packages" data-parent="#accordionExample">
                     <li class="{{ request()->routeIs('organization.packages.view') ? 'active' : '' }}">
-                        <a href="{{ route('organization.packages.view') }}">مشاهده پکیج‌ها</a>
+                        <a href="{{ route('organization.packages.view') }}">مشاهده اشتراک‌ها</a>
                     </li>
                 </ul>
             </li>

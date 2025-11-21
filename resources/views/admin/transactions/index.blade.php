@@ -70,7 +70,7 @@
                                             <label>منبع</label>
                                             <select class="form-control" id="filter-source">
                                                 <option value="">همه</option>
-                                                <option value="package">پکیج</option>
+                                                <option value="package">اشتراک</option>
                                             </select>
                                         </div>
                                     </div>
@@ -124,7 +124,7 @@
                                     'label' => 'منبع',
                                     'formatter' => 'function(value, item) {
                                         if (item.transactionable_type && item.transactionable_type.includes("PackagePayment")) {
-                                            return `<span class="badge badge-primary">پکیج</span>`;
+                                            return `<span class="badge badge-primary">اشتراک</span>`;
                                         }
                                         return value || "-";
                                     }',

@@ -151,8 +151,8 @@ class PaymentController extends Controller
             'payment_type' => 'required|in:period,full',
             'period' => 'nullable|integer|min:0',
         ], [
-            'package_id.required' => 'شناسه پکیج الزامی است',
-            'package_id.exists' => 'پکیج یافت نشد',
+            'package_id.required' => 'شناسه اشتراک الزامی است',
+            'package_id.exists' => 'اشتراک یافت نشد',
             'amount.required' => 'مبلغ الزامی است',
             'amount.numeric' => 'مبلغ باید عدد باشد',
             'amount.min' => 'مبلغ نمی‌تواند منفی باشد',
@@ -178,13 +178,13 @@ class PaymentController extends Controller
 
         if (!$package) {
             return response()->json([
-                'message' => 'پکیج یافت نشد'
+                'message' => 'اشتراک یافت نشد'
             ], 404);
         }
 
         if (!$package->is_active) {
             return response()->json([
-                'message' => 'پکیج غیرفعال است'
+                'message' => 'اشتراک غیرفعال است'
             ], 422);
         }
 
@@ -252,7 +252,7 @@ class PaymentController extends Controller
                     'amount' => round($amount, 0),
                     'type' => Transaction::TYPE_INCOME,
                     'status' => Transaction::STATUS_COMPLETED,
-                    'description' => "پرداخت دوره {$periodNumber} پکیج: {$package->package_name}",
+                    'description' => "پرداخت دوره {$periodNumber} اشتراک: {$package->package_name}",
                     'transaction_date' => Carbon::now(),
                     'organization_id' => $organization->id,
                     'moderator_id' => null,
@@ -269,7 +269,7 @@ class PaymentController extends Controller
                     if (abs($amount - $package->remaining_amount) > 0.01) {
                         DB::rollBack();
                         return response()->json([
-                            'message' => "برای پکیج‌های بدون دوره، باید کل مبلغ باقی‌مانده ({$package->remaining_amount} تومان) پرداخت شود"
+                            'message' => "برای اشتراک‌های بدون دوره، باید کل مبلغ باقی‌مانده ({$package->remaining_amount} تومان) پرداخت شود"
                         ], 422);
                     }
                 } else {
@@ -288,7 +288,7 @@ class PaymentController extends Controller
                     'payment_method_id' => $systemPaymentMethod->id,
                     'amount' => round($amount, 0),
                     'payment_date' => Carbon::now(),
-                    'notes' => 'پرداخت کامل پکیج',
+                    'notes' => 'پرداخت کامل اشتراک',
                     'moderator_id' => null,
                 ]);
 
@@ -310,7 +310,7 @@ class PaymentController extends Controller
                     'amount' => $amount,
                     'type' => Transaction::TYPE_INCOME,
                     'status' => Transaction::STATUS_COMPLETED,
-                    'description' => "پرداخت کامل پکیج: {$package->package_name}",
+                    'description' => "پرداخت کامل اشتراک: {$package->package_name}",
                     'transaction_date' => Carbon::now(),
                     'organization_id' => $organization->id,
                     'moderator_id' => null,
@@ -343,8 +343,8 @@ class PaymentController extends Controller
         $validator = Validator::make($request->all(), [
             'package_id' => 'required|exists:packages,id',
         ], [
-            'package_id.required' => 'شناسه پکیج الزامی است',
-            'package_id.exists' => 'پکیج یافت نشد',
+            'package_id.required' => 'شناسه اشتراک الزامی است',
+            'package_id.exists' => 'اشتراک یافت نشد',
         ]);
 
         if ($validator->fails()) {
@@ -364,7 +364,7 @@ class PaymentController extends Controller
         // Check if package is public
         if (!$package->is_public) {
             return response()->json([
-                'message' => 'این پکیج عمومی نیست'
+                'message' => 'این اشتراک عمومی نیست'
             ], 422);
         }
 
@@ -392,7 +392,7 @@ class PaymentController extends Controller
             DB::commit();
 
             return response()->json([
-                'message' => 'پکیج با موفقیت فعال شد. لطفا پرداخت را انجام دهید.',
+                'message' => 'اشتراک با موفقیت فعال شد. لطفا پرداخت را انجام دهید.',
                 'data' => [
                     'organization_package' => $organizationPackage,
                     'package' => $package,
@@ -402,7 +402,7 @@ class PaymentController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
-                'message' => 'خطا در فعال‌سازی پکیج: ' . $e->getMessage()
+                'message' => 'خطا در فعال‌سازی اشتراک: ' . $e->getMessage()
             ], 500);
         }
     }

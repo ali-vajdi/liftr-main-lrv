@@ -100,8 +100,8 @@ class PackageController extends Controller
             'use_periods' => 'nullable',
             'period_days' => 'nullable|integer|min:1',
         ], [
-            'name.required' => 'نام پکیج الزامی است',
-            'name.max' => 'نام پکیج نمی‌تواند بیش از 255 کاراکتر باشد',
+            'name.required' => 'نام اشتراک الزامی است',
+            'name.max' => 'نام اشتراک نمی‌تواند بیش از 255 کاراکتر باشد',
             'duration_days.required' => 'مدت زمان الزامی است',
             'duration_days.integer' => 'مدت زمان باید عدد باشد',
             'duration_days.min' => 'مدت زمان باید حداقل 1 روز باشد',
@@ -150,7 +150,7 @@ class PackageController extends Controller
         $package = Package::create($data);
 
         return response()->json([
-            'message' => 'پکیج با موفقیت ایجاد شد',
+            'message' => 'اشتراک با موفقیت ایجاد شد',
             'data' => $package
         ], 201);
     }
@@ -180,8 +180,8 @@ class PackageController extends Controller
             'use_periods' => 'nullable',
             'period_days' => 'nullable|integer|min:1|required_if:use_periods,true,1',
         ], [
-            'name.required' => 'نام پکیج الزامی است',
-            'name.max' => 'نام پکیج نمی‌تواند بیش از 255 کاراکتر باشد',
+            'name.required' => 'نام اشتراک الزامی است',
+            'name.max' => 'نام اشتراک نمی‌تواند بیش از 255 کاراکتر باشد',
             'duration_days.required' => 'مدت زمان الزامی است',
             'duration_days.integer' => 'مدت زمان باید عدد باشد',
             'duration_days.min' => 'مدت زمان باید حداقل 1 روز باشد',
@@ -236,7 +236,7 @@ class PackageController extends Controller
         $package->status_badge_class = $package->status_badge_class;
 
         return response()->json([
-            'message' => 'پکیج با موفقیت ویرایش شد',
+            'message' => 'اشتراک با موفقیت ویرایش شد',
             'data' => $package
         ]);
     }
@@ -248,14 +248,14 @@ class PackageController extends Controller
         // Check if package is being used
         if ($package->organizationPackages()->count() > 0) {
             return response()->json([
-                'message' => 'این پکیج در حال استفاده است و قابل حذف نیست'
+                'message' => 'این اشتراک در حال استفاده است و قابل حذف نیست'
             ], 422);
         }
         
         $package->delete();
 
         return response()->json([
-            'message' => 'پکیج با موفقیت حذف شد'
+            'message' => 'اشتراک با موفقیت حذف شد'
         ]);
     }
 }

@@ -1,6 +1,6 @@
 @extends('organization.layout.master')
 
-@section('title', 'پرداخت پکیج')
+@section('title', 'پرداخت اشتراک')
 
 @section('content')
     <div class="layout-px-spacing">
@@ -9,7 +9,7 @@
                 <div class="widget widget-chart-one">
                     <div class="widget-heading">
                         <h5 class="mb-0">
-                            <i class="fa fa-credit-card"></i> مدیریت پرداخت پکیج
+                            <i class="fa fa-credit-card"></i> مدیریت پرداخت اشتراک
                         </h5>
                     </div>
                     <div class="widget-content">
@@ -351,7 +351,7 @@
                             $('#payment-container').html(`
                                 <div class="alert alert-success text-center fade-in" style="border-radius: 15px; padding: 3rem;">
                                     <i class="fa fa-check-circle fa-3x mb-3 text-success"></i>
-                                    <h4 class="mb-3 text-white">همه پکیج‌های شما پرداخت شده است!</h4>
+                                    <h4 class="mb-3 text-white">همه اشتراک‌های شما پرداخت شده است!</h4>
                                     <p class="mb-4 text-white">می‌توانید به پنل خود دسترسی داشته باشید.</p>
                                     <a href="/" class="btn btn-primary btn-lg btn-payment">
                                         <i class="fa fa-home"></i> بازگشت به پنل
@@ -383,8 +383,8 @@
                 let html = `
                     <div class="alert alert-info text-center mb-4 fade-in" style="border-radius: 15px; padding: 2rem;">
                         <i class="fa fa-info-circle fa-2x mb-3"></i>
-                        <h4>شما پکیج فعالی ندارید</h4>
-                        <p class="mb-0">لطفا یکی از پکیج‌های زیر را انتخاب و فعال کنید:</p>
+                        <h4>شما اشتراک فعالی ندارید</h4>
+                        <p class="mb-0">لطفا یکی از اشتراک‌های زیر را انتخاب و فعال کنید:</p>
                     </div>
                     <div class="row">
                 `;
@@ -425,10 +425,10 @@
                     const package = publicPackages.find(p => p.id === packageId);
                     
                     swal({
-                        title: 'فعال‌سازی پکیج',
+                        title: 'فعال‌سازی اشتراک',
                         html: `
                             <div class="text-right" style="direction: rtl;">
-                                <p>آیا می‌خواهید پکیج <strong>${package.name}</strong> را فعال کنید؟</p>
+                                <p>آیا می‌خواهید اشتراک <strong>${package.name}</strong> را فعال کنید؟</p>
                                 <div class="alert alert-info mt-3">
                                     <strong>قیمت:</strong> ${parseFloat(package.price).toLocaleString('fa-IR')} تومان
                                 </div>
@@ -485,7 +485,7 @@
                         });
                     },
                     error: function(xhr) {
-                        let message = 'خطا در فعال‌سازی پکیج';
+                        let message = 'خطا در فعال‌سازی اشتراک';
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             message = xhr.responseJSON.message;
                         }
@@ -657,7 +657,7 @@
                                             <div class="d-flex align-items-start">
                                                 <i class="fa fa-credit-card fa-2x mr-3 mt-1"></i>
                                                 <div class="flex-grow-1">
-                                                    <h6 class="alert-heading mb-2 text-white">پرداخت کامل پکیج</h6>
+                                                    <h6 class="alert-heading mb-2 text-white">پرداخت کامل اشتراک</h6>
                                                     <p class="mb-0">می‌توانید کل مبلغ باقی‌مانده را پرداخت کنید.</p>
                                                 </div>
                                             </div>
@@ -698,7 +698,7 @@
                                                 ` : !info.use_periods ? `
                                                     <div class="alert alert-warning mt-3 mb-0 info-alert warning-info">
                                                         <i class="fa fa-exclamation-triangle"></i> 
-                                                        <small>این پکیج بدون دوره است و باید کل مبلغ پرداخت شود</small>
+                                                        <small>این اشتراک بدون دوره است و باید کل مبلغ پرداخت شود</small>
                                                     </div>
                                                 ` : ''}
                                             </div>
@@ -759,7 +759,7 @@
                         if (Math.abs(amount - remainingAmount) > 0.01) {
                             swal({
                                 title: 'خطا',
-                                text: `برای پکیج‌های بدون دوره، باید کل مبلغ باقی‌مانده (${remainingAmount.toLocaleString('fa-IR')} تومان) پرداخت شود`,
+                                text: `برای اشتراک‌های بدون دوره، باید کل مبلغ باقی‌مانده (${remainingAmount.toLocaleString('fa-IR')} تومان) پرداخت شود`,
                                 type: 'error',
                                 padding: '2em'
                             });

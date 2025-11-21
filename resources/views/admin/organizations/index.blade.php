@@ -83,7 +83,7 @@
                                 html += \'</button>\';
                                 
                                 // Packages button
-                                html += \'<button type="button" class="btn btn-sm btn-success packages-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="مدیریت پکیج‌ها">\';
+                                html += \'<button type="button" class="btn btn-sm btn-success packages-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="مدیریت اشتراک‌ها">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-package"><path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>\';
                                 html += \'</button>\';
                             ',

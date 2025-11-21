@@ -73,8 +73,8 @@ class OrganizationPackageController extends Controller
             'package_id' => 'required|exists:packages,id',
             'started_at' => 'nullable|date',
         ], [
-            'package_id.required' => 'انتخاب پکیج الزامی است',
-            'package_id.exists' => 'پکیج انتخاب شده معتبر نیست',
+            'package_id.required' => 'انتخاب اشتراک الزامی است',
+            'package_id.exists' => 'اشتراک انتخاب شده معتبر نیست',
             'started_at.date' => 'تاریخ شروع باید معتبر باشد',
         ]);
 
@@ -88,7 +88,7 @@ class OrganizationPackageController extends Controller
         // Check if package is public
         if (!$package->is_public) {
             return response()->json([
-                'message' => 'این پکیج برای عموم در دسترس نیست'
+                'message' => 'این اشتراک برای عموم در دسترس نیست'
             ], 403);
         }
 
@@ -122,7 +122,7 @@ class OrganizationPackageController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
-                'message' => 'خطا در اختصاص پکیج: ' . $e->getMessage()
+                'message' => 'خطا در اختصاص اشتراک: ' . $e->getMessage()
             ], 500);
         }
 
@@ -137,7 +137,7 @@ class OrganizationPackageController extends Controller
         $organizationPackage->current_package_info = $organizationPackage->current_package_info;
 
         return response()->json([
-            'message' => 'پکیج با موفقیت اختصاص داده شد',
+            'message' => 'اشتراک با موفقیت اختصاص داده شد',
             'data' => $organizationPackage->load(['package', 'moderator'])
         ], 201);
     }
@@ -151,7 +151,7 @@ class OrganizationPackageController extends Controller
         
         if (!$organizationPackage) {
             return response()->json([
-                'message' => 'پکیج مورد نظر یافت نشد'
+                'message' => 'اشتراک مورد نظر یافت نشد'
             ], 404);
         }
         
@@ -198,7 +198,7 @@ class OrganizationPackageController extends Controller
 
         if (!$organizationPackage) {
             return response()->json([
-                'message' => 'پکیج مورد نظر یافت نشد'
+                'message' => 'اشتراک مورد نظر یافت نشد'
             ], 404);
         }
 
@@ -212,7 +212,7 @@ class OrganizationPackageController extends Controller
             if ($totalPaid > 0) {
                 // Return warning that package has payments
                 return response()->json([
-                    'message' => 'این پکیج دارای پرداخت است. آیا مطمئن هستید که می‌خواهید آن را غیرفعال کنید؟',
+                    'message' => 'این اشتراک دارای پرداخت است. آیا مطمئن هستید که می‌خواهید آن را غیرفعال کنید؟',
                     'warning' => true,
                     'package_info' => [
                         'total_paid' => $totalPaid,
@@ -239,7 +239,7 @@ class OrganizationPackageController extends Controller
         $organizationPackage->current_package_info = $organizationPackage->current_package_info;
 
         return response()->json([
-            'message' => 'پکیج با موفقیت ویرایش شد',
+            'message' => 'اشتراک با موفقیت ویرایش شد',
             'data' => $organizationPackage->fresh(['package', 'moderator'])
         ]);
     }
@@ -252,14 +252,14 @@ class OrganizationPackageController extends Controller
         
         if (!$organizationPackage) {
             return response()->json([
-                'message' => 'پکیج مورد نظر یافت نشد'
+                'message' => 'اشتراک مورد نظر یافت نشد'
             ], 404);
         }
         
         $organizationPackage->delete();
 
         return response()->json([
-            'message' => 'پکیج با موفقیت حذف شد'
+            'message' => 'اشتراک با موفقیت حذف شد'
         ]);
     }
 
@@ -329,14 +329,14 @@ class OrganizationPackageController extends Controller
 
         if (!$organizationPackage) {
             return response()->json([
-                'message' => 'پکیج مورد نظر یافت نشد'
+                'message' => 'اشتراک مورد نظر یافت نشد'
             ], 404);
         }
 
         // Check if package is disabled
         if (!$organizationPackage->is_active) {
             return response()->json([
-                'message' => 'نمی‌توان برای پکیج غیرفعال پرداخت ثبت کرد'
+                'message' => 'نمی‌توان برای اشتراک غیرفعال پرداخت ثبت کرد'
             ], 422);
         }
 
@@ -355,7 +355,7 @@ class OrganizationPackageController extends Controller
         if ($amount > 0 && $amount < $organizationPackage->package_price) {
             if (!$organizationPackage->canAcceptPartialPayment()) {
                 return response()->json([
-                    'message' => 'پکیج‌های 30 روزه یا کمتر باید به صورت کامل پرداخت شوند'
+                    'message' => 'اشتراک‌های 30 روزه یا کمتر باید به صورت کامل پرداخت شوند'
                 ], 422);
             }
         }
@@ -383,7 +383,7 @@ class OrganizationPackageController extends Controller
                 'amount' => $amount,
                 'type' => Transaction::TYPE_INCOME,
                 'status' => Transaction::STATUS_COMPLETED,
-                'description' => 'پرداخت پکیج: ' . $organizationPackage->package_name . ($request->notes ? ' - ' . $request->notes : ''),
+                'description' => 'پرداخت اشتراک: ' . $organizationPackage->package_name . ($request->notes ? ' - ' . $request->notes : ''),
                 'transaction_date' => $paymentDate,
                 'organization_id' => $organizationId,
                 'moderator_id' => Auth::id() ?? 1,
@@ -423,7 +423,7 @@ class OrganizationPackageController extends Controller
 
         if (!$organizationPackage) {
             return response()->json([
-                'message' => 'پکیج مورد نظر یافت نشد'
+                'message' => 'اشتراک مورد نظر یافت نشد'
             ], 404);
         }
 
@@ -457,7 +457,7 @@ class OrganizationPackageController extends Controller
 
         if (!$organizationPackage) {
             return response()->json([
-                'message' => 'پکیج مورد نظر یافت نشد'
+                'message' => 'اشتراک مورد نظر یافت نشد'
             ], 404);
         }
 
@@ -530,14 +530,14 @@ class OrganizationPackageController extends Controller
 
         if (!$organizationPackage) {
             return response()->json([
-                'message' => 'پکیج مورد نظر یافت نشد'
+                'message' => 'اشتراک مورد نظر یافت نشد'
             ], 404);
         }
 
         $organizationPackage->update(['is_active' => false]);
 
         return response()->json([
-            'message' => 'پکیج با موفقیت غیرفعال شد',
+            'message' => 'اشتراک با موفقیت غیرفعال شد',
             'data' => $organizationPackage->fresh()
         ]);
     }

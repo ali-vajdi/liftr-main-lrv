@@ -46,7 +46,7 @@ class CheckOrganizationPackagePayment
         // If no active packages, lock access
         if ($activePackages->isEmpty()) {
             return response()->json([
-                'message' => 'شما پکیج فعالی ندارید. لطفا پکیج خریداری کنید.',
+                'message' => 'شما اشتراک فعالی ندارید. لطفا اشتراک خریداری کنید.',
                 'locked' => true,
                 'requires_payment' => true,
                 'payment_url' => '/packages/payment'

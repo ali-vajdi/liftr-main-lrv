@@ -68,19 +68,19 @@
                             <div class="col-12">
                                 <div class="card">
                                     <div class="card-header">
-                                        <h5 class="mb-0">آمار پکیج‌ها</h5>
+                                        <h5 class="mb-0">آمار اشتراک‌ها</h5>
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-md-3">
                                                 <div class="text-center">
-                                                    <h6 class="text-muted">کل پکیج‌ها</h6>
+                                                    <h6 class="text-muted">کل اشتراک‌ها</h6>
                                                     <h4 class="text-info"><span id="packages-total">0</span></h4>
                                                 </div>
                                             </div>
                                             <div class="col-md-3">
                                                 <div class="text-center">
-                                                    <h6 class="text-muted">پکیج‌های فعال</h6>
+                                                    <h6 class="text-muted">اشتراک‌های فعال</h6>
                                                     <h4 class="text-success"><span id="packages-active">0</span></h4>
                                                 </div>
                                             </div>

@@ -102,7 +102,7 @@ class Transaction extends Model
     public function getSourceTypeTextAttribute()
     {
         if ($this->transactionable_type === PackagePayment::class) {
-            return 'پکیج';
+            return 'اشتراک';
         }
         return 'سایر';
     }

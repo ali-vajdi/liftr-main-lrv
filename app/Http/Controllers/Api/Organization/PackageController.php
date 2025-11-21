@@ -88,7 +88,7 @@ class PackageController extends Controller
         
         if (!$organizationPackage) {
             return response()->json([
-                'message' => 'پکیج مورد نظر یافت نشد'
+                'message' => 'اشتراک مورد نظر یافت نشد'
             ], 404);
         }
         

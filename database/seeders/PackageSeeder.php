@@ -23,7 +23,7 @@ class PackageSeeder extends Seeder
 
         $packages = [
             [
-                'name' => 'پکیج یک روزه',
+                'name' => 'اشتراک یک روزه',
                 'duration_days' => 1,
                 'duration_label' => '1 روز',
                 'price' => 10000,
@@ -31,7 +31,7 @@ class PackageSeeder extends Seeder
                 'moderator_id' => $moderator->id,
             ],
             [
-                'name' => 'پکیج یک هفته',
+                'name' => 'اشتراک یک هفته',
                 'duration_days' => 7,
                 'duration_label' => '1 هفته',
                 'price' => 50000,
@@ -39,7 +39,7 @@ class PackageSeeder extends Seeder
                 'moderator_id' => $moderator->id,
             ],
             [
-                'name' => 'پکیج 15 روزه',
+                'name' => 'اشتراک 15 روزه',
                 'duration_days' => 15,
                 'duration_label' => '15 روز',
                 'price' => 80000,
@@ -47,7 +47,7 @@ class PackageSeeder extends Seeder
                 'moderator_id' => $moderator->id,
             ],
             [
-                'name' => 'پکیج یک ماهه',
+                'name' => 'اشتراک یک ماهه',
                 'duration_days' => 30,
                 'duration_label' => '1 ماه',
                 'price' => 150000,
@@ -55,7 +55,7 @@ class PackageSeeder extends Seeder
                 'moderator_id' => $moderator->id,
             ],
             [
-                'name' => 'پکیج سه ماهه',
+                'name' => 'اشتراک سه ماهه',
                 'duration_days' => 90,
                 'duration_label' => '3 ماه',
                 'price' => 400000,
@@ -63,7 +63,7 @@ class PackageSeeder extends Seeder
                 'moderator_id' => $moderator->id,
             ],
             [
-                'name' => 'پکیج شش ماهه',
+                'name' => 'اشتراک شش ماهه',
                 'duration_days' => 180,
                 'duration_label' => '6 ماه',
                 'price' => 700000,
@@ -71,7 +71,7 @@ class PackageSeeder extends Seeder
                 'moderator_id' => $moderator->id,
             ],
             [
-                'name' => 'پکیج یک ساله',
+                'name' => 'اشتراک یک ساله',
                 'duration_days' => 365,
                 'duration_label' => '1 سال',
                 'price' => 1200000,
@@ -79,7 +79,7 @@ class PackageSeeder extends Seeder
                 'moderator_id' => $moderator->id,
             ],
             [
-                'name' => 'پکیج دو ساله',
+                'name' => 'اشتراک دو ساله',
                 'duration_days' => 730,
                 'duration_label' => '2 سال',
                 'price' => 2000000,
@@ -87,7 +87,7 @@ class PackageSeeder extends Seeder
                 'moderator_id' => $moderator->id,
             ],
             [
-                'name' => 'پکیج آزمایشی',
+                'name' => 'اشتراک آزمایشی',
                 'duration_days' => 3,
                 'duration_label' => '3 روز',
                 'price' => 0,
@@ -95,7 +95,7 @@ class PackageSeeder extends Seeder
                 'moderator_id' => $moderator->id,
             ],
             [
-                'name' => 'پکیج ویژه',
+                'name' => 'اشتراک ویژه',
                 'duration_days' => 60,
                 'duration_label' => '2 ماه',
                 'price' => 300000,

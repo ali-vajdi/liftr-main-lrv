@@ -140,7 +140,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 8px;">
                         <path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                     </svg>
-                    پکیج فعلی
+                    اشتراک فعلی
                 </h5>
             </div>
             <div class="widget-content" style="padding: 30px 25px;" id="package-content">
@@ -548,8 +548,8 @@ $(document).ready(function() {
                 '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#888ea8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px; opacity: 0.5;">' +
                 '<path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>' +
                 '</svg>' +
-                '<p class="text-muted mb-3" style="font-size: 14px;">هیچ پکیج فعالی ندارید</p>' +
-                '<a href="{{ route('organization.packages.view') }}" class="btn btn-sm btn-primary" style="border-radius: 50px; padding: 8px 20px;">مشاهده پکیج‌ها</a>' +
+                '<p class="text-muted mb-3" style="font-size: 14px;">هیچ اشتراک فعالی ندارید</p>' +
+                '<a href="{{ route('organization.packages.view') }}" class="btn btn-sm btn-primary" style="border-radius: 50px; padding: 8px 20px;">مشاهده اشتراک‌ها</a>' +
                 '</div>';
         }
         $('#package-content').html(packageHtml);
