@@ -139,10 +139,33 @@ class ServiceController extends Controller
             ->whereHas('building', function ($q) use ($organizationId) {
                 $q->where('organization_id', $organizationId);
             })
-            ->pending()
-            // Only show current month pending services
-            ->where('service_year', $currentYear)
-            ->where('service_month', $currentMonth);
+            ->pending();
+
+        // Filter by building
+        if ($request->has('building_id') && $request->building_id) {
+            $query->where('building_id', $request->building_id);
+        }
+
+        // Filter by technician
+        if ($request->has('technician_id') && $request->technician_id) {
+            $query->where('technician_id', $request->technician_id);
+        }
+
+        // Filter by month
+        if ($request->has('month') && $request->month) {
+            $query->where('service_month', $request->month);
+        } else {
+            // Only show current month pending services if no month filter
+            $query->where('service_month', $currentMonth);
+        }
+
+        // Filter by year
+        if ($request->has('year') && $request->year) {
+            $query->where('service_year', $request->year);
+        } else {
+            // Only show current year pending services if no year filter
+            $query->where('service_year', $currentYear);
+        }
 
         // Search by building name
         if ($request->has('search') && $request->search) {
@@ -217,6 +240,11 @@ class ServiceController extends Controller
                 $q->where('organization_id', $organizationId);
             })
             ->assigned();
+
+        // Filter by building
+        if ($request->has('building_id') && $request->building_id) {
+            $query->where('building_id', $request->building_id);
+        }
 
         // Filter by technician
         if ($request->has('technician_id') && $request->technician_id) {
@@ -546,6 +574,11 @@ class ServiceController extends Controller
             })
             ->completed();
 
+        // Filter by building
+        if ($request->has('building_id') && $request->building_id) {
+            $query->where('building_id', $request->building_id);
+        }
+
         // Filter by technician
         if ($request->has('technician_id') && $request->technician_id) {
             $query->where('technician_id', $request->technician_id);
@@ -677,6 +710,11 @@ class ServiceController extends Controller
             ->whereHas('building', function ($q) use ($organizationId) {
                 $q->where('organization_id', $organizationId);
             });
+
+        // Filter by building
+        if ($request->has('building_id') && $request->building_id) {
+            $query->where('building_id', $request->building_id);
+        }
 
         // Filter by status
         if ($request->has('status') && $request->status) {

@@ -17,6 +17,47 @@
                             'apiUrl' => '/api/organization/services/assigned',
                             'createButton' => false,
                             'hideDefaultActions' => true,
+                            'hideDefaultFilters' => true,
+                            'filters' => [
+                                [
+                                    'name' => 'building_id',
+                                    'label' => 'ساختمان',
+                                    'type' => 'select',
+                                    'options' => []
+                                ],
+                                [
+                                    'name' => 'technician_id',
+                                    'label' => 'تکنسین',
+                                    'type' => 'select',
+                                    'options' => []
+                                ],
+                                [
+                                    'name' => 'month',
+                                    'label' => 'ماه',
+                                    'type' => 'select',
+                                    'options' => [
+                                        ['value' => '', 'label' => 'همه ماه‌ها'],
+                                        ['value' => '1', 'label' => 'فروردین'],
+                                        ['value' => '2', 'label' => 'اردیبهشت'],
+                                        ['value' => '3', 'label' => 'خرداد'],
+                                        ['value' => '4', 'label' => 'تیر'],
+                                        ['value' => '5', 'label' => 'مرداد'],
+                                        ['value' => '6', 'label' => 'شهریور'],
+                                        ['value' => '7', 'label' => 'مهر'],
+                                        ['value' => '8', 'label' => 'آبان'],
+                                        ['value' => '9', 'label' => 'آذر'],
+                                        ['value' => '10', 'label' => 'دی'],
+                                        ['value' => '11', 'label' => 'بهمن'],
+                                        ['value' => '12', 'label' => 'اسفند'],
+                                    ]
+                                ],
+                                [
+                                    'name' => 'year',
+                                    'label' => 'سال',
+                                    'type' => 'select',
+                                    'options' => []
+                                ],
+                            ],
                             'columns' => [
                                 [
                                     'field' => 'id',
@@ -523,7 +564,97 @@ $(document).ready(function() {
     
     // Load technicians on page load
     loadTechnicians();
+    
+    // Load buildings for filter
+    loadBuildingsForFilter();
+    
+    // Load technicians for filter
+    loadTechniciansForFilter();
+    
+    // Populate year dropdown
+    populateYearDropdown();
 });
+
+// Load buildings for filter
+function loadBuildingsForFilter() {
+    const token = localStorage.getItem('organization_token');
+    if (!token) {
+        return;
+    }
+
+    $.ajax({
+        url: '/api/organization/buildings?per_page=1000',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(response) {
+            if (response.success && response.data) {
+                const select = $('.filter-control[data-filter-name="building_id"]');
+                select.html('<option value="">همه ساختمان‌ها</option>');
+                
+                if (response.data.length > 0) {
+                    response.data.forEach(function(building) {
+                        select.append(`<option value="${building.id}">${building.name} - ${building.manager_name}</option>`);
+                    });
+                }
+            }
+        },
+        error: function(xhr) {
+            console.error('Error loading buildings:', xhr);
+        }
+    });
+}
+
+// Load technicians for filter
+function loadTechniciansForFilter() {
+    const token = localStorage.getItem('organization_token');
+    if (!token) {
+        return;
+    }
+
+    $.ajax({
+        url: '/api/organization/services/technicians',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(response) {
+            if (response.success && response.data) {
+                const select = $('.filter-control[data-filter-name="technician_id"]');
+                select.html('<option value="">همه تکنسین‌ها</option>');
+                
+                if (response.data.length > 0) {
+                    response.data.forEach(function(tech) {
+                        select.append(`<option value="${tech.id}">${tech.name} - ${tech.phone_number}</option>`);
+                    });
+                }
+            }
+        },
+        error: function(xhr) {
+            console.error('Error loading technicians:', xhr);
+        }
+    });
+}
+
+// Populate year dropdown
+function populateYearDropdown() {
+    const select = $('.filter-control[data-filter-name="year"]');
+    
+    // Get current Jalali year from server or use approximate
+    const now = new Date();
+    const gregorianYear = now.getFullYear();
+    // Approximate conversion: Jalali year ≈ Gregorian year - 621
+    const currentYear = gregorianYear - 621;
+    const startYear = 1395;
+    
+    select.html('<option value="">همه سال‌ها</option>');
+    
+    // Add years from 1395 to current year
+    for (let year = startYear; year <= currentYear; year++) {
+        select.append(`<option value="${year}">${year}</option>`);
+    }
+}
 
 // Load organization name
 getOrganizationData(function(org, error) {

@@ -20,6 +20,12 @@
                             'hideDefaultFilters' => true,
                             'filters' => [
                                 [
+                                    'name' => 'building_id',
+                                    'label' => 'ساختمان',
+                                    'type' => 'select',
+                                    'options' => []
+                                ],
+                                [
                                     'name' => 'technician_id',
                                     'label' => 'تکنسین',
                                     'type' => 'select',
@@ -360,7 +366,8 @@ function displayServiceDetails(service) {
             });
         }
         
-        // Load technicians for filter
+        // Load filters
+        loadBuildings();
         loadTechnicians();
         
         // Populate year dropdown
@@ -368,6 +375,37 @@ function displayServiceDetails(service) {
     });
     
 })(jQuery || window.jQuery || window.$);
+
+function loadBuildings() {
+    const $ = jQuery || window.$;
+    const token = localStorage.getItem('organization_token');
+    if (!token) {
+        return;
+    }
+
+    $.ajax({
+        url: '/api/organization/buildings?per_page=1000',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(response) {
+            if (response.success && response.data) {
+                const select = $('.filter-control[data-filter-name="building_id"]');
+                select.html('<option value="">همه ساختمان‌ها</option>');
+                
+                if (response.data.length > 0) {
+                    response.data.forEach(function(building) {
+                        select.append(`<option value="${building.id}">${building.name} - ${building.manager_name}</option>`);
+                    });
+                }
+            }
+        },
+        error: function(xhr) {
+            console.error('Error loading buildings:', xhr);
+        }
+    });
+}
 
 function loadTechnicians() {
     const $ = jQuery || window.$;
