@@ -163,6 +163,25 @@ class ServiceController extends Controller
             $service->status_text = $service->status_text;
             $service->status_badge_class = $service->status_badge_class;
             $service->service_date_text = $service->service_date_text;
+            
+            // Get last completed service for this building
+            $lastService = Service::where('building_id', $service->building_id)
+                ->where('status', Service::STATUS_COMPLETED)
+                ->whereNotNull('completed_at')
+                ->orderBy('completed_at', 'desc')
+                ->first();
+            
+            if ($lastService && $lastService->completed_at) {
+                $daysAgo = Carbon::now()->diffInDays($lastService->completed_at, false);
+                $service->last_service_days_ago = abs($daysAgo);
+                $service->last_service_completed_at = $lastService->completed_at;
+                $service->last_service_id = $lastService->id;
+            } else {
+                $service->last_service_days_ago = null;
+                $service->last_service_completed_at = null;
+                $service->last_service_id = null;
+            }
+            
             return $service;
         });
 

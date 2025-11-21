@@ -77,17 +77,53 @@
                                         return statuses[value] || value;
                                     }',
                                 ],
+                                [
+                                    'field' => 'last_service_days_ago',
+                                    'label' => 'زمان آخرین سرویس',
+                                    'formatter' => 'function(value, row) {
+                                        if (value === null || value === undefined) {
+                                            return "-";
+                                        }
+                                        return value + " روزپیش";
+                                    }',
+                                ],
                             ],
                             'primaryKey' => 'id',
+                            'hideDefaultActions' => true,
                             'actions' => '
+                                // Show last service details button (if last service exists)
+                                if (item.last_service_id) {
+                                    html += \'<button type="button" class="btn btn-sm btn-info show-last-service-btn mr-1 bs-tooltip" data-id="\' + item.last_service_id + \'" title="مشاهده آخرین سرویس">\';
+                                    html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>\';
+                                    html += \'</button>\';
+                                }
+                                
                                 // Assign button
                                 const serviceId = item.id || item.service_id || "";
                                 html += \'<button type="button" class="btn btn-sm btn-primary assign-btn mr-1 bs-tooltip" data-id="\' + serviceId + \'" title="اختصاص تکنسین">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user-check"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>\';
                                 html += \'</button>\';
                                 console.log("Assign button created for service ID:", serviceId);
+                                
+                                // Cancel button (for pending services)
+                                if (item.status !== "completed" && item.status !== "cancelled") {
+                                    html += \'<button type="button" class="btn btn-sm btn-danger cancel-service-btn mr-1 bs-tooltip" data-id="\' + serviceId + \'" title="لغو سرویس">\';
+                                    html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x-circle"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>\';
+                                    html += \'</button>\';
+                                }
                             ',
                             'actionHandlers' => '
+                                // Handle show last service details button click
+                                $(document).off("click", ".show-last-service-btn").on("click", ".show-last-service-btn", function(e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const id = $(this).data("id");
+                                    if (id && typeof window.onShowLastService === "function") {
+                                        window.onShowLastService(id);
+                                    }
+                                    return false;
+                                });
+                                
                                 // Handle assign button click - ensure jQuery is available
                                 if (typeof jQuery !== "undefined") {
                                     console.log("Setting up assign button handlers");
@@ -108,6 +144,17 @@
                                 } else {
                                     console.error("jQuery is not available for action handlers");
                                 }
+                                
+                                // Handle cancel service button click
+                                $(document).off("click", ".cancel-service-btn").on("click", ".cancel-service-btn", function(e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const id = $(this).data("id");
+                                    if (id && typeof window.onCancelService === "function") {
+                                        window.onCancelService(id);
+                                    }
+                                    return false;
+                                });
                             ',
                         ])
                     </div>
@@ -149,12 +196,276 @@
         </div>
     </div>
 </div>
+
+<!-- Last Service Details Modal -->
+<div class="modal fade" id="lastServiceDetailsModal" tabindex="-1" role="dialog" aria-labelledby="lastServiceDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="lastServiceDetailsModalLabel">جزئیات آخرین سرویس</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="lastServiceDetailsContent">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">در حال بارگذاری...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('page-scripts')
 <script>
 let currentServiceId = null;
 let technicians = [];
+
+// Define onShowLastService function
+window.onShowLastService = function(id) {
+    const $ = jQuery || window.$;
+    const token = localStorage.getItem('organization_token');
+    
+    if (!token) {
+        alert('لطفاً مجدداً وارد شوید');
+        return;
+    }
+    
+    // Show loading
+    $('#lastServiceDetailsContent').html('<div class="text-center"><div class="spinner-border" role="status"><span class="sr-only">در حال بارگذاری...</span></div></div>');
+    $('#lastServiceDetailsModal').modal('show');
+    
+    // Fetch service details from API
+    $.ajax({
+        url: `/api/organization/services/all`,
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        data: {
+            per_page: 1000 // Get more results to find the service
+        },
+        success: function(response) {
+            if (response.success && response.data) {
+                const service = response.data.find(s => s.id == id);
+                if (!service) {
+                    $('#lastServiceDetailsContent').html('<div class="alert alert-danger">سرویس یافت نشد</div>');
+                    return;
+                }
+                displayLastServiceDetails(service);
+            } else {
+                $('#lastServiceDetailsContent').html('<div class="alert alert-danger">خطا در بارگذاری اطلاعات</div>');
+            }
+        },
+        error: function(xhr) {
+            $('#lastServiceDetailsContent').html('<div class="alert alert-danger">خطا در بارگذاری اطلاعات</div>');
+        }
+    });
+};
+
+function displayLastServiceDetails(service) {
+    const $ = jQuery || window.$;
+    
+    let html = '<div class="service-details">';
+    
+    // Basic Information
+    html += '<div class="card mb-3">';
+    html += '<div class="card-header"><h6 class="mb-0">اطلاعات پایه</h6></div>';
+    html += '<div class="card-body">';
+    html += '<table class="table table-bordered">';
+    html += '<tr><th width="30%">شناسه سرویس:</th><td>' + (service.id || '-') + '</td></tr>';
+    html += '<tr><th>نام ساختمان:</th><td>' + (service.building ? service.building.name : '-') + '</td></tr>';
+    html += '<tr><th>مدیر/نماینده:</th><td>' + (service.building ? service.building.manager_name : '-') + '</td></tr>';
+    html += '<tr><th>شماره تماس:</th><td>' + (service.building ? service.building.manager_phone : '-') + '</td></tr>';
+    html += '<tr><th>استان:</th><td>' + (service.building && service.building.province ? service.building.province.name : '-') + '</td></tr>';
+    html += '<tr><th>شهر:</th><td>' + (service.building && service.building.city ? service.building.city.name : '-') + '</td></tr>';
+    html += '<tr><th>ماه سرویس:</th><td>' + (service.service_date_text || '-') + '</td></tr>';
+    html += '<tr><th>وضعیت:</th><td>' + (service.status_text || '-') + '</td></tr>';
+    html += '</table>';
+    html += '</div></div>';
+    
+    // Assigned Information
+    if (service.status === 'assigned' || service.status === 'completed') {
+        html += '<div class="card mb-3">';
+        html += '<div class="card-header"><h6 class="mb-0">اطلاعات اختصاص</h6></div>';
+        html += '<div class="card-body">';
+        html += '<table class="table table-bordered">';
+        html += '<tr><th width="30%">تکنسین:</th><td>' + (service.technician ? (service.technician.first_name + ' ' + service.technician.last_name) : '-') + '</td></tr>';
+        html += '<tr><th>شماره تماس تکنسین:</th><td>' + (service.technician ? service.technician.phone_number : '-') + '</td></tr>';
+        html += '<tr><th>تاریخ اختصاص:</th><td>' + (service.assigned_at_jalali || '-') + '</td></tr>';
+        if (service.organization_note) {
+            html += '<tr><th>یادداشت شرکت:</th><td>' + service.organization_note + '</td></tr>';
+        }
+        html += '</table>';
+        html += '</div></div>';
+    }
+    
+    // Completed Information with Checklist
+    if (service.status === 'completed' && service.checklist_data) {
+        html += '<div class="card mb-3">';
+        html += '<div class="card-header"><h6 class="mb-0">اطلاعات تکمیل و چک‌لیست</h6></div>';
+        html += '<div class="card-body">';
+        html += '<table class="table table-bordered mb-3">';
+        html += '<tr><th width="30%">تاریخ تکمیل:</th><td>' + (service.completed_at_jalali || '-') + '</td></tr>';
+        html += '<tr><th>تاریخ ارسال چک‌لیست:</th><td>' + (service.checklist_data.submitted_at || '-') + '</td></tr>';
+        html += '</table>';
+        
+        // Elevators Checklist
+        if (service.checklist_data.elevators && service.checklist_data.elevators.length > 0) {
+            html += '<h6 class="mt-3 mb-2">چک‌لیست آسانسورها:</h6>';
+            service.checklist_data.elevators.forEach(function(elevator, index) {
+                html += '<div class="card mb-2">';
+                html += '<div class="card-header"><strong>آسانسور: ' + (elevator.elevator_name || elevator.elevator_id) + '</strong></div>';
+                html += '<div class="card-body">';
+                html += '<p><strong>وضعیت:</strong> ' + (elevator.verified ? '<span class="badge badge-success">تایید شده</span>' : '<span class="badge badge-danger">تایید نشده</span>') + '</p>';
+                
+                if (elevator.descriptions && elevator.descriptions.length > 0) {
+                    html += '<h6 class="mt-2 mb-2">توضیحات:</h6>';
+                    html += '<ul>';
+                    elevator.descriptions.forEach(function(desc) {
+                        html += '<li>';
+                        html += '<strong>' + (desc.checklist_title || desc.title) + ':</strong> ';
+                        html += desc.description || '-';
+                        html += '</li>';
+                    });
+                    html += '</ul>';
+                }
+                html += '</div></div>';
+            });
+        }
+        
+        // Signatures
+        html += '<h6 class="mt-3 mb-2">امضاها:</h6>';
+        html += '<div class="row">';
+        if (service.checklist_data.manager_signature) {
+            html += '<div class="col-md-6 mb-3">';
+            html += '<div class="card">';
+            html += '<div class="card-header"><strong>امضای مدیر</strong></div>';
+            html += '<div class="card-body text-center">';
+            html += '<p><strong>نام:</strong> ' + service.checklist_data.manager_signature.name + '</p>';
+            if (service.checklist_data.manager_signature.signature) {
+                html += '<img src="' + service.checklist_data.manager_signature.signature + '" class="img-fluid" style="max-height: 150px;" alt="امضای مدیر">';
+            }
+            html += '</div></div></div>';
+        }
+        if (service.checklist_data.technician_signature) {
+            html += '<div class="col-md-6 mb-3">';
+            html += '<div class="card">';
+            html += '<div class="card-header"><strong>امضای تکنسین</strong></div>';
+            html += '<div class="card-body text-center">';
+            html += '<p><strong>نام:</strong> ' + service.checklist_data.technician_signature.name + '</p>';
+            if (service.checklist_data.technician_signature.signature) {
+                html += '<img src="' + service.checklist_data.technician_signature.signature + '" class="img-fluid" style="max-height: 150px;" alt="امضای تکنسین">';
+            }
+            html += '</div></div></div>';
+        }
+        html += '</div>';
+        
+        // History
+        if (service.checklist_data.history && service.checklist_data.history.length > 0) {
+            html += '<h6 class="mt-3 mb-2">تاریخچه تغییرات:</h6>';
+            html += '<ul class="list-group">';
+            service.checklist_data.history.forEach(function(history) {
+                html += '<li class="list-group-item">';
+                html += '<strong>عملیات:</strong> ' + history.action + '<br>';
+                html += '<strong>تکنسین:</strong> ' + (history.technician_name || '-') + '<br>';
+                html += '<strong>تاریخ:</strong> ' + (history.created_at || '-') + '<br>';
+                if (history.notes) {
+                    html += '<strong>یادداشت:</strong> ' + history.notes;
+                }
+                html += '</li>';
+            });
+            html += '</ul>';
+        }
+        
+        html += '</div></div>';
+    }
+    
+    html += '</div>';
+    
+    $('#lastServiceDetailsContent').html(html);
+    $('#lastServiceDetailsModal').modal('show');
+}
+
+// Define onCancelService function
+window.onCancelService = function(id) {
+    const $ = jQuery || window.$;
+    const token = localStorage.getItem('organization_token');
+    
+    if (!token) {
+        swal({
+            title: 'خطا',
+            text: 'لطفاً مجدداً وارد شوید',
+            type: 'error',
+            padding: '2em'
+        });
+        return;
+    }
+    
+    swal({
+        title: 'آیا مطمئن هستید؟',
+        text: 'با لغو این سرویس، تکنسین (در صورت وجود) حذف شده و سرویس لغو می‌شود.',
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'بله، لغو کن',
+        cancelButtonText: 'خیر',
+        padding: '2em'
+    }).then(function(result) {
+        if (result.value) {
+            $.ajax({
+                url: `/api/organization/services/${id}/cancel`,
+                type: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                },
+                success: function(response) {
+                    if (response.success) {
+                        swal({
+                            title: 'موفقیت',
+                            text: response.message,
+                            type: 'success',
+                            padding: '2em'
+                        });
+                        
+                        if (typeof window.datatableApi !== 'undefined' && window.datatableApi.refresh) {
+                            window.datatableApi.refresh();
+                        }
+                    } else {
+                        swal({
+                            title: 'خطا',
+                            text: response.message || 'خطا در لغو سرویس',
+                            type: 'error',
+                            padding: '2em'
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    const response = xhr.responseJSON;
+                    let errorMessage = 'خطا در لغو سرویس';
+                    
+                    if (response && response.message) {
+                        errorMessage = response.message;
+                    }
+                    
+                    swal({
+                        title: 'خطا',
+                        text: errorMessage,
+                        type: 'error',
+                        padding: '2em'
+                    });
+                }
+            });
+        }
+    });
+};
 
 // Define onAssign function immediately to ensure it's available when datatable loads
 window.onAssign = function(id) {
