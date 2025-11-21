@@ -176,6 +176,9 @@
                     <li class="{{ request()->routeIs('organization.services.assigned') ? 'active' : '' }}">
                         <a href="{{ route('organization.services.assigned') }}">سرویس‌های اختصاص داده شده</a>
                     </li>
+                    <li class="{{ request()->routeIs('organization.services.completed') ? 'active' : '' }}">
+                        <a href="{{ route('organization.services.completed') }}">سرویس‌های تکمیل شده</a>
+                    </li>
                 </ul>
             </li>
 

@@ -17,7 +17,8 @@
 <link href="{{ asset('assets/css/components/custom-sweetalert.css') }}" rel="stylesheet" type="text/css" />
 <link rel="stylesheet" type="text/css" href="{{ asset('plugins/select2/select2.min.css') }}">
 
-<link rel="stylesheet" href="{{ asset('assets/js/libs/jalalidatepicker.min.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/js/libs/jalalidatepicker2.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/js/libs/jalalidatepicker2.min.css') }}">
 <!-- BEGIN PAGE LEVEL PLUGINS/CUSTOM STYLES -->
 <!-- <link href="{{ asset('plugins/apex/apexcharts.css') }}" rel="stylesheet" type="text/css"> -->
 <!-- <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/widgets/modules-widgets.css') }}">     -->

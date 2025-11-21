@@ -516,6 +516,139 @@ class ServiceController extends Controller
     }
 
     /**
+     * Get completed services
+     */
+    public function completed(Request $request)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $organizationId = $user->organization_id;
+
+        // Generate missing services before fetching (in case new buildings were added)
+        $this->generateMissingServices($organizationId);
+
+        $query = Service::with([
+            'building.province',
+            'building.city',
+            'building.elevators',
+            'technician',
+            'checklist.elevatorChecklists.elevator',
+            'checklist.elevatorChecklists.descriptions.checklist',
+            'checklist.managerSignature',
+            'checklist.technicianSignature',
+            'checklist.history.technician'
+        ])
+            ->whereHas('building', function ($q) use ($organizationId) {
+                $q->where('organization_id', $organizationId);
+            })
+            ->completed();
+
+        // Filter by technician
+        if ($request->has('technician_id') && $request->technician_id) {
+            $query->where('technician_id', $request->technician_id);
+        }
+
+        // Filter by month
+        if ($request->has('month') && $request->month) {
+            $query->where('service_month', $request->month);
+        }
+
+        // Filter by year
+        if ($request->has('year') && $request->year) {
+            $query->where('service_year', $request->year);
+        }
+
+        // Search by building name
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->whereHas('building', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('manager_name', 'like', "%{$search}%");
+            });
+        }
+
+        $services = $query->orderBy('completed_at', 'desc')
+            ->orderBy('service_year', 'desc')
+            ->orderBy('service_month', 'desc')
+            ->paginate(10);
+
+        // Add formatted data with full details
+        $items = collect($services->items())->map(function ($service) {
+            $service->status_text = $service->status_text;
+            $service->status_badge_class = $service->status_badge_class;
+            $service->service_date_text = $service->service_date_text;
+            
+            // Add assigned information
+            if ($service->assigned_at) {
+                $service->assigned_at_jalali = Jalalian::forge($service->assigned_at)->format('Y/m/d H:i:s');
+            }
+            
+            // Add completed information
+            if ($service->completed_at) {
+                $service->completed_at_jalali = Jalalian::forge($service->completed_at)->format('Y/m/d H:i:s');
+            }
+            
+            // Add checklist data for completed services
+            if ($service->checklist) {
+                $checklist = $service->checklist;
+                
+                // Format elevator checklists
+                $service->checklist_data = [
+                    'submitted_at' => $checklist->submitted_at ? Jalalian::forge($checklist->submitted_at)->format('Y/m/d H:i:s') : null,
+                    'elevators' => $checklist->elevatorChecklists->map(function ($elevatorChecklist) {
+                        return [
+                            'elevator_id' => $elevatorChecklist->elevator_id,
+                            'elevator_name' => $elevatorChecklist->elevator ? $elevatorChecklist->elevator->name : null,
+                            'verified' => $elevatorChecklist->verified,
+                            'descriptions' => $elevatorChecklist->descriptions->map(function ($desc) {
+                                return [
+                                    'checklist_id' => $desc->checklist_id,
+                                    'checklist_title' => $desc->checklist ? $desc->checklist->title : null,
+                                    'title' => $desc->title,
+                                    'description' => $desc->description,
+                                ];
+                            }),
+                        ];
+                    }),
+                    'manager_signature' => $checklist->managerSignature ? [
+                        'name' => $checklist->managerSignature->name,
+                        'signature' => $checklist->managerSignature->signature, // Base64 image
+                    ] : null,
+                    'technician_signature' => $checklist->technicianSignature ? [
+                        'name' => $checklist->technicianSignature->name,
+                        'signature' => $checklist->technicianSignature->signature, // Base64 image
+                    ] : null,
+                    'history' => $checklist->history->map(function ($history) {
+                        return [
+                            'action' => $history->action,
+                            'technician_name' => $history->technician ? ($history->technician->first_name . ' ' . $history->technician->last_name) : null,
+                            'changes' => $history->changes,
+                            'notes' => $history->notes,
+                            'created_at' => $history->created_at ? Jalalian::forge($history->created_at)->format('Y/m/d H:i:s') : null,
+                        ];
+                    }),
+                ];
+            }
+            
+            return $service;
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $items->all(),
+            'pagination' => [
+                'current_page' => $services->currentPage(),
+                'last_page' => $services->lastPage(),
+                'per_page' => $services->perPage(),
+                'total' => $services->total(),
+            ]
+        ]);
+    }
+
+    /**
      * Get all services (pending, assigned, completed, expired) with full details
      */
     public function all(Request $request)

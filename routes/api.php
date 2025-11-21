@@ -154,6 +154,7 @@ Route::prefix('organization')->name('organization.')->group(function () {
         // Organization Services API
         Route::get('services/pending', [OrgServiceController::class, 'pending']);
         Route::get('services/assigned', [OrgServiceController::class, 'assigned']);
+        Route::get('services/completed', [OrgServiceController::class, 'completed']);
         Route::get('services/all', [OrgServiceController::class, 'all']);
         Route::post('services', [OrgServiceController::class, 'store']);
         Route::post('services/{service}/assign-technician', [OrgServiceController::class, 'assignTechnician']);

@@ -195,13 +195,13 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="service_start_date">تاریخ شروع سرویس</label>
-                                <input type="text" class="form-control" id="service_start_date" name="service_start_date">
+                                <input data-jdp-only-date="true" type="text" class="form-control" id="service_start_date" name="service_start_date">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="service_end_date">تاریخ پایان سرویس</label>
-                                <input type="text" class="form-control" id="service_end_date" name="service_end_date">
+                                <input data-jdp-only-date="true" type="text" class="form-control" id="service_end_date" name="service_end_date">
                             </div>
                         </div>
                     </div>
@@ -447,6 +447,7 @@ $(document).ready(function() {
         time: false,
         hasSecond: false,
         format: 'YYYY/MM/DD',
+        showSelectTimeBtnAlways:false,
         separatorChars: {
             date: '/',
             between: ' ',
@@ -470,6 +471,7 @@ $(document).ready(function() {
         date: true,
         time: false,
         hasSecond: false,
+        showSelectTimeBtnAlways:false,
         format: 'YYYY/MM/DD',
         separatorChars: {
             date: '/',
@@ -485,7 +487,7 @@ $(document).ready(function() {
         useDropDownYears: true,
         container: 'body',
         zIndex: 10000,
-        maxDate: 'today'
+        maxDate:"attr"
     });
 
     // Handle province change

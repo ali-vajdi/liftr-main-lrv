@@ -81,6 +81,12 @@ class ViewController extends Controller
         return view('organization.services.assigned');
     }
 
+    public function showCompletedServices()
+    {
+        // Organization data will be fetched via API in the view
+        return view('organization.services.completed');
+    }
+
     public function showAllServices()
     {
         // Organization data will be fetched via API in the view

@@ -93,7 +93,8 @@
     <script src="{{ asset('plugins/sweetalerts/custom-sweetalert.js')}}"></script>
     <script src="{{ asset('plugins/select2/select2.min.js')}}"></script>
 
-    <script src="{{ asset('assets/js/libs/jalalidatepicker.min.js') }}"></script>
+    <script src="{{ asset('assets/js/libs/jalalidatepicker2.js') }}"></script>
+    <script src="{{ asset('assets/js/libs/jalalidatepicker2.min.js') }}"></script>
     <!-- <script src="{{ asset('plugins/apex/apexcharts.min.js')}}"></script> -->
     <!-- <script src="{{ asset('assets/js/widgets/modules-widgets.js')}}"></script> -->
     <!-- choose one -->

@@ -74,10 +74,10 @@ class BuildingController extends Controller
         // Add Jalali formatted dates
         $items = collect($buildings->items())->map(function ($building) {
             if ($building->service_start_date) {
-                $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d H:i:s');
+                $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d');
             }
             if ($building->service_end_date) {
-                $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d H:i:s');
+                $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d');
             }
             return $building;
         });
@@ -140,12 +140,12 @@ class BuildingController extends Controller
             try {
                 // Try with time format first
                 try {
-                    $jalaliDate = Jalalian::fromFormat('Y/m/d H:i:s', $data['service_start_date']);
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $data['service_start_date']);
                 } catch (\Exception $e) {
                     // If that fails, try without time
-                    $jalaliDate = Jalalian::fromFormat('Y/m/d H:i:s', $data['service_start_date']);
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $data['service_start_date']);
                 }
-                $data['service_start_date'] = $jalaliDate->toCarbon()->format('Y-m-d H:i:s');
+                $data['service_start_date'] = $jalaliDate->toCarbon()->format('Y-m-d');
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
@@ -162,12 +162,12 @@ class BuildingController extends Controller
             try {
                 // Try with time format first
                 try {
-                    $jalaliDate = Jalalian::fromFormat('Y/m/d H:i:s', $data['service_end_date']);
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $data['service_end_date']);
                 } catch (\Exception $e) {
                     // If that fails, try without time
-                    $jalaliDate = Jalalian::fromFormat('Y/m/d H:i:s', $data['service_end_date']);
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $data['service_end_date']);
                 }
-                $data['service_end_date'] = $jalaliDate->toCarbon()->format('Y-m-d H:i:s');
+                $data['service_end_date'] = $jalaliDate->toCarbon()->format('Y-m-d');
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
@@ -184,10 +184,10 @@ class BuildingController extends Controller
         
         // Add Jalali formatted dates
         if ($building->service_start_date) {
-            $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d H:i:s');
+            $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d');
         }
         if ($building->service_end_date) {
-            $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d H:i:s');
+            $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d');
         }
 
         return response()->json([
@@ -213,10 +213,14 @@ class BuildingController extends Controller
 
         // Add Jalali formatted dates
         if ($building->service_start_date) {
-            $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d H:i:s');
+            $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d');
+        }else{
+            $building->service_start_date_jalali = null;
         }
         if ($building->service_end_date) {
-            $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d H:i:s');
+            $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d');
+        }else{
+            $building->service_end_date_jalali = null;
         }
 
         return response()->json([
@@ -249,6 +253,7 @@ class BuildingController extends Controller
             'selected_latitude' => 'nullable|numeric|between:-90,90',
             'selected_longitude' => 'nullable|numeric|between:-180,180',
             'service_start_date' => 'nullable|string',
+            'service_end_date' => 'nullable|string',
             'status' => 'required|in:true,false',
             'elevators_count' => 'nullable|integer|min:0',
             'monthly_amount' => 'nullable|numeric|min:0',
@@ -271,12 +276,12 @@ class BuildingController extends Controller
             try {
                 // Try with time format first
                 try {
-                    $jalaliDate = Jalalian::fromFormat('Y/m/d H:i:s', $data['service_start_date']);
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $data['service_start_date']);
                 } catch (\Exception $e) {
                     // If that fails, try without time
-                    $jalaliDate = Jalalian::fromFormat('Y/m/d H:i:s', $data['service_start_date']);
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $data['service_start_date']);
                 }
-                $data['service_start_date'] = $jalaliDate->toCarbon()->format('Y-m-d H:i:s');
+                $data['service_start_date'] = $jalaliDate->toCarbon()->format('Y-m-d');
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
@@ -294,12 +299,12 @@ class BuildingController extends Controller
             try {
                 // Try with time format first
                 try {
-                    $jalaliDate = Jalalian::fromFormat('Y/m/d H:i:s', $data['service_end_date']);
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $data['service_end_date']);
                 } catch (\Exception $e) {
                     // If that fails, try without time
-                    $jalaliDate = Jalalian::fromFormat('Y/m/d H:i:s', $data['service_end_date']);
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $data['service_end_date']);
                 }
-                $data['service_end_date'] = $jalaliDate->toCarbon()->format('Y-m-d H:i:s');
+                $data['service_end_date'] = $jalaliDate->toCarbon()->format('Y-m-d');
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
@@ -317,10 +322,10 @@ class BuildingController extends Controller
         
         // Add Jalali formatted dates
         if ($building->service_start_date) {
-            $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d H:i:s');
+            $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d');
         }
         if ($building->service_end_date) {
-            $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d H:i:s');
+            $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d');
         }
 
         return response()->json([
