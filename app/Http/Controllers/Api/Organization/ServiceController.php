@@ -668,37 +668,17 @@ class ServiceController extends Controller
             ], 422);
         }
 
-        $organizationId = $user->organization_id;
         $buildingId = $request->building_id;
         $serviceMonth = (int) $request->service_month;
         $serviceYear = (int) $request->service_year;
 
-        // Verify building belongs to organization
-        $building = Building::where('organization_id', $organizationId)
-            ->findOrFail($buildingId);
-
-        // Check if service already exists for this building, month, and year
-        $existingService = Service::where('building_id', $buildingId)
-            ->where('service_month', $serviceMonth)
-            ->where('service_year', $serviceYear)
-            ->first();
-
-        if ($existingService) {
-            // If service exists and is cancelled, don't allow creating a new one
-            if ($existingService->status === Service::STATUS_CANCELLED) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'سرویس این ماه برای این ساختمان لغو شده است و نمی‌توان سرویس جدیدی ایجاد کرد.'
-                ], 400);
-            }
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'سرویس این ماه برای این ساختمان از قبل وجود دارد.'
-            ], 400);
-        }
+        // Verify building belongs to the organization
+        $building = Building::where('id', $buildingId)
+            ->where('organization_id', $user->organization_id)
+            ->firstOrFail();
 
         // Create the service (user-created, so is_manual = true)
+        // Multiple services can now be created for the same building/month/year
         $service = Service::create([
             'building_id' => $buildingId,
             'service_month' => $serviceMonth,
