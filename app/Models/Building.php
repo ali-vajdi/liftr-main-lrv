@@ -25,6 +25,7 @@ class Building extends Model
         'service_end_date',
         'status',
         'elevators_count',
+        'monthly_amount',
     ];
 
     protected $casts = [
@@ -33,6 +34,7 @@ class Building extends Model
         'service_start_date' => 'timestamp',
         'service_end_date' => 'timestamp',
         'status' => 'boolean',
+        'monthly_amount' => 'decimal:2',
     ];
 
     // Relationships

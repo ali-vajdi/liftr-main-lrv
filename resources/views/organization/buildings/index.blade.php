@@ -212,6 +212,12 @@
                                 <input type="number" class="form-control" id="elevators_count" name="elevators_count" min="0" value="0">
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="monthly_amount">مبلغ ماهیانه</label>
+                                <input type="number" class="form-control" id="monthly_amount" name="monthly_amount" min="0" step="0.01" placeholder="0.00">
+                            </div>
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
@@ -319,6 +325,10 @@
                         <tr>
                             <th>تعداد آسانسورها</th>
                             <td id="detailElevatorsCount"></td>
+                        </tr>
+                        <tr>
+                            <th>مبلغ ماهیانه</th>
+                            <td id="detailMonthlyAmount"></td>
                         </tr>
                         <tr>
                             <th>وضعیت</th>
@@ -522,6 +532,7 @@ $(document).ready(function() {
                     $('#selected_latitude').val(data.selected_latitude);
                     $('#selected_longitude').val(data.selected_longitude);
                     $('#elevators_count').val(data.elevators_count || 0);
+                    $('#monthly_amount').val(data.monthly_amount || '');
                     
                 // Load cities for selected province
                 if (data.province_id) {
@@ -770,6 +781,10 @@ window.onShow = function(id) {
                         : 'تعریف نشده'
                 );
                 $('#detailElevatorsCount').text(data.elevators_count || 0);
+                const monthlyAmount = data.monthly_amount ? 
+                    new Intl.NumberFormat('fa-IR', { style: 'currency', currency: 'IRR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(data.monthly_amount) : 
+                    '-';
+                $('#detailMonthlyAmount').text(monthlyAmount);
                 $('#detailStatus').html(data.status ? 
                     '<span class="badge badge-success">فعال</span>' : 
                     '<span class="badge badge-danger">غیرفعال</span>'

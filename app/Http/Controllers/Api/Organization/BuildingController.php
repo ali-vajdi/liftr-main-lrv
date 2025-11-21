@@ -118,6 +118,7 @@ class BuildingController extends Controller
             'service_end_date' => 'nullable|string',
             'status' => 'required|in:true,false',
             'elevators_count' => 'nullable|integer|min:0',
+            'monthly_amount' => 'nullable|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -250,6 +251,7 @@ class BuildingController extends Controller
             'service_start_date' => 'nullable|string',
             'status' => 'required|in:true,false',
             'elevators_count' => 'nullable|integer|min:0',
+            'monthly_amount' => 'nullable|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
