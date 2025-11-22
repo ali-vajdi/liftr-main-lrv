@@ -86,13 +86,16 @@ class Message extends Model
                   ->orWhereNull('receiver_id'); // All technicians
             });
         
-        // If organization_id is provided, also filter by sender organization
+        // If organization_id is provided, filter by sender organization or admin
         if ($organizationId) {
             $query->where(function ($q) use ($organizationId) {
+                // Messages from this organization
                 $q->where(function ($q2) use ($organizationId) {
                     $q2->where('sender_type', self::SENDER_TYPE_ORGANIZATION)
                        ->where('sender_id', $organizationId);
-                })->orWhereNull('receiver_id'); // All technicians messages from this organization
+                })
+                // OR messages from admin (system messages)
+                ->orWhere('sender_type', self::SENDER_TYPE_ADMIN);
             });
         }
         

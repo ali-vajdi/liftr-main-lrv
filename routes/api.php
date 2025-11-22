@@ -202,8 +202,9 @@ Route::prefix('technician')->name('technician.')->group(function () {
         
         // Technician Messages API
         Route::get('messages', [\App\Http\Controllers\Api\Technician\MessageController::class, 'index']);
-        Route::get('messages/{message}', [\App\Http\Controllers\Api\Technician\MessageController::class, 'show']);
+        Route::get('messages/unread-count', [\App\Http\Controllers\Api\Technician\MessageController::class, 'unreadCount']);
         Route::post('messages/{message}/mark-read', [\App\Http\Controllers\Api\Technician\MessageController::class, 'markAsRead']);
+        Route::post('messages/mark-all-read', [\App\Http\Controllers\Api\Technician\MessageController::class, 'markAllAsRead']);
         
         // Technician Services API
         Route::get('services/assigned-buildings', [TechnicianServiceController::class, 'assignedBuildings']);
