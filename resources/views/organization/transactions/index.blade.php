@@ -11,86 +11,43 @@
                         <h5 class="mb-0">تراکنش‌ها</h5>
                     </div>
                     <div class="widget-content">
-                        <!-- Summary Cards -->
-                        <div id="transactions-summary" class="row mb-4">
-                            <div class="col-md-4">
-                                <div class="card border-success">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-muted">کل درآمد</h6>
-                                        <h3 class="text-success" id="total-income">0 تومان</h3>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="card border-danger">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-muted">کل هزینه</h6>
-                                        <h3 class="text-danger" id="total-expense">0 تومان</h3>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="card border-primary">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-muted">خالص</h6>
-                                        <h3 class="text-primary" id="net-amount">0 تومان</h3>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Filters -->
-                        <div class="card mb-4">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label>نوع تراکنش</label>
-                                            <select class="form-control" id="filter-type">
-                                                <option value="">همه</option>
-                                                <option value="income">دریافت</option>
-                                                <option value="expense">پرداخت</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label>وضعیت</label>
-                                            <select class="form-control" id="filter-status">
-                                                <option value="">همه</option>
-                                                <option value="completed">تکمیل شده</option>
-                                                <option value="pending">در انتظار</option>
-                                                <option value="failed">ناموفق</option>
-                                                <option value="cancelled">لغو شده</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label>منبع</label>
-                                            <select class="form-control" id="filter-source">
-                                                <option value="">همه</option>
-                                                <option value="package">اشتراک</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label>جستجو</label>
-                                            <input type="text" class="form-control" id="filter-search" placeholder="جستجو...">
-                                        </div>
-                                    </div>
-                                </div>
-                                <button class="btn btn-primary" onclick="applyFilters()">اعمال فیلتر</button>
-                                <button class="btn btn-secondary" onclick="resetFilters()">پاک کردن</button>
-                            </div>
-                        </div>
-
                         @include('organization.components.datatable', [
                             'title' => 'لیست تراکنش‌ها',
                             'apiUrl' => '/api/organization/transactions',
                             'createButton' => false,
                             'hideDefaultActions' => true,
+                            'filters' => [
+                                [
+                                    'name' => 'type',
+                                    'label' => 'نوع تراکنش',
+                                    'type' => 'select',
+                                    'placeholder' => 'همه',
+                                    'options' => [
+                                        ['value' => 'expense', 'label' => 'پرداخت'],
+                                    ],
+                                ],
+                                [
+                                    'name' => 'status',
+                                    'label' => 'وضعیت',
+                                    'type' => 'select',
+                                    'placeholder' => 'همه',
+                                    'options' => [
+                                        ['value' => 'completed', 'label' => 'تکمیل شده'],
+                                        ['value' => 'pending', 'label' => 'در انتظار'],
+                                        ['value' => 'failed', 'label' => 'ناموفق'],
+                                        ['value' => 'cancelled', 'label' => 'لغو شده'],
+                                    ],
+                                ],
+                                [
+                                    'name' => 'source_type',
+                                    'label' => 'منبع',
+                                    'type' => 'select',
+                                    'placeholder' => 'همه',
+                                    'options' => [
+                                        ['value' => 'package', 'label' => 'اشتراک'],
+                                    ],
+                                ],
+                            ],
                             'columns' => [
                                 ['field' => 'id', 'label' => 'شناسه'],
                                 [
@@ -229,9 +186,6 @@
 @section('page-scripts')
     <script>
         $(document).ready(function() {
-            // Load summary on page load
-            loadSummary();
-
             // Show transaction details
             window.onShow = function(id) {
                 const token = localStorage.getItem('organization_token');
@@ -288,69 +242,6 @@
                         }
                     }
                 });
-            };
-
-            // Load summary
-            function loadSummary() {
-                const token = localStorage.getItem('organization_token');
-                if (!token) {
-                    return;
-                }
-
-                $.ajax({
-                    url: '/api/organization/transactions?per_page=1',
-                    type: 'GET',
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    },
-                    success: function(response) {
-                        if (response.summary) {
-                            $('#total-income').text(response.summary.formatted_total_income);
-                            $('#total-expense').text(response.summary.formatted_total_expense);
-                            $('#net-amount').text(response.summary.formatted_net_amount);
-                        }
-                    },
-                    error: function() {
-                        console.error('Error loading summary');
-                    }
-                });
-            }
-
-            // Apply filters
-            window.applyFilters = function() {
-                const type = $('#filter-type').val();
-                const status = $('#filter-status').val();
-                const source = $('#filter-source').val();
-                const search = $('#filter-search').val();
-
-                let url = '/api/organization/transactions?';
-                const params = [];
-                if (type) params.push('type=' + type);
-                if (status) params.push('status=' + status);
-                if (source) params.push('source_type=' + source);
-                if (search) params.push('search=' + encodeURIComponent(search));
-
-                url += params.join('&');
-                
-                if (window.datatableApi) {
-                    window.datatableApi.setApiUrl(url);
-                    window.datatableApi.refresh();
-                }
-                loadSummary();
-            };
-
-            // Reset filters
-            window.resetFilters = function() {
-                $('#filter-type').val('');
-                $('#filter-status').val('');
-                $('#filter-source').val('');
-                $('#filter-search').val('');
-                
-                if (window.datatableApi) {
-                    window.datatableApi.setApiUrl('/api/organization/transactions');
-                    window.datatableApi.refresh();
-                }
-                loadSummary();
             };
         });
     </script>

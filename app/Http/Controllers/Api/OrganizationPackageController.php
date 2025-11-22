@@ -381,7 +381,7 @@ class OrganizationPackageController extends Controller
                 'transactionable_id' => $payment->id,
                 'payment_method_id' => $paymentMethod->id,
                 'amount' => $amount,
-                'type' => Transaction::TYPE_INCOME,
+                'type' => Transaction::TYPE_EXPENSE,
                 'status' => Transaction::STATUS_COMPLETED,
                 'description' => 'پرداخت اشتراک: ' . $organizationPackage->package_name . ($request->notes ? ' - ' . $request->notes : ''),
                 'transaction_date' => $paymentDate,

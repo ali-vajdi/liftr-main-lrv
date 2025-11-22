@@ -65,20 +65,6 @@ class TransactionController extends Controller
             $item->source_type_text = $item->source_type_text;
         }
 
-        // Calculate totals (apply same filters)
-        $summaryQuery = Transaction::where('status', Transaction::STATUS_COMPLETED);
-        
-        if ($organizationId) {
-            $summaryQuery->where('organization_id', $organizationId);
-        }
-        
-        if ($sourceType === 'package') {
-            $summaryQuery->where('transactionable_type', PackagePayment::class);
-        }
-
-        $totalIncome = (clone $summaryQuery)->where('type', Transaction::TYPE_INCOME)->sum('amount');
-        $totalExpense = (clone $summaryQuery)->where('type', Transaction::TYPE_EXPENSE)->sum('amount');
-
         return response()->json([
             'data' => $items,
             'pagination' => [
@@ -86,14 +72,8 @@ class TransactionController extends Controller
                 'last_page' => $transactions->lastPage(),
                 'per_page' => $transactions->perPage(),
                 'total' => $transactions->total(),
-            ],
-            'summary' => [
-                'total_income' => $totalIncome,
-                'total_expense' => $totalExpense,
-                'net_amount' => $totalIncome - $totalExpense,
-                'formatted_total_income' => number_format($totalIncome, 0) . ' تومان',
-                'formatted_total_expense' => number_format($totalExpense, 0) . ' تومان',
-                'formatted_net_amount' => number_format($totalIncome - $totalExpense, 0) . ' تومان',
+                'from' => $transactions->firstItem(),
+                'to' => $transactions->lastItem(),
             ]
         ]);
     }

@@ -155,7 +155,7 @@ class DashboardController extends Controller
                 'transactionable_id' => $organization->id,
                 'payment_method_id' => $paymentMethodId,
                 'amount' => round($amount, 0),
-                'type' => Transaction::TYPE_INCOME,
+                'type' => Transaction::TYPE_EXPENSE,
                 'status' => Transaction::STATUS_COMPLETED,
                 'description' => $description,
                 'transaction_date' => now(),

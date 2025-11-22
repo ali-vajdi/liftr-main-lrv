@@ -12,7 +12,8 @@ class TransactionController extends Controller
 {
     public function index(Request $request)
     {
-        $organization = Auth::guard('organization_api')->user();
+        $organizationUser = Auth::guard('organization_api')->user();
+        $organizationId = $organizationUser->organization_id;
         
         $perPage = $request->get('per_page', 20);
         $search = $request->get('search');
@@ -21,7 +22,7 @@ class TransactionController extends Controller
         $sourceType = $request->get('source_type'); // package, etc.
 
         $query = Transaction::with(['paymentMethod', 'organization', 'moderator', 'transactionable'])
-            ->where('organization_id', $organization->id);
+            ->where('organization_id', $organizationId);
 
         // Filter by type
         if ($type) {
@@ -60,17 +61,6 @@ class TransactionController extends Controller
             $item->source_type_text = $item->source_type_text;
         }
 
-        // Calculate totals (apply same filters)
-        $summaryQuery = Transaction::where('organization_id', $organization->id)
-            ->where('status', Transaction::STATUS_COMPLETED);
-        
-        if ($sourceType === 'package') {
-            $summaryQuery->where('transactionable_type', PackagePayment::class);
-        }
-
-        $totalIncome = (clone $summaryQuery)->where('type', Transaction::TYPE_INCOME)->sum('amount');
-        $totalExpense = (clone $summaryQuery)->where('type', Transaction::TYPE_EXPENSE)->sum('amount');
-
         return response()->json([
             'data' => $items,
             'pagination' => [
@@ -78,24 +68,19 @@ class TransactionController extends Controller
                 'last_page' => $transactions->lastPage(),
                 'per_page' => $transactions->perPage(),
                 'total' => $transactions->total(),
-            ],
-            'summary' => [
-                'total_income' => $totalIncome,
-                'total_expense' => $totalExpense,
-                'net_amount' => $totalIncome - $totalExpense,
-                'formatted_total_income' => number_format($totalIncome, 0) . ' تومان',
-                'formatted_total_expense' => number_format($totalExpense, 0) . ' تومان',
-                'formatted_net_amount' => number_format($totalIncome - $totalExpense, 0) . ' تومان',
+                'from' => $transactions->firstItem(),
+                'to' => $transactions->lastItem(),
             ]
         ]);
     }
 
     public function show($id)
     {
-        $organization = Auth::guard('organization_api')->user();
+        $organizationUser = Auth::guard('organization_api')->user();
+        $organizationId = $organizationUser->organization_id;
         
         $transaction = Transaction::with(['paymentMethod', 'organization', 'moderator', 'transactionable'])
-            ->where('organization_id', $organization->id)
+            ->where('organization_id', $organizationId)
             ->findOrFail($id);
 
         // Add calculated attributes
