@@ -14,9 +14,9 @@
     <!-- Custom Styles -->
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-light: #3b82f6;
-            --primary-dark: #1d4ed8;
+            --primary: #0077B6;
+            --primary-light: #0096D6;
+            --primary-dark: #005A8A;
             --success: #10b981;
             --success-light: #d1fae5;
             --success-dark: #059669;
