@@ -98,13 +98,6 @@ class ServiceController extends Controller
 
         // Get last service (previous month's service for the same building)
         $lastService = null;
-        $prevMonth = $service->service_month - 1;
-        $prevYear = $service->service_year;
-        
-        if ($prevMonth < 1) {
-            $prevMonth = 12;
-            $prevYear--;
-        }
 
         $lastService = Service::with([
             'building.province', 
@@ -115,9 +108,8 @@ class ServiceController extends Controller
             'checklist.managerSignature',
             'checklist.technicianSignature',
         ])
+            ->where('status', Service::STATUS_COMPLETED)
             ->where('building_id', $service->building_id)
-            ->where('service_month', $prevMonth)
-            ->where('service_year', $prevYear)
             ->first();
 
         if ($lastService) {

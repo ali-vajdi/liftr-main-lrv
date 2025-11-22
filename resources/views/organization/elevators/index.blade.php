@@ -27,11 +27,6 @@
                             'createButtonText' => '',
                             'columns' => [
                                 [
-                                    'field' => 'id',
-                                    'label' => 'شناسه',
-                                    'formatter' => 'function(value) { return value; }',
-                                ],
-                                [
                                     'field' => 'name',
                                     'label' => 'نام آسانسور',
                                     'formatter' => 'function(value) { return value; }',
@@ -94,10 +89,6 @@
                 <div class="modal-body">
                     <table class="table table-bordered">
                         <tbody>
-                            <tr>
-                                <th>شناسه</th>
-                                <td id="detailId"></td>
-                            </tr>
                             <tr>
                                 <th>نام آسانسور</th>
                                 <td id="detailName"></td>
@@ -173,7 +164,6 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     const data = response.data;
-                    $('#detailId').text(data.id);
                     $('#detailName').text(data.name);
                     $('#detailStopsCount').text(data.stops_count);
                     $('#detailCapacity').text(data.capacity);

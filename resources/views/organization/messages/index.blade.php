@@ -35,7 +35,6 @@
                             'createButton' => false,
                             'hideDefaultActions' => true,
                             'columns' => [
-                                ['field' => 'id', 'label' => 'شناسه'],
                                 [
                                     'field' => 'is_read',
                                     'label' => 'وضعیت',

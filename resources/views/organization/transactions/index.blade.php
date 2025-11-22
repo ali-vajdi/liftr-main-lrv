@@ -49,7 +49,6 @@
                                 ],
                             ],
                             'columns' => [
-                                ['field' => 'id', 'label' => 'شناسه'],
                                 [
                                     'field' => 'transaction_date',
                                     'label' => 'تاریخ',
@@ -135,10 +134,6 @@
                             <table class="table table-bordered">
                                 <tbody>
                                     <tr>
-                                        <th>شناسه</th>
-                                        <td id="detailId"></td>
-                                    </tr>
-                                    <tr>
                                         <th>نوع</th>
                                         <td id="detailType"></td>
                                     </tr>
@@ -210,7 +205,6 @@
                     success: function(response) {
                         const data = response.data;
                         
-                        $('#detailId').text(data.id);
                         $('#detailType').html(`<span class="badge ${data.type === 'income' ? 'badge-success' : 'badge-danger'}">${data.type_text}</span>`);
                         $('#detailAmount').text(data.formatted_amount);
                         $('#detailPaymentMethod').text(data.payment_method ? data.payment_method.name + (data.payment_method.is_system ? ' (سیستمی)' : '') : '-');

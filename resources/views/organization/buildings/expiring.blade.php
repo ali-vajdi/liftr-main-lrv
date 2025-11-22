@@ -21,11 +21,6 @@
                             'createButton' => false,
                             'columns' => [
                                 [
-                                    'field' => 'id',
-                                    'label' => 'شناسه',
-                                    'formatter' => 'function(value) { return value; }',
-                                ],
-                                [
                                     'field' => 'name',
                                     'label' => 'نام ساختمان/پروژه',
                                     'formatter' => 'function(value) { return value; }',
@@ -145,10 +140,6 @@
                 <table class="table table-bordered">
                     <tbody>
                         <tr>
-                            <th>شناسه</th>
-                            <td id="detailId"></td>
-                        </tr>
-                        <tr>
                             <th>نام ساختمان/پروژه</th>
                             <td id="detailName"></td>
                         </tr>
@@ -251,7 +242,6 @@ window.onShow = function(id) {
         success: function(response) {
             if (response.success) {
                 const data = response.data;
-                $('#detailId').text(data.id);
                 $('#detailName').text(data.name);
                 $('#detailManagerName').text(data.manager_name);
                 $('#detailManagerPhone').text(data.manager_phone);

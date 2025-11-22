@@ -17,7 +17,6 @@
                             'createButton' => false,
                             'hideDefaultActions' => true,
                             'columns' => [
-                                ['field' => 'id', 'label' => 'شناسه'],
                                 ['field' => 'name', 'label' => 'نام'],
                                 ['field' => 'phone_number', 'label' => 'شماره تلفن'],
                                 ['field' => 'username', 'label' => 'نام کاربری'],
@@ -72,10 +71,6 @@
                             <table class="table table-bordered">
                                 <tbody>
                                     <tr>
-                                        <th>شناسه</th>
-                                        <td id="detailId"></td>
-                                    </tr>
-                                    <tr>
                                         <th>نام</th>
                                         <td id="detailName"></td>
                                     </tr>
@@ -122,7 +117,6 @@
                     success: function(response) {
                         const data = response.data;
                         
-                        $('#detailId').text(data.id);
                         $('#detailName').text(data.name);
                         $('#detailPhone').text(data.phone_number);
                         $('#detailUsername').text(data.username);

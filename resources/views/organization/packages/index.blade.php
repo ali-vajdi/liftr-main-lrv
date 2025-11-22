@@ -26,7 +26,6 @@
                             'createButton' => false,
                             'hideDefaultActions' => true,
                             'columns' => [
-                                ['field' => 'id', 'label' => 'شناسه'],
                                 ['field' => 'package_name', 'label' => 'نام اشتراک'],
                                 ['field' => 'package_duration_label', 'label' => 'مدت زمان'],
                                 ['field' => 'formatted_price', 'label' => 'قیمت کل'],
@@ -151,10 +150,6 @@
                                     <table class="table table-bordered">
                                         <tbody>
                                             <tr>
-                                                <th>شناسه</th>
-                                                <td id="detailId"></td>
-                                            </tr>
-                                            <tr>
                                                 <th>نام اشتراک (اختصاص یافته)</th>
                                                 <td id="detailAssignedPackageName"></td>
                                             </tr>
@@ -273,7 +268,6 @@
                         const data = response.data;
                         
                         // Package Info Tab
-                        $('#detailId').text(data.id);
                         $('#detailAssignedPackageName').text(data.assigned_package_info.name);
                         $('#detailAssignedDuration').text(data.assigned_package_info.duration_label);
                         $('#detailAssignedPrice').text(data.assigned_package_info.formatted_price);

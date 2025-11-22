@@ -19,11 +19,6 @@
                             'createButtonText' => 'افزودن ساختمان/پروژه جدید',
                             'columns' => [
                                 [
-                                    'field' => 'id',
-                                    'label' => 'شناسه',
-                                    'formatter' => 'function(value) { return value; }',
-                                ],
-                                [
                                     'field' => 'name',
                                     'label' => 'نام ساختمان/پروژه',
                                     'formatter' => 'function(value) { return value; }',
@@ -297,10 +292,6 @@
             <div class="modal-body">
                 <table class="table table-bordered">
                     <tbody>
-                        <tr>
-                            <th>شناسه</th>
-                            <td id="detailId"></td>
-                        </tr>
                         <tr>
                             <th>نام ساختمان/پروژه</th>
                             <td id="detailName"></td>
@@ -815,7 +806,6 @@ window.onShow = function(id) {
         success: function(response) {
             if (response.success) {
                 const data = response.data;
-                $('#detailId').text(data.id);
                 $('#detailName').text(data.name);
                 $('#detailManagerName').text(data.manager_name);
                 $('#detailManagerPhone').text(data.manager_phone);
@@ -979,7 +969,7 @@ $('#saveElevators').on('click', function() {
     if (!currentBuildingId) {
         swal({
             title: 'خطا',
-            text: 'شناسه ساختمان نامعتبر است',
+            text: 'ساختمان نامعتبر است',
             type: 'error',
             padding: '2em'
         });

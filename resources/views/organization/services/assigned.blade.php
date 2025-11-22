@@ -60,11 +60,6 @@
                             ],
                             'columns' => [
                                 [
-                                    'field' => 'id',
-                                    'label' => 'شناسه',
-                                    'formatter' => 'function(value) { return value; }',
-                                ],
-                                [
                                     'field' => 'building',
                                     'label' => 'نام ساختمان',
                                     'formatter' => 'function(value) { return value ? value.name : "-"; }',
@@ -477,7 +472,7 @@ $(document).ready(function() {
         if (!currentServiceId) {
             swal({
                 title: 'خطا',
-                text: 'شناسه سرویس نامعتبر است',
+                text: 'سرویس نامعتبر است',
                 type: 'error',
                 padding: '2em'
             });

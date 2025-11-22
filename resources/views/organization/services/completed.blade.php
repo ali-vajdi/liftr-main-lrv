@@ -60,11 +60,6 @@
                             ],
                             'columns' => [
                                 [
-                                    'field' => 'id',
-                                    'label' => 'شناسه',
-                                    'formatter' => 'function(value) { return value; }',
-                                ],
-                                [
                                     'field' => 'building',
                                     'label' => 'نام ساختمان',
                                     'formatter' => 'function(value) { return value ? value.name : "-"; }',
@@ -234,8 +229,7 @@ function displayServiceDetails(service) {
     html += '<div class="card-header"><h6 class="mb-0">اطلاعات پایه</h6></div>';
     html += '<div class="card-body">';
     html += '<table class="table table-bordered">';
-    html += '<tr><th width="30%">شناسه سرویس:</th><td>' + (service.id || '-') + '</td></tr>';
-    html += '<tr><th>نام ساختمان:</th><td>' + (service.building ? service.building.name : '-') + '</td></tr>';
+    html += '<tr><th width="30%">نام ساختمان:</th><td>' + (service.building ? service.building.name : '-') + '</td></tr>';
     html += '<tr><th>مدیر/نماینده:</th><td>' + (service.building ? service.building.manager_name : '-') + '</td></tr>';
     html += '<tr><th>شماره تماس:</th><td>' + (service.building ? service.building.manager_phone : '-') + '</td></tr>';
     html += '<tr><th>استان:</th><td>' + (service.building && service.building.province ? service.building.province.name : '-') + '</td></tr>';

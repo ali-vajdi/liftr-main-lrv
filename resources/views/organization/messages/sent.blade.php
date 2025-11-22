@@ -28,7 +28,6 @@
                             'createButton' => false,
                             'hideDefaultActions' => true,
                             'columns' => [
-                                ['field' => 'id', 'label' => 'شناسه'],
                                 [
                                     'field' => 'receiver',
                                     'label' => 'گیرنده',

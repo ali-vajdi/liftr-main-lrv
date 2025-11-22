@@ -17,7 +17,6 @@
                             'createButton' => true,
                             'createButtonText' => 'افزودن تکنیسین جدید',
                             'columns' => [
-                                ['field' => 'id', 'label' => 'شناسه'],
                                 ['field' => 'full_name', 'label' => 'نام و نام خانوادگی'],
                                 ['field' => 'national_id', 'label' => 'کد ملی'],
                                 ['field' => 'phone_number', 'label' => 'شماره تماس'],
@@ -168,10 +167,6 @@
                             <table class="table table-bordered">
                                 <tbody>
                                     <tr>
-                                        <th>شناسه</th>
-                                        <td id="detailId"></td>
-                                    </tr>
-                                    <tr>
                                         <th>نام</th>
                                         <td id="detailFirstName"></td>
                                     </tr>
@@ -260,7 +255,6 @@
                     success: function(response) {
                         const data = response.data;
                         
-                        $('#detailId').text(data.id);
                         $('#detailFirstName').text(data.first_name);
                         $('#detailLastName').text(data.last_name);
                         $('#detailNationalId').text(data.national_id);

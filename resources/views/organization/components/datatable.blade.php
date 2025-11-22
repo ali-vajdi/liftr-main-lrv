@@ -1533,8 +1533,8 @@
                 let currentPage = 1;
                 let perPage = 10;
                 let searchTerm = '';
-                let sortField = '{{ isset($columns[0]) ? $columns[0]['field'] : 'id' }}';
-                let sortDirection = 'asc';
+                let sortField = 'id';
+                let sortDirection = 'desc';
                 let filters = {};
 
                 // Initialize filters
@@ -1579,6 +1579,9 @@
                     });
                 }
 
+                // Set initial sort icon (if ID column exists, otherwise it will be sorted by ID in backend)
+                $('.sortable[data-field="id"]').find('.sort-icon').html('↓');
+                
                 // Initial data load
                 loadData();
 
