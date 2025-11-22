@@ -12,7 +12,7 @@
                 </div>
                 <div class="widget-content">
                     <div class="alert alert-warning">
-                        <strong>توجه:</strong> این صفحه ساختمان‌هایی را نمایش می‌دهد که تاریخ پایان سرویس آن‌ها در 30 روز آینده است.
+                        <strong>توجه:</strong> این صفحه ساختمان‌هایی را نمایش می‌دهد که تاریخ پایان قرارداد آن‌ها در 30 روز آینده است.
                     </div>
                     <div class="widget-content widget-content-area br-6">
                         @include('organization.components.datatable', [
@@ -64,7 +64,7 @@
                                 ],
                                 [
                                     'field' => 'service_end_date_jalali',
-                                    'label' => 'تاریخ پایان سرویس',
+                                    'label' => 'تاریخ پایان قرارداد',
                                     'formatter' => 'function(value, row) { 
                                         if (!value || !row.service_end_date) return "-";
                                         try {
@@ -181,11 +181,11 @@
                             <td id="detailAddress"></td>
                         </tr>
                         <tr>
-                            <th>تاریخ شروع سرویس</th>
+                            <th>تاریخ شروع قرارداد</th>
                             <td id="detailServiceStartDate"></td>
                         </tr>
                         <tr>
-                            <th>تاریخ پایان سرویس</th>
+                            <th>تاریخ پایان قرارداد</th>
                             <td id="detailServiceEndDate"></td>
                         </tr>
                         <tr>

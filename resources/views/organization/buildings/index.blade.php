@@ -94,6 +94,16 @@
                                 html += \'<button type="button" class="btn btn-sm btn-primary elevators-list-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="لیست آسانسورها">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>\';
                                 html += \'</button>\';
+                                
+                                // Public page button
+                                html += \'<button type="button" class="btn btn-sm btn-info public-page-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="مشاهده صفحه عمومی">\';
+                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>\';
+                                html += \'</button>\';
+                                
+                                // QR Code button
+                                html += \'<button type="button" class="btn btn-sm btn-secondary qrcode-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="نمایش QR Code">\';
+                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-grid"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>\';
+                                html += \'</button>\';
                             ',
                             'actionHandlers' => '
                                 // Handle show button click
@@ -118,6 +128,19 @@
                                 $(".elevators-list-btn").on("click", function() {
                                     const id = $(this).data("id");
                                     window.location.href = `/buildings/${id}/elevators`;
+                                });
+                                
+                                // Handle public page button click
+                                $(".public-page-btn").on("click", function() {
+                                    const id = $(this).data("id");
+                                    const url = `${window.location.origin}/buildings/${id}/services`;
+                                    window.open(url, \'_blank\');
+                                });
+                                
+                                // Handle QR code button click
+                                $(".qrcode-btn").on("click", function() {
+                                    const id = $(this).data("id");
+                                    window.onShowQRCode(id);
                                 });
                             ',
                         ])
@@ -194,13 +217,13 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="service_start_date">تاریخ شروع سرویس</label>
+                                <label for="service_start_date">تاریخ شروع قرارداد</label>
                                 <input data-jdp-only-date="true" type="text" class="form-control" id="service_start_date" name="service_start_date">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="service_end_date">تاریخ پایان سرویس</label>
+                                <label for="service_end_date">تاریخ پایان قرارداد</label>
                                 <input data-jdp-only-date="true" type="text" class="form-control" id="service_end_date" name="service_end_date">
                             </div>
                         </div>
@@ -311,11 +334,11 @@
                             <td id="detailAddress"></td>
                         </tr>
                         <tr>
-                            <th>تاریخ شروع سرویس</th>
+                            <th>تاریخ شروع قرارداد</th>
                             <td id="detailServiceStartDate"></td>
                         </tr>
                         <tr>
-                            <th>تاریخ پایان سرویس</th>
+                            <th>تاریخ پایان قرارداد</th>
                             <td id="detailServiceEndDate"></td>
                         </tr>
                         <tr>
@@ -409,6 +432,40 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
                 <button type="button" class="btn btn-danger" id="confirmDelete">حذف</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QR Code Modal -->
+<div class="modal fade" id="qrcodeModal" tabindex="-1" role="dialog" aria-labelledby="qrcodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrcodeModalLabel">QR Code صفحه عمومی ساختمان</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="qrcode-container" style="display: flex; justify-content: center; align-items: center; padding: 20px; min-height: 300px;">
+                    <canvas id="qrcode-canvas"></canvas>
+                </div>
+                <div class="mt-3">
+                    <p class="mb-2"><strong>لینک صفحه عمومی:</strong></p>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="public-link-input" readonly>
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="button" id="copy-link-btn" title="کپی لینک">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-copy"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                <button type="button" class="btn btn-primary" id="download-qrcode-btn">دانلود QR Code</button>
             </div>
         </div>
     </div>
@@ -1101,6 +1158,98 @@ $('#confirmDelete').on('click', function() {
     }
 });
 
+// Show QR Code
+window.onShowQRCode = function(id) {
+    const publicUrl = `${window.location.origin}/buildings/${id}/services`;
+    
+    // Set the link input
+    $('#public-link-input').val(publicUrl);
+    
+    // Clear previous QR code
+    const canvas = document.getElementById('qrcode-canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Generate QR code
+    if (typeof QRCode !== 'undefined') {
+        QRCode.toCanvas(canvas, publicUrl, {
+            width: 300,
+            margin: 2,
+            color: {
+                dark: '#000000',
+                light: '#FFFFFF'
+            }
+        }, function (error) {
+            if (error) {
+                console.error('Error generating QR code:', error);
+                // Fallback: use img tag with API
+                const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(publicUrl)}`;
+                $('#qrcode-container').html(`<img src="${qrApiUrl}" alt="QR Code" class="img-fluid">`);
+            }
+        });
+    } else {
+        // Fallback: use img tag with API
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(publicUrl)}`;
+        $('#qrcode-container').html(`<img src="${qrApiUrl}" alt="QR Code" class="img-fluid">`);
+    }
+    
+    // Show modal
+    $('#qrcodeModal').modal('show');
+};
+
+// Copy link to clipboard
+$('#copy-link-btn').on('click', function() {
+    const input = document.getElementById('public-link-input');
+    input.select();
+    input.setSelectionRange(0, 99999); // For mobile devices
+    
+    try {
+        document.execCommand('copy');
+        swal({
+            title: 'موفقیت',
+            text: 'لینک با موفقیت کپی شد',
+            type: 'success',
+            padding: '2em',
+            timer: 2000
+        });
+    } catch (err) {
+        swal({
+            title: 'خطا',
+            text: 'خطا در کپی کردن لینک',
+            type: 'error',
+            padding: '2em'
+        });
+    }
+});
+
+// Download QR Code
+$('#download-qrcode-btn').on('click', function() {
+    const canvas = document.getElementById('qrcode-canvas');
+    if (canvas && canvas.width > 0) {
+        const url = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = 'building-qrcode.png';
+        link.href = url;
+        link.click();
+    } else {
+        // Fallback for API-generated QR codes
+        const img = document.querySelector('#qrcode-container img');
+        if (img) {
+            const link = document.createElement('a');
+            link.download = 'building-qrcode.png';
+            link.href = img.src;
+            link.click();
+        } else {
+            swal({
+                title: 'خطا',
+                text: 'QR Code در دسترس نیست',
+                type: 'error',
+                padding: '2em'
+            });
+        }
+    }
+});
+
 // Load organization name
 getOrganizationData(function(org, error) {
     if (!error && org) {
@@ -1112,5 +1261,8 @@ getOrganizationData(function(org, error) {
 <!-- Leaflet CSS and JS for map -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+<!-- QR Code Library -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 @endsection
 

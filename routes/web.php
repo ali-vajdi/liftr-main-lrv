@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\PrintController;
 use App\Http\Controllers\Admin\ViewController;
 use App\Http\Controllers\Organization\ViewController as OrganizationViewController;
 use App\Http\Controllers\Organization\AuthController as OrganizationAuthController;
+use App\Http\Controllers\Public\BuildingController as PublicBuildingController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -39,6 +40,10 @@ Route::get('/packages/payment', [OrganizationViewController::class, 'showPayment
 Route::get('/messages', [OrganizationViewController::class, 'showMessages'])->name('organization.messages.view');
 Route::get('/messages/sent', [OrganizationViewController::class, 'showSentMessages'])->name('organization.messages.sent');
 Route::get('/transactions', [OrganizationViewController::class, 'showTransactions'])->name('organization.transactions.view');
+
+// Public Routes for Buildings
+Route::get('/buildings/{building}/services', [PublicBuildingController::class, 'showServices'])->name('public.buildings.services');
+Route::get('/services/{service}', [PublicBuildingController::class, 'showService'])->name('public.services.show');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     // Auth Routes
