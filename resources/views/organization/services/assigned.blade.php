@@ -396,6 +396,8 @@ function displayServiceDetails(service) {
                 <p><strong>شماره تماس:</strong> ${technician.phone_number || '-'}</p>
             </div>
         </div>
+        ${service.organization_note ? `<hr><div class="row"><div class="col-12"><h6>یادداشت شرکت</h6><p>${service.organization_note}</p></div></div>` : ''}
+        ${service.technician_note ? `<hr><div class="row"><div class="col-12"><h6>یادداشت تکنسین</h6><p>${service.technician_note}</p></div></div>` : ''}
         <hr>
         <div class="row">
             <div class="col-12">

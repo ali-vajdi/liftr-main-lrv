@@ -166,6 +166,7 @@ class ServiceController extends Controller
             'manager_signature.signature' => 'required|string',
             'technician_signature.name' => 'required|string|max:255',
             'technician_signature.signature' => 'required|string',
+            'technician_note' => 'nullable|string|max:5000',
         ]);
 
         if ($validator->fails()) {
@@ -308,6 +309,7 @@ class ServiceController extends Controller
             $service->update([
                 'status' => Service::STATUS_COMPLETED,
                 'completed_at' => now(),
+                'technician_note' => $request->technician_note ?? null,
             ]);
 
             // Generate next month's service if it doesn't exist

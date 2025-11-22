@@ -19,6 +19,7 @@ class Service extends Model
         'notes',
         'organization_note',
         'user_note',
+        'technician_note',
         'assigned_at',
         'completed_at',
     ];

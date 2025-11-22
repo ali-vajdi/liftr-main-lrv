@@ -251,6 +251,9 @@ function displayServiceDetails(service) {
         if (service.organization_note) {
             html += '<tr><th>یادداشت شرکت:</th><td>' + service.organization_note + '</td></tr>';
         }
+        if (service.technician_note) {
+            html += '<tr><th>یادداشت تکنسین:</th><td>' + service.technician_note + '</td></tr>';
+        }
         html += '</table>';
         html += '</div></div>';
     }
@@ -263,6 +266,9 @@ function displayServiceDetails(service) {
         html += '<table class="table table-bordered mb-3">';
         html += '<tr><th width="30%">تاریخ تکمیل:</th><td>' + (service.completed_at_jalali || '-') + '</td></tr>';
         html += '<tr><th>تاریخ ارسال چک‌لیست:</th><td>' + (service.checklist_data.submitted_at || '-') + '</td></tr>';
+        if (service.technician_note) {
+            html += '<tr><th>یادداشت تکنسین:</th><td>' + service.technician_note + '</td></tr>';
+        }
         html += '</table>';
         
         // Elevators Checklist

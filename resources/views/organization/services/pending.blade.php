@@ -336,6 +336,9 @@ function displayLastServiceDetails(service) {
         if (service.organization_note) {
             html += '<tr><th>یادداشت شرکت:</th><td>' + service.organization_note + '</td></tr>';
         }
+        if (service.technician_note) {
+            html += '<tr><th>یادداشت تکنسین:</th><td>' + service.technician_note + '</td></tr>';
+        }
         html += '</table>';
         html += '</div></div>';
     }
