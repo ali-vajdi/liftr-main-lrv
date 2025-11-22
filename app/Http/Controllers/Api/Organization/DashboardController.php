@@ -8,6 +8,7 @@ use App\Models\PaymentMethod;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Morilog\Jalali\Jalalian;
 
 class DashboardController extends Controller
 {
@@ -86,6 +87,39 @@ class DashboardController extends Controller
             })->where('status', 'expired')->count(),
         ];
 
+        // Current Month Service Statistics
+        $now = Jalalian::now();
+        $currentYear = $now->getYear();
+        $currentMonth = $now->getMonth();
+        
+        $currentMonthServiceStats = [
+            'total' => \App\Models\Service::whereHas('building', function($query) use ($organization) {
+                $query->where('organization_id', $organization->id);
+            })->where('service_year', $currentYear)
+              ->where('service_month', $currentMonth)
+              ->count(),
+            'pending' => \App\Models\Service::whereHas('building', function($query) use ($organization) {
+                $query->where('organization_id', $organization->id);
+            })->where('service_year', $currentYear)
+              ->where('service_month', $currentMonth)
+              ->where('status', 'pending')->count(),
+            'assigned' => \App\Models\Service::whereHas('building', function($query) use ($organization) {
+                $query->where('organization_id', $organization->id);
+            })->where('service_year', $currentYear)
+              ->where('service_month', $currentMonth)
+              ->where('status', 'assigned')->count(),
+            'completed' => \App\Models\Service::whereHas('building', function($query) use ($organization) {
+                $query->where('organization_id', $organization->id);
+            })->where('service_year', $currentYear)
+              ->where('service_month', $currentMonth)
+              ->where('status', 'completed')->count(),
+            'expired' => \App\Models\Service::whereHas('building', function($query) use ($organization) {
+                $query->where('organization_id', $organization->id);
+            })->where('service_year', $currentYear)
+              ->where('service_month', $currentMonth)
+              ->where('status', 'expired')->count(),
+        ];
+
         return response()->json([
             'data' => [
                 'organization' => [
@@ -103,6 +137,7 @@ class DashboardController extends Controller
                     'technicians' => $technicianStats,
                     'buildings' => $buildingStats,
                     'services' => $serviceStats,
+                    'current_month_services' => $currentMonthServiceStats,
                 ]
             ]
         ]);
