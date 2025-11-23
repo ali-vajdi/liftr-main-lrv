@@ -206,10 +206,10 @@
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.messages.*') ? 'show' : '' }}"
                     id="messages" data-parent="#accordionExample">
                     <li class="{{ request()->routeIs('organization.messages.view') ? 'active' : '' }}">
-                        <a href="{{ route('organization.messages.view') }}">صندوق ورودی</a>
+                        <a href="{{ route('organization.messages.view') }}">پیام‌های دریافتی از لیفتر</a>
                     </li>
                     <li class="{{ request()->routeIs('organization.messages.sent') ? 'active' : '' }}">
-                        <a href="{{ route('organization.messages.sent') }}">پیام‌های ارسال شده</a>
+                        <a href="{{ route('organization.messages.sent') }}">پیام‌های ارسالی به تکنسین</a>
                     </li>
                 </ul>
             </li>

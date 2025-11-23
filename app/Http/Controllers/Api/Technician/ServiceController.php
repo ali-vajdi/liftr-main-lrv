@@ -110,7 +110,7 @@ class ServiceController extends Controller
         ])
             ->where('status', Service::STATUS_COMPLETED)
             ->where('building_id', $service->building_id)
-            ->first();
+            ->last();
 
         if ($lastService) {
             $lastService->status_text = $lastService->status_text;

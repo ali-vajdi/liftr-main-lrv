@@ -9,7 +9,7 @@
             <div class="widget widget-chart-one">
                 <div class="widget-heading">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">پیام‌های دریافتی از مدیریت</h5>
+                        <h5 class="mb-0">پیام‌های دریافتی از لیفتر</h5>
                         <div>
                             <a href="{{ route('organization.messages.sent') }}" class="btn btn-info btn-sm mr-2">
                                 <i class="fa fa-paper-plane"></i> پیام‌های ارسال شده

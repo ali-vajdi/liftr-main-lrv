@@ -201,62 +201,8 @@
         </div>
     </div>
 
-    <!-- Services Overview -->
-    <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
-        <div class="widget widget-chart-one" style="border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <div class="widget-heading" style="border-bottom: 1px solid #e0e6ed; padding: 15px 20px; background: linear-gradient(135deg, #00d4aa 0%, #00a085 100%); margin: -1px -1px 0 -1px;">
-                <h5 class="mb-0" style="font-weight: 600; color: white;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 8px; color: white;">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
-                    وضعیت سرویس‌ها
-                </h5>
-            </div>
-            <div class="widget-content" style="padding: 25px 20px;">
-                <div class="row text-center">
-                    <div class="col-md-2 col-4 mb-3">
-                        <div style="padding: 20px 10px; background: #f1f2f3; border-radius: 12px; border: 2px solid #e0e6ed;">
-                            <h4 class="mb-2" style="color: #3b3f5c; font-weight: 700; font-size: 28px;"><span id="services-total-overview">0</span></h4>
-                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">کل سرویس‌ها</small>
-                        </div>
-                    </div>
-                    <div class="col-md-2 col-4 mb-3">
-                        <div style="padding: 20px 10px; background: linear-gradient(135deg, #fad96115 0%, #f76b1c15 100%); border-radius: 12px; border: 2px solid #f59e0b;">
-                            <h4 class="text-warning mb-2" style="font-weight: 700; font-size: 28px;"><span id="services-pending-overview">0</span></h4>
-                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">در انتظار</small>
-                        </div>
-                    </div>
-                    <div class="col-md-2 col-4 mb-3">
-                        <div style="padding: 20px 10px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 12px; border: 2px solid #4361ee;">
-                            <h4 class="text-primary mb-2" style="font-weight: 700; font-size: 28px;"><span id="services-assigned-overview">0</span></h4>
-                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">اختصاص داده شده</small>
-                        </div>
-                    </div>
-                    <div class="col-md-2 col-4 mb-3">
-                        <div style="padding: 20px 10px; background: linear-gradient(135deg, #4facfe15 0%, #00f2fe15 100%); border-radius: 12px; border: 2px solid #00d4aa;">
-                            <h4 class="text-success mb-2" style="font-weight: 700; font-size: 28px;"><span id="services-completed-overview">0</span></h4>
-                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">تکمیل شده</small>
-                        </div>
-                    </div>
-                    <div class="col-md-2 col-4 mb-3">
-                        <div style="padding: 20px 10px; background: linear-gradient(135deg, #fa709a15 0%, #fee14015 100%); border-radius: 12px; border: 2px solid #e7515a;">
-                            <h4 class="text-danger mb-2" style="font-weight: 700; font-size: 28px;"><span id="services-expired-overview">0</span></h4>
-                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">منقضی شده</small>
-                        </div>
-                    </div>
-                    <div class="col-md-2 col-4 mb-3">
-                        <div style="padding: 20px 10px; display: flex; align-items: center; justify-content: center; height: 100%;">
-                            <a href="{{ route('organization.services.all') }}" class="btn btn-info" style="border-radius: 50px; padding: 10px 25px; font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">مشاهده همه</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Current Month Services Overview -->
-    <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
+        <!-- Current Month Services Overview -->
+        <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
         <div class="widget widget-chart-one" style="border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <div class="widget-heading" style="border-bottom: 1px solid #e0e6ed; padding: 15px 20px; background: linear-gradient(135deg, #00d4aa 0%, #00a085 100%); margin: -1px -1px 0 -1px;">
                 <h5 class="mb-0" style="font-weight: 600; color: white;">
@@ -296,6 +242,60 @@
                     <div class="col-md-2 col-4 mb-3">
                         <div style="padding: 20px 10px; background: linear-gradient(135deg, #fa709a15 0%, #fee14015 100%); border-radius: 12px; border: 2px solid #e7515a;">
                             <h4 class="text-danger mb-2" style="font-weight: 700; font-size: 28px;"><span id="current-month-services-expired-overview">0</span></h4>
+                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">منقضی شده</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-4 mb-3">
+                        <div style="padding: 20px 10px; display: flex; align-items: center; justify-content: center; height: 100%;">
+                            <a href="{{ route('organization.services.all') }}" class="btn btn-info" style="border-radius: 50px; padding: 10px 25px; font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">مشاهده همه</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Overview -->
+    <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
+        <div class="widget widget-chart-one" style="border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div class="widget-heading" style="border-bottom: 1px solid #e0e6ed; padding: 15px 20px; background: linear-gradient(135deg, #00d4aa 0%, #00a085 100%); margin: -1px -1px 0 -1px;">
+                <h5 class="mb-0" style="font-weight: 600; color: white;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 8px; color: white;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    وضعیت کل سرویس‌ها
+                </h5>
+            </div>
+            <div class="widget-content" style="padding: 25px 20px;">
+                <div class="row text-center">
+                    <div class="col-md-2 col-4 mb-3">
+                        <div style="padding: 20px 10px; background: #f1f2f3; border-radius: 12px; border: 2px solid #e0e6ed;">
+                            <h4 class="mb-2" style="color: #3b3f5c; font-weight: 700; font-size: 28px;"><span id="services-total-overview">0</span></h4>
+                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">کل سرویس‌ها</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-4 mb-3">
+                        <div style="padding: 20px 10px; background: linear-gradient(135deg, #fad96115 0%, #f76b1c15 100%); border-radius: 12px; border: 2px solid #f59e0b;">
+                            <h4 class="text-warning mb-2" style="font-weight: 700; font-size: 28px;"><span id="services-pending-overview">0</span></h4>
+                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">در انتظار</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-4 mb-3">
+                        <div style="padding: 20px 10px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 12px; border: 2px solid #4361ee;">
+                            <h4 class="text-primary mb-2" style="font-weight: 700; font-size: 28px;"><span id="services-assigned-overview">0</span></h4>
+                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">اختصاص داده شده</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-4 mb-3">
+                        <div style="padding: 20px 10px; background: linear-gradient(135deg, #4facfe15 0%, #00f2fe15 100%); border-radius: 12px; border: 2px solid #00d4aa;">
+                            <h4 class="text-success mb-2" style="font-weight: 700; font-size: 28px;"><span id="services-completed-overview">0</span></h4>
+                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">تکمیل شده</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-4 mb-3">
+                        <div style="padding: 20px 10px; background: linear-gradient(135deg, #fa709a15 0%, #fee14015 100%); border-radius: 12px; border: 2px solid #e7515a;">
+                            <h4 class="text-danger mb-2" style="font-weight: 700; font-size: 28px;"><span id="services-expired-overview">0</span></h4>
                             <small class="text-muted" style="font-size: 12px; font-weight: 500;">منقضی شده</small>
                         </div>
                     </div>

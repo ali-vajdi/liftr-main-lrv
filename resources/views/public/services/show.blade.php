@@ -140,7 +140,7 @@
                         <div class="elevator-header">
                             <div class="elevator-name">
                                 <i class="fas fa-arrow-up"></i>
-                                {{ $elevatorChecklist->elevator->name }}
+                                نام آسانسور: {{ $elevatorChecklist->elevator->name }}
                             </div>
                         </div>
                         <div class="elevator-details">
