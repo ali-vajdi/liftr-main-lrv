@@ -528,6 +528,86 @@ class ServiceController extends Controller
     }
 
     /**
+     * Update visit date and time range for an assigned service
+     */
+    public function updateVisit(Request $request, $id)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'visit_date' => 'required|string',
+            'visit_time_range' => 'required|string|max:20',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $service = Service::with(['building'])
+            ->whereHas('building', function ($q) use ($user) {
+                $q->where('organization_id', $user->organization_id);
+            })
+            ->findOrFail($id);
+
+        // Check if service is assigned
+        if ($service->status !== Service::STATUS_ASSIGNED) {
+            return response()->json([
+                'success' => false,
+                'message' => 'فقط سرویس‌های اختصاص داده شده را می‌توان ویرایش کرد.'
+            ], 400);
+        }
+
+        // Convert Jalali date to Gregorian for visit_date
+        $visitDate = null;
+        if (!empty($request->visit_date)) {
+            try {
+                if (strpos($request->visit_date, '/') !== false) {
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $request->visit_date);
+                } else {
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $request->visit_date);
+                }
+                $visitDate = $jalaliDate->toCarbon()->format('Y-m-d');
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid date format for visit_date',
+                    'errors' => ['visit_date' => ['فرمت تاریخ نامعتبر است']]
+                ], 422);
+            }
+        }
+
+        // Update visit date and time range
+        $service->update([
+            'visit_date' => $visitDate,
+            'visit_time_range' => $request->visit_time_range,
+        ]);
+
+        $service->load(['building.province', 'building.city', 'building.elevators', 'technician']);
+        $service->status_text = $service->status_text;
+        $service->status_badge_class = $service->status_badge_class;
+        $service->service_date_text = $service->service_date_text;
+        if ($service->assigned_at) {
+            $service->assigned_at_jalali = Jalalian::forge($service->assigned_at)->format('Y/m/d H:i:s');
+        }
+        if ($service->visit_date) {
+            $service->visit_date_jalali = Jalalian::forge($service->visit_date)->format('Y/m/d');
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تاریخ و بازه زمانی مراجعه با موفقیت به‌روزرسانی شد.',
+            'data' => $service
+        ]);
+    }
+
+    /**
      * Cancel service (remove technician and set status to pending)
      */
     public function cancelService($id)

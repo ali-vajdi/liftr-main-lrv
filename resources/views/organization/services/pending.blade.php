@@ -219,12 +219,12 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="visit_date">تاریخ مراجعه</label>
-                        <input data-jdp-only-date="true" type="text" class="form-control" id="visit_date" name="visit_date">
+                        <label for="visit_date">تاریخ مراجعه <span class="text-danger">*</span></label>
+                        <input data-jdp-only-date="true" type="text" class="form-control" id="visit_date" name="visit_date" required>
                     </div>
                     <div class="form-group">
-                        <label for="visit_time_range">بازه زمانی مراجعه</label>
-                        <select class="form-control" id="visit_time_range" name="visit_time_range">
+                        <label for="visit_time_range">بازه زمانی مراجعه <span class="text-danger">*</span></label>
+                        <select class="form-control" id="visit_time_range" name="visit_time_range" required>
                             <option value="">انتخاب بازه زمانی</option>
                             <option value="06:00 - 08:00">06:00 - 08:00</option>
                             <option value="08:00 - 10:00">08:00 - 10:00</option>
@@ -621,6 +621,29 @@ window.onAssign = function(id) {
             return false;
         }
         
+        const visitDate = $('#visit_date').val();
+        const visitTimeRange = $('#visit_time_range').val();
+        
+        if (!visitDate) {
+            swal({
+                title: 'خطا',
+                text: 'لطفاً تاریخ مراجعه را وارد کنید',
+                type: 'error',
+                padding: '2em'
+            });
+            return false;
+        }
+        
+        if (!visitTimeRange) {
+            swal({
+                title: 'خطا',
+                text: 'لطفاً بازه زمانی مراجعه را انتخاب کنید',
+                type: 'error',
+                padding: '2em'
+            });
+            return false;
+        }
+        
         if (!currentServiceId) {
             swal({
                 title: 'خطا',
@@ -645,9 +668,6 @@ window.onAssign = function(id) {
         // Disable button to prevent double submission
         const btn = $(this);
         btn.prop('disabled', true).text('در حال ارسال...');
-        
-        const visitDate = $('#visit_date').val();
-        const visitTimeRange = $('#visit_time_range').val();
         
         console.log("Sending AJAX request to assign technician");
         $.ajax({

@@ -133,6 +133,9 @@
                                 
                                 // Change technician and cancel buttons (only for assigned)
                                 if (item.status === "assigned") {
+                                    html += \'<button type="button" class="btn btn-sm btn-primary edit-service-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="ویرایش">\';
+                                    html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>\';
+                                    html += \'</button>\';
                                     html += \'<button type="button" class="btn btn-sm btn-warning change-technician-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="تغییر تکنسین">\';
                                     html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user-x"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="18" y1="8" x2="23" y2="13"></line><line x1="23" y1="8" x2="18" y2="13"></line></svg>\';
                                     html += \'</button>\';
@@ -158,6 +161,17 @@
                                     const id = $(this).data("id");
                                     if (id && typeof window.onChangeTechnician === "function") {
                                         window.onChangeTechnician(id);
+                                    }
+                                    return false;
+                                });
+                                
+                                // Handle edit service button click
+                                $(document).off("click", ".edit-service-btn").on("click", ".edit-service-btn", function(e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const id = $(this).data("id");
+                                    if (id && typeof window.onEditService === "function") {
+                                        window.onEditService(id);
                                     }
                                     return false;
                                 });
@@ -201,6 +215,48 @@
     </div>
 </div>
 
+<!-- Edit Service Modal -->
+<div class="modal fade" id="editServiceModal" tabindex="-1" role="dialog" aria-labelledby="editServiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editServiceModalLabel">ویرایش سرویس</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="editServiceForm">
+                <div class="modal-body">
+                    <input type="hidden" id="edit_service_id" name="service_id">
+                    <div class="form-group">
+                        <label for="edit_visit_date">تاریخ مراجعه <span class="text-danger">*</span></label>
+                        <input data-jdp-only-date="true" type="text" class="form-control" id="edit_visit_date" name="visit_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_visit_time_range">بازه زمانی مراجعه <span class="text-danger">*</span></label>
+                        <select class="form-control" id="edit_visit_time_range" name="visit_time_range" required>
+                            <option value="">انتخاب بازه زمانی</option>
+                            <option value="06:00 - 08:00">06:00 - 08:00</option>
+                            <option value="08:00 - 10:00">08:00 - 10:00</option>
+                            <option value="10:00 - 12:00">10:00 - 12:00</option>
+                            <option value="12:00 - 14:00">12:00 - 14:00</option>
+                            <option value="14:00 - 16:00">14:00 - 16:00</option>
+                            <option value="16:00 - 18:00">16:00 - 18:00</option>
+                            <option value="18:00 - 20:00">18:00 - 20:00</option>
+                            <option value="20:00 - 22:00">20:00 - 22:00</option>
+                            <option value="22:00 - 24:00">22:00 - 24:00</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">لغو</button>
+                    <button type="button" class="btn btn-primary" id="saveEditService">ذخیره</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Change Technician Modal -->
 <div class="modal fade" id="changeTechnicianModal" tabindex="-1" role="dialog" aria-labelledby="changeTechnicianModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -221,12 +277,12 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="change_visit_date">تاریخ مراجعه</label>
-                        <input data-jdp-only-date="true" type="text" class="form-control" id="change_visit_date" name="visit_date">
+                        <label for="change_visit_date">تاریخ مراجعه <span class="text-danger">*</span></label>
+                        <input data-jdp-only-date="true" type="text" class="form-control" id="change_visit_date" name="visit_date" required>
                     </div>
                     <div class="form-group">
-                        <label for="change_visit_time_range">بازه زمانی مراجعه</label>
-                        <select class="form-control" id="change_visit_time_range" name="visit_time_range">
+                        <label for="change_visit_time_range">بازه زمانی مراجعه <span class="text-danger">*</span></label>
+                        <select class="form-control" id="change_visit_time_range" name="visit_time_range" required>
                             <option value="">انتخاب بازه زمانی</option>
                             <option value="06:00 - 08:00">06:00 - 08:00</option>
                             <option value="08:00 - 10:00">08:00 - 10:00</option>
@@ -278,6 +334,39 @@ window.onShow = function(id) {
             console.error('Error loading service:', xhr);
         }
     });
+};
+
+// Define onEditService function
+window.onEditService = function(id) {
+    currentServiceId = id;
+    $('#edit_service_id').val(id);
+    
+    // Load service data to populate visit_date and visit_time_range
+    const token = localStorage.getItem('organization_token');
+    if (token) {
+        $.ajax({
+            url: `/api/organization/services/assigned?page=1`,
+            type: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            },
+            success: function(response) {
+                if (response.success) {
+                    const service = response.data.find(s => s.id == id);
+                    if (service) {
+                        if (service.visit_date_jalali) {
+                            $('#edit_visit_date').val(service.visit_date_jalali);
+                        }
+                        if (service.visit_time_range) {
+                            $('#edit_visit_time_range').val(service.visit_time_range);
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    $('#editServiceModal').modal('show');
 };
 
 // Define onChangeTechnician function
@@ -531,6 +620,32 @@ function loadTechnicians(callback) {
 
 // Handle change technician form submission
 $(document).ready(function() {
+    // Initialize JalaliDatePicker for edit_visit_date
+    jalaliDatepicker.startWatch({
+        selector: '#edit_visit_date',
+        date: true,
+        time: false,
+        hasSecond: false,
+        showSelectTimeBtnAlways:false,
+        format: 'YYYY/MM/DD',
+        separatorChars: {
+            date: '/',
+            between: ' ',
+        },
+        persianDigits: false,
+        autoShow: true,
+        autoHide: true,
+        hideAfterChange: true,
+        showTodayBtn: true,
+        showEmptyBtn: true,
+        showCloseBtn: true,
+        useDropDownYears: true,
+        container: 'body',
+        zIndex: 10000,
+        minDate:"today",
+        maxDate:"attr"
+    });
+    
     // Initialize JalaliDatePicker for change_visit_date
     jalaliDatepicker.startWatch({
         selector: '#change_visit_date',
@@ -557,6 +672,11 @@ $(document).ready(function() {
         maxDate:"attr"
     });
     
+    // Clear form fields when edit service modal is shown
+    $('#editServiceModal').on('show.bs.modal', function() {
+        // Fields will be populated by onEditService function
+    });
+    
     // Clear form fields when change technician modal is shown
     $('#changeTechnicianModal').on('show.bs.modal', function() {
         $('#change_visit_date').val('');
@@ -564,14 +684,25 @@ $(document).ready(function() {
         $('#change_organization_note').val('');
     });
     
-    $(document).on('click', '#saveChangeTechnician', function() {
-        const technicianId = $('#change_technician_id').val();
-        const organizationNote = $('#change_organization_note').val();
+    // Handle edit service form submission
+    $(document).on('click', '#saveEditService', function() {
+        const visitDate = $('#edit_visit_date').val();
+        const visitTimeRange = $('#edit_visit_time_range').val();
         
-        if (!technicianId) {
+        if (!visitDate) {
             swal({
                 title: 'خطا',
-                text: 'لطفاً تکنسین را انتخاب کنید',
+                text: 'لطفاً تاریخ مراجعه را وارد کنید',
+                type: 'error',
+                padding: '2em'
+            });
+            return false;
+        }
+        
+        if (!visitTimeRange) {
+            swal({
+                title: 'خطا',
+                text: 'لطفاً بازه زمانی مراجعه را انتخاب کنید',
                 type: 'error',
                 padding: '2em'
             });
@@ -599,8 +730,132 @@ $(document).ready(function() {
             return false;
         }
         
+        const btn = $(this);
+        btn.prop('disabled', true).text('در حال ارسال...');
+        
+        $.ajax({
+            url: `/api/organization/services/${currentServiceId}/update-visit`,
+            type: 'POST',
+            data: {
+                visit_date: visitDate,
+                visit_time_range: visitTimeRange
+            },
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/json'
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#editServiceModal').modal('hide');
+                    $('#editServiceForm')[0].reset();
+                    $('#edit_visit_date').val('');
+                    $('#edit_visit_time_range').val('');
+                    currentServiceId = null;
+                    
+                    swal({
+                        title: 'موفقیت',
+                        text: response.message,
+                        type: 'success',
+                        padding: '2em'
+                    });
+                    
+                    // Reload datatable
+                    if (typeof window.datatableApi !== 'undefined' && window.datatableApi.refresh) {
+                        window.datatableApi.refresh();
+                    }
+                } else {
+                    swal({
+                        title: 'خطا',
+                        text: response.message || 'خطا در ویرایش سرویس',
+                        type: 'error',
+                        padding: '2em'
+                    });
+                }
+            },
+            error: function(xhr) {
+                const response = xhr.responseJSON;
+                let errorMessage = 'خطا در ویرایش سرویس';
+                
+                if (xhr.status === 422) {
+                    const errors = xhr.responseJSON.errors;
+                    errorMessage = 'خطاهای اعتبارسنجی:\n';
+                    for (const field in errors) {
+                        errorMessage += errors[field][0] + '\n';
+                    }
+                } else if (response && response.message) {
+                    errorMessage = response.message;
+                }
+                
+                swal({
+                    title: 'خطا',
+                    text: errorMessage,
+                    type: 'error',
+                    padding: '2em'
+                });
+            },
+            complete: function() {
+                btn.prop('disabled', false).text('ذخیره');
+            }
+        });
+    });
+    
+    $(document).on('click', '#saveChangeTechnician', function() {
+        const technicianId = $('#change_technician_id').val();
+        const organizationNote = $('#change_organization_note').val();
+        
+        if (!technicianId) {
+            swal({
+                title: 'خطا',
+                text: 'لطفاً تکنسین را انتخاب کنید',
+                type: 'error',
+                padding: '2em'
+            });
+            return false;
+        }
+        
+        if (!currentServiceId) {
+            swal({
+                title: 'خطا',
+                text: 'سرویس نامعتبر است',
+                type: 'error',
+                padding: '2em'
+            });
+            return false;
+        }
+        
         const visitDate = $('#change_visit_date').val();
         const visitTimeRange = $('#change_visit_time_range').val();
+        
+        if (!visitDate) {
+            swal({
+                title: 'خطا',
+                text: 'لطفاً تاریخ مراجعه را وارد کنید',
+                type: 'error',
+                padding: '2em'
+            });
+            return false;
+        }
+        
+        if (!visitTimeRange) {
+            swal({
+                title: 'خطا',
+                text: 'لطفاً بازه زمانی مراجعه را انتخاب کنید',
+                type: 'error',
+                padding: '2em'
+            });
+            return false;
+        }
+        
+        const token = localStorage.getItem('organization_token');
+        if (!token) {
+            swal({
+                title: 'خطا',
+                text: 'لطفاً مجدداً وارد شوید',
+                type: 'error',
+                padding: '2em'
+            });
+            return false;
+        }
         
         const btn = $(this);
         btn.prop('disabled', true).text('در حال ارسال...');

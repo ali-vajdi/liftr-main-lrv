@@ -159,6 +159,7 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::post('services', [OrgServiceController::class, 'store']);
         Route::post('services/{service}/assign-technician', [OrgServiceController::class, 'assignTechnician']);
         Route::post('services/{service}/change-technician', [OrgServiceController::class, 'changeTechnician']);
+        Route::post('services/{service}/update-visit', [OrgServiceController::class, 'updateVisit']);
         Route::post('services/{service}/cancel', [OrgServiceController::class, 'cancelService']);
         Route::get('services/technicians', [OrgServiceController::class, 'getTechnicians']);
         

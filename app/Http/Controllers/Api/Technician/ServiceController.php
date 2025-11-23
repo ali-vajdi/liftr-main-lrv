@@ -118,10 +118,11 @@ class ServiceController extends Controller
                     'is_passed' => false,
                     'time_ranges' => []
                 ];
-                // Check if this date is in the past
+                // Check if this date is in the past (strictly less than today, not equal)
                 if ($service->visit_date) {
-                    $visitDateCarbon = $service->visit_date;
-                    $todayCarbon = Jalalian::now()->toCarbon();
+                    $visitDateCarbon = $service->visit_date->startOfDay();
+                    $todayCarbon = Jalalian::now()->toCarbon()->startOfDay();
+                    // Only mark as passed if the date is strictly before today (not today or future)
                     $grouped[$dateLabel]['is_passed'] = $visitDateCarbon->lt($todayCarbon);
                 }
             }
