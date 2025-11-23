@@ -36,6 +36,7 @@ class ServiceController extends Controller
         // This must happen BEFORE generating new services
         // Expire services where service month/year is BEFORE current month/year
         // NOTE: Only expire system-generated services (is_manual = false), not user-created ones
+        // When expiring, also remove technician assignment
         Service::whereHas('building', function ($q) use ($organizationId) {
                 $q->where('organization_id', $organizationId);
             })
@@ -50,7 +51,11 @@ class ServiceController extends Controller
                           ->where('service_month', '<', $currentMonth);
                     });
             })
-            ->update(['status' => Service::STATUS_EXPIRED]);
+            ->update([
+                'status' => Service::STATUS_EXPIRED,
+                'technician_id' => null,
+                'assigned_at' => null,
+            ]);
 
         foreach ($buildings as $building) {
             try {
