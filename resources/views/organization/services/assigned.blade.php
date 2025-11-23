@@ -221,6 +221,25 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label for="change_visit_date">تاریخ مراجعه</label>
+                        <input data-jdp-only-date="true" type="text" class="form-control" id="change_visit_date" name="visit_date">
+                    </div>
+                    <div class="form-group">
+                        <label for="change_visit_time_range">بازه زمانی مراجعه</label>
+                        <select class="form-control" id="change_visit_time_range" name="visit_time_range">
+                            <option value="">انتخاب بازه زمانی</option>
+                            <option value="06:00 - 08:00">06:00 - 08:00</option>
+                            <option value="08:00 - 10:00">08:00 - 10:00</option>
+                            <option value="10:00 - 12:00">10:00 - 12:00</option>
+                            <option value="12:00 - 14:00">12:00 - 14:00</option>
+                            <option value="14:00 - 16:00">14:00 - 16:00</option>
+                            <option value="16:00 - 18:00">16:00 - 18:00</option>
+                            <option value="18:00 - 20:00">18:00 - 20:00</option>
+                            <option value="20:00 - 22:00">20:00 - 22:00</option>
+                            <option value="22:00 - 24:00">22:00 - 24:00</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="change_organization_note">یادداشت شرکت</label>
                         <textarea class="form-control" id="change_organization_note" name="organization_note" rows="4" placeholder="یادداشت شرکت را وارد کنید..."></textarea>
                     </div>
@@ -268,7 +287,37 @@ window.onChangeTechnician = function(id) {
     
     // Reset form
     $('#change_organization_note').val('');
+    $('#change_visit_date').val('');
+    $('#change_visit_time_range').val('');
     $('#change_technician_id').html('<option value="">در حال بارگذاری...</option>');
+    
+    // Load service data to populate visit_date and visit_time_range
+    const token = localStorage.getItem('organization_token');
+    if (token) {
+        $.ajax({
+            url: `/api/organization/services/assigned?page=1`,
+            type: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            },
+            success: function(response) {
+                if (response.success) {
+                    const service = response.data.find(s => s.id == id);
+                    if (service) {
+                        if (service.visit_date_jalali) {
+                            $('#change_visit_date').val(service.visit_date_jalali);
+                        }
+                        if (service.visit_time_range) {
+                            $('#change_visit_time_range').val(service.visit_time_range);
+                        }
+                        if (service.organization_note) {
+                            $('#change_organization_note').val(service.organization_note);
+                        }
+                    }
+                }
+            }
+        });
+    }
     
     // Load technicians if not already loaded, then show modal
     if (technicians.length === 0) {
@@ -403,6 +452,8 @@ function displayServiceDetails(service) {
                 <p><strong>سال:</strong> ${service.service_year || '-'}</p>
                 <p><strong>وضعیت:</strong> <span class="badge badge-info">${service.status_text || service.status}</span></p>
                 <p><strong>تاریخ اختصاص:</strong> ${service.assigned_at_jalali || '-'}</p>
+                ${service.visit_date_jalali ? `<p><strong>تاریخ مراجعه:</strong> ${service.visit_date_jalali}</p>` : ''}
+                ${service.visit_time_range ? `<p><strong>بازه زمانی مراجعه:</strong> ${service.visit_time_range}</p>` : ''}
             </div>
             <div class="col-md-6">
                 <h6>تکنسین</h6>
@@ -480,6 +531,39 @@ function loadTechnicians(callback) {
 
 // Handle change technician form submission
 $(document).ready(function() {
+    // Initialize JalaliDatePicker for change_visit_date
+    jalaliDatepicker.startWatch({
+        selector: '#change_visit_date',
+        date: true,
+        time: false,
+        hasSecond: false,
+        showSelectTimeBtnAlways:false,
+        format: 'YYYY/MM/DD',
+        separatorChars: {
+            date: '/',
+            between: ' ',
+        },
+        persianDigits: false,
+        autoShow: true,
+        autoHide: true,
+        hideAfterChange: true,
+        showTodayBtn: true,
+        showEmptyBtn: true,
+        showCloseBtn: true,
+        useDropDownYears: true,
+        container: 'body',
+        zIndex: 10000,
+        minDate:"today",
+        maxDate:"attr"
+    });
+    
+    // Clear form fields when change technician modal is shown
+    $('#changeTechnicianModal').on('show.bs.modal', function() {
+        $('#change_visit_date').val('');
+        $('#change_visit_time_range').val('');
+        $('#change_organization_note').val('');
+    });
+    
     $(document).on('click', '#saveChangeTechnician', function() {
         const technicianId = $('#change_technician_id').val();
         const organizationNote = $('#change_organization_note').val();
@@ -515,6 +599,9 @@ $(document).ready(function() {
             return false;
         }
         
+        const visitDate = $('#change_visit_date').val();
+        const visitTimeRange = $('#change_visit_time_range').val();
+        
         const btn = $(this);
         btn.prop('disabled', true).text('در حال ارسال...');
         
@@ -523,7 +610,9 @@ $(document).ready(function() {
             type: 'POST',
             data: {
                 technician_id: technicianId,
-                organization_note: organizationNote || ''
+                organization_note: organizationNote || '',
+                visit_date: visitDate,
+                visit_time_range: visitTimeRange
             },
             headers: {
                 'Authorization': 'Bearer ' + token,
@@ -533,6 +622,8 @@ $(document).ready(function() {
                 if (response.success) {
                     $('#changeTechnicianModal').modal('hide');
                     $('#changeTechnicianForm')[0].reset();
+                    $('#change_visit_date').val('');
+                    $('#change_visit_time_range').val('');
                     currentServiceId = null;
                     
                     swal({

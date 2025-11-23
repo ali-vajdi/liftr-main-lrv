@@ -22,6 +22,8 @@ class Service extends Model
         'technician_note',
         'assigned_at',
         'completed_at',
+        'visit_date',
+        'visit_time_range',
     ];
 
     protected $casts = [
@@ -30,6 +32,7 @@ class Service extends Model
         'is_manual' => 'boolean',
         'assigned_at' => 'datetime',
         'completed_at' => 'datetime',
+        'visit_date' => 'date',
     ];
 
     // Status constants

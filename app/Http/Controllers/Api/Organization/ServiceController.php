@@ -288,6 +288,9 @@ class ServiceController extends Controller
             if ($service->assigned_at) {
                 $service->assigned_at_jalali = Jalalian::forge($service->assigned_at)->format('Y/m/d H:i:s');
             }
+            if ($service->visit_date) {
+                $service->visit_date_jalali = Jalalian::forge($service->visit_date)->format('Y/m/d');
+            }
             return $service;
         });
 
@@ -316,6 +319,8 @@ class ServiceController extends Controller
         $validator = Validator::make($request->all(), [
             'technician_id' => 'required|exists:technicians,id',
             'organization_note' => 'nullable|string|max:5000',
+            'visit_date' => 'nullable|string',
+            'visit_time_range' => 'nullable|string|max:20',
         ]);
 
         if ($validator->fails()) {
@@ -344,12 +349,36 @@ class ServiceController extends Controller
         $technician = Technician::where('organization_id', $user->organization_id)
             ->findOrFail($request->technician_id);
 
-        $service->update([
+        // Convert Jalali date to Gregorian for visit_date
+        $visitDate = null;
+        if (!empty($request->visit_date)) {
+            try {
+                // Try parsing with different formats
+                if (strpos($request->visit_date, '/') !== false) {
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $request->visit_date);
+                } else {
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $request->visit_date);
+                }
+                $visitDate = $jalaliDate->toCarbon()->format('Y-m-d');
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid date format for visit_date',
+                    'errors' => ['visit_date' => ['فرمت تاریخ نامعتبر است']]
+                ], 422);
+            }
+        }
+
+        $updateData = [
             'technician_id' => $request->technician_id,
             'status' => Service::STATUS_ASSIGNED,
             'assigned_at' => now(),
             'organization_note' => $request->organization_note,
-        ]);
+            'visit_date' => $visitDate,
+            'visit_time_range' => $request->visit_time_range,
+        ];
+
+        $service->update($updateData);
 
         // Create automatic message to technician
         $service->load(['building']);
@@ -377,6 +406,9 @@ class ServiceController extends Controller
         if ($service->assigned_at) {
             $service->assigned_at_jalali = Jalalian::forge($service->assigned_at)->format('Y/m/d H:i:s');
         }
+        if ($service->visit_date) {
+            $service->visit_date_jalali = Jalalian::forge($service->visit_date)->format('Y/m/d');
+        }
 
         return response()->json([
             'success' => true,
@@ -398,6 +430,8 @@ class ServiceController extends Controller
         $validator = Validator::make($request->all(), [
             'technician_id' => 'required|exists:technicians,id',
             'organization_note' => 'nullable|string|max:5000',
+            'visit_date' => 'nullable|string',
+            'visit_time_range' => 'nullable|string|max:20',
         ]);
 
         if ($validator->fails()) {
@@ -426,12 +460,34 @@ class ServiceController extends Controller
         $technician = Technician::where('organization_id', $user->organization_id)
             ->findOrFail($request->technician_id);
 
+        // Convert Jalali date to Gregorian for visit_date
+        $visitDate = $service->visit_date; // Keep existing if not provided
+        if (!empty($request->visit_date)) {
+            try {
+                // Try parsing with different formats
+                if (strpos($request->visit_date, '/') !== false) {
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $request->visit_date);
+                } else {
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $request->visit_date);
+                }
+                $visitDate = $jalaliDate->toCarbon()->format('Y-m-d');
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid date format for visit_date',
+                    'errors' => ['visit_date' => ['فرمت تاریخ نامعتبر است']]
+                ], 422);
+            }
+        }
+
         // Update technician
         $oldTechnicianId = $service->technician_id;
         $service->update([
             'technician_id' => $request->technician_id,
             'assigned_at' => now(), // Update assignment time
             'organization_note' => $request->organization_note ?? $service->organization_note,
+            'visit_date' => $visitDate,
+            'visit_time_range' => $request->visit_time_range ?? $service->visit_time_range,
         ]);
 
         // Create automatic message to new technician about change
@@ -459,6 +515,9 @@ class ServiceController extends Controller
         $service->service_date_text = $service->service_date_text;
         if ($service->assigned_at) {
             $service->assigned_at_jalali = Jalalian::forge($service->assigned_at)->format('Y/m/d H:i:s');
+        }
+        if ($service->visit_date) {
+            $service->visit_date_jalali = Jalalian::forge($service->visit_date)->format('Y/m/d');
         }
 
         return response()->json([
@@ -623,6 +682,9 @@ class ServiceController extends Controller
             if ($service->assigned_at) {
                 $service->assigned_at_jalali = Jalalian::forge($service->assigned_at)->format('Y/m/d H:i:s');
             }
+            if ($service->visit_date) {
+                $service->visit_date_jalali = Jalalian::forge($service->visit_date)->format('Y/m/d');
+            }
             
             // Add completed information
             if ($service->completed_at) {
@@ -764,6 +826,9 @@ class ServiceController extends Controller
             // Add assigned information
             if ($service->assigned_at) {
                 $service->assigned_at_jalali = Jalalian::forge($service->assigned_at)->format('Y/m/d H:i:s');
+            }
+            if ($service->visit_date) {
+                $service->visit_date_jalali = Jalalian::forge($service->visit_date)->format('Y/m/d');
             }
             
             // Add completed information

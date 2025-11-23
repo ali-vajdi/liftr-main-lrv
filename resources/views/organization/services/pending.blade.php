@@ -219,6 +219,25 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label for="visit_date">تاریخ مراجعه</label>
+                        <input data-jdp-only-date="true" type="text" class="form-control" id="visit_date" name="visit_date">
+                    </div>
+                    <div class="form-group">
+                        <label for="visit_time_range">بازه زمانی مراجعه</label>
+                        <select class="form-control" id="visit_time_range" name="visit_time_range">
+                            <option value="">انتخاب بازه زمانی</option>
+                            <option value="06:00 - 08:00">06:00 - 08:00</option>
+                            <option value="08:00 - 10:00">08:00 - 10:00</option>
+                            <option value="10:00 - 12:00">10:00 - 12:00</option>
+                            <option value="12:00 - 14:00">12:00 - 14:00</option>
+                            <option value="14:00 - 16:00">14:00 - 16:00</option>
+                            <option value="16:00 - 18:00">16:00 - 18:00</option>
+                            <option value="18:00 - 20:00">18:00 - 20:00</option>
+                            <option value="20:00 - 22:00">20:00 - 22:00</option>
+                            <option value="22:00 - 24:00">22:00 - 24:00</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="organization_note">یادداشت شرکت</label>
                         <textarea class="form-control" id="organization_note" name="organization_note" rows="4" placeholder="یادداشت شرکت را وارد کنید..."></textarea>
                     </div>
@@ -333,6 +352,12 @@ function displayLastServiceDetails(service) {
         html += '<tr><th width="30%">تکنسین:</th><td>' + (service.technician ? (service.technician.first_name + ' ' + service.technician.last_name) : '-') + '</td></tr>';
         html += '<tr><th>شماره تماس تکنسین:</th><td>' + (service.technician ? service.technician.phone_number : '-') + '</td></tr>';
         html += '<tr><th>تاریخ اختصاص:</th><td>' + (service.assigned_at_jalali || '-') + '</td></tr>';
+        if (service.visit_date_jalali) {
+            html += '<tr><th>تاریخ مراجعه:</th><td>' + service.visit_date_jalali + '</td></tr>';
+        }
+        if (service.visit_time_range) {
+            html += '<tr><th>بازه زمانی مراجعه:</th><td>' + service.visit_time_range + '</td></tr>';
+        }
         if (service.organization_note) {
             html += '<tr><th>یادداشت شرکت:</th><td>' + service.organization_note + '</td></tr>';
         }
@@ -526,11 +551,41 @@ window.onAssign = function(id) {
         // Load technicians on page load
         loadTechnicians();
         
+        // Initialize JalaliDatePicker for visit_date
+        jalaliDatepicker.startWatch({
+            selector: '#visit_date',
+            date: true,
+            time: false,
+            hasSecond: false,
+            showSelectTimeBtnAlways:false,
+            format: 'YYYY/MM/DD',
+            separatorChars: {
+                date: '/',
+                between: ' ',
+            },
+            persianDigits: false,
+            autoShow: true,
+            autoHide: true,
+            hideAfterChange: true,
+            showTodayBtn: true,
+            showEmptyBtn: true,
+            showCloseBtn: true,
+            useDropDownYears: true,
+            container: 'body',
+            zIndex: 10000,
+            minDate:"today",
+            maxDate:"attr"
+        });
+        
         // Also reload when modal is shown (fallback)
         $('#assignModal').on('show.bs.modal', function() {
             if (technicians.length === 0) {
                 loadTechnicians();
             }
+            // Clear form fields
+            $('#visit_date').val('');
+            $('#visit_time_range').val('');
+            $('#organization_note').val('');
         });
         
         // Additional event handler as fallback (event delegation)
@@ -591,13 +646,18 @@ window.onAssign = function(id) {
         const btn = $(this);
         btn.prop('disabled', true).text('در حال ارسال...');
         
+        const visitDate = $('#visit_date').val();
+        const visitTimeRange = $('#visit_time_range').val();
+        
         console.log("Sending AJAX request to assign technician");
         $.ajax({
             url: `/api/organization/services/${currentServiceId}/assign-technician`,
             type: 'POST',
             data: {
                 technician_id: technicianId,
-                organization_note: organizationNote
+                organization_note: organizationNote,
+                visit_date: visitDate,
+                visit_time_range: visitTimeRange
             },
             headers: {
                 'Authorization': 'Bearer ' + token
@@ -608,6 +668,8 @@ window.onAssign = function(id) {
                     $('#assignModal').modal('hide');
                     $('#assignForm')[0].reset();
                     $('#organization_note').val('');
+                    $('#visit_date').val('');
+                    $('#visit_time_range').val('');
                     currentServiceId = null;
                     
                     swal({
