@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Api\Organization;
 
 use App\Http\Controllers\Controller;
 use App\Models\Building;
+use App\Models\Elevator;
 use App\Models\Province;
 use App\Models\City;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use Morilog\Jalali\Jalalian;
 use Carbon\Carbon;
 
@@ -119,6 +121,12 @@ class BuildingController extends Controller
             'status' => 'required|in:true,false',
             'elevators_count' => 'nullable|integer|min:0',
             'monthly_amount' => 'nullable|numeric|min:0',
+            'elevators' => 'nullable|array',
+            'elevators.*.name' => 'required_with:elevators|string|max:255',
+            'elevators.*.stops_count' => 'required_with:elevators|integer|min:1',
+            'elevators.*.capacity' => 'required_with:elevators|integer|min:1',
+            'elevators.*.status' => 'required_with:elevators|in:true,false',
+            'elevators.*.description' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -179,22 +187,56 @@ class BuildingController extends Controller
             unset($data['service_end_date']);
         }
 
-        $building = Building::create($data);
-        $building = $building->load(['province', 'city', 'organizationUser']);
-        
-        // Add Jalali formatted dates
-        if ($building->service_start_date) {
-            $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d');
-        }
-        if ($building->service_end_date) {
-            $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d');
-        }
+        // Extract elevators data if provided
+        $elevatorsData = $request->input('elevators', []);
+        unset($data['elevators']);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'ساختمان/پروژه با موفقیت ایجاد شد',
-            'data' => $building
-        ], 201);
+        DB::beginTransaction();
+        try {
+            $building = Building::create($data);
+            
+            // Create elevators if provided
+            if (!empty($elevatorsData)) {
+                foreach ($elevatorsData as $elevatorData) {
+                    Elevator::create([
+                        'building_id' => $building->id,
+                        'name' => $elevatorData['name'],
+                        'stops_count' => $elevatorData['stops_count'],
+                        'capacity' => $elevatorData['capacity'],
+                        'status' => $elevatorData['status'] === 'true' || $elevatorData['status'] === true,
+                        'description' => $elevatorData['description'] ?? null,
+                    ]);
+                }
+                // Update elevators_count based on actual count
+                $building->elevators_count = count($elevatorsData);
+                $building->save();
+            }
+            
+            DB::commit();
+            
+            $building = $building->load(['province', 'city', 'organizationUser', 'elevators']);
+            
+            // Add Jalali formatted dates
+            if ($building->service_start_date) {
+                $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d');
+            }
+            if ($building->service_end_date) {
+                $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d');
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'ساختمان/پروژه با موفقیت ایجاد شد',
+                'data' => $building
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'خطا در ایجاد ساختمان/پروژه',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -257,6 +299,12 @@ class BuildingController extends Controller
             'status' => 'required|in:true,false',
             'elevators_count' => 'nullable|integer|min:0',
             'monthly_amount' => 'nullable|numeric|min:0',
+            'elevators' => 'nullable|array',
+            'elevators.*.name' => 'required_with:elevators|string|max:255',
+            'elevators.*.stops_count' => 'required_with:elevators|integer|min:1',
+            'elevators.*.capacity' => 'required_with:elevators|integer|min:1',
+            'elevators.*.status' => 'required_with:elevators|in:true,false',
+            'elevators.*.description' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -317,22 +365,85 @@ class BuildingController extends Controller
             $data['service_end_date'] = null;
         }
 
-        $building->update($data);
-        $building = $building->load(['province', 'city', 'organizationUser']);
-        
-        // Add Jalali formatted dates
-        if ($building->service_start_date) {
-            $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d');
-        }
-        if ($building->service_end_date) {
-            $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d');
-        }
+        // Extract elevators data if provided
+        $elevatorsData = $request->has('elevators') ? $request->input('elevators', []) : null;
+        unset($data['elevators']);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'ساختمان/پروژه با موفقیت به‌روزرسانی شد',
-            'data' => $building
-        ]);
+        DB::beginTransaction();
+        try {
+            $building->update($data);
+            
+            // Handle elevators if provided (null means don't update, empty array means delete all)
+            if ($elevatorsData !== null) {
+                // Get existing elevator IDs
+                $existingElevatorIds = $building->elevators()->pluck('id')->toArray();
+                $submittedElevatorIds = [];
+                
+                // Update or create elevators
+                foreach ($elevatorsData as $elevatorData) {
+                    if (isset($elevatorData['id']) && !empty($elevatorData['id']) && in_array($elevatorData['id'], $existingElevatorIds)) {
+                        // Update existing elevator
+                        $elevator = Elevator::where('building_id', $building->id)
+                            ->findOrFail($elevatorData['id']);
+                        $elevator->update([
+                            'name' => $elevatorData['name'],
+                            'stops_count' => $elevatorData['stops_count'],
+                            'capacity' => $elevatorData['capacity'],
+                            'status' => $elevatorData['status'] === 'true' || $elevatorData['status'] === true,
+                            'description' => $elevatorData['description'] ?? null,
+                        ]);
+                        $submittedElevatorIds[] = $elevatorData['id'];
+                    } else {
+                        // Create new elevator
+                        Elevator::create([
+                            'building_id' => $building->id,
+                            'name' => $elevatorData['name'],
+                            'stops_count' => $elevatorData['stops_count'],
+                            'capacity' => $elevatorData['capacity'],
+                            'status' => $elevatorData['status'] === 'true' || $elevatorData['status'] === true,
+                            'description' => $elevatorData['description'] ?? null,
+                        ]);
+                    }
+                }
+                
+                // Delete elevators that are not in the submitted list
+                $toDelete = array_diff($existingElevatorIds, $submittedElevatorIds);
+                if (!empty($toDelete)) {
+                    Elevator::where('building_id', $building->id)
+                        ->whereIn('id', $toDelete)
+                        ->delete();
+                }
+                
+                // Update elevators_count based on actual count
+                $building->elevators_count = count($elevatorsData);
+                $building->save();
+            }
+            
+            DB::commit();
+            
+            $building = $building->load(['province', 'city', 'organizationUser', 'elevators']);
+            
+            // Add Jalali formatted dates
+            if ($building->service_start_date) {
+                $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d');
+            }
+            if ($building->service_end_date) {
+                $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d');
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'ساختمان/پروژه با موفقیت به‌روزرسانی شد',
+                'data' => $building
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'خطا در به‌روزرسانی ساختمان/پروژه',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
