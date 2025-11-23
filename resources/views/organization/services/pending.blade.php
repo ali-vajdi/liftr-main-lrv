@@ -404,23 +404,6 @@ function displayLastServiceDetails(service) {
         }
         html += '</div>';
         
-        // History
-        if (service.checklist_data.history && service.checklist_data.history.length > 0) {
-            html += '<h6 class="mt-3 mb-2">تاریخچه تغییرات:</h6>';
-            html += '<ul class="list-group">';
-            service.checklist_data.history.forEach(function(history) {
-                html += '<li class="list-group-item">';
-                html += '<strong>عملیات:</strong> ' + history.action + '<br>';
-                html += '<strong>تکنسین:</strong> ' + (history.technician_name || '-') + '<br>';
-                html += '<strong>تاریخ:</strong> ' + (history.created_at || '-') + '<br>';
-                if (history.notes) {
-                    html += '<strong>یادداشت:</strong> ' + history.notes;
-                }
-                html += '</li>';
-            });
-            html += '</ul>';
-        }
-        
         html += '</div></div>';
     }
     
