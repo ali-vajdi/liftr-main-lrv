@@ -212,14 +212,14 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="service_start_date">تاریخ شروع قرارداد</label>
-                                <input data-jdp-only-date="true" type="text" class="form-control" id="service_start_date" name="service_start_date">
+                                <label for="service_start_date">تاریخ شروع قرارداد <span class="text-danger">*</span></label>
+                                <input data-jdp-only-date="true" type="text" class="form-control" id="service_start_date" name="service_start_date" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="service_end_date">تاریخ پایان قرارداد</label>
-                                <input data-jdp-only-date="true" type="text" class="form-control" id="service_end_date" name="service_end_date">
+                                <label for="service_end_date">تاریخ پایان قرارداد <span class="text-danger">*</span></label>
+                                <input data-jdp-only-date="true" type="text" class="form-control" id="service_end_date" name="service_end_date" required>
                             </div>
                         </div>
                     </div>
