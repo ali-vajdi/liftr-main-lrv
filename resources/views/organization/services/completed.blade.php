@@ -248,6 +248,12 @@ function displayServiceDetails(service) {
         html += '<tr><th width="30%">تکنسین:</th><td>' + (service.technician ? (service.technician.first_name + ' ' + service.technician.last_name) : '-') + '</td></tr>';
         html += '<tr><th>شماره تماس تکنسین:</th><td>' + (service.technician ? service.technician.phone_number : '-') + '</td></tr>';
         html += '<tr><th>تاریخ اختصاص:</th><td>' + (service.assigned_at_jalali || '-') + '</td></tr>';
+        if (service.visit_date_jalali) {
+            html += '<tr><th>تاریخ مراجعه:</th><td>' + service.visit_date_jalali + '</td></tr>';
+        }
+        if (service.visit_time_range) {
+            html += '<tr><th>بازه زمانی مراجعه:</th><td>' + service.visit_time_range + '</td></tr>';
+        }
         if (service.organization_note) {
             html += '<tr><th>یادداشت شرکت:</th><td>' + service.organization_note + '</td></tr>';
         }
