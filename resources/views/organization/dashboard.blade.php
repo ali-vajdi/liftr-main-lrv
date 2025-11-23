@@ -216,28 +216,36 @@
             <div class="widget-content" style="padding: 25px 20px;">
                 <div class="row text-center">
                     <div class="col-md-2 col-4 mb-3">
-                        <div style="padding: 20px 10px; background: #f1f2f3; border-radius: 12px; border: 2px solid #e0e6ed;">
-                            <h4 class="mb-2" style="color: #3b3f5c; font-weight: 700; font-size: 28px;"><span id="current-month-services-total-overview">0</span></h4>
-                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">کل سرویس‌ها</small>
-                        </div>
+                        <a href="{{ route('organization.services.all') }}" class="clickable-stat-card" style="text-decoration: none; display: block;">
+                            <div style="padding: 20px 10px; background: #f1f2f3; border-radius: 12px; border: 2px solid #e0e6ed; transition: all 0.3s ease; cursor: pointer;">
+                                <h4 class="mb-2" style="color: #3b3f5c; font-weight: 700; font-size: 28px;"><span id="current-month-services-total-overview">0</span></h4>
+                                <small class="text-muted" style="font-size: 12px; font-weight: 500;">کل سرویس‌ها</small>
+                            </div>
+                        </a>
                     </div>
                     <div class="col-md-2 col-4 mb-3">
-                        <div style="padding: 20px 10px; background: linear-gradient(135deg, #fad96115 0%, #f76b1c15 100%); border-radius: 12px; border: 2px solid #f59e0b;">
-                            <h4 class="text-warning mb-2" style="font-weight: 700; font-size: 28px;"><span id="current-month-services-pending-overview">0</span></h4>
-                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">در انتظار</small>
-                        </div>
+                        <a href="{{ route('organization.services.pending') }}" class="clickable-stat-card" style="text-decoration: none; display: block;">
+                            <div style="padding: 20px 10px; background: linear-gradient(135deg, #fad96115 0%, #f76b1c15 100%); border-radius: 12px; border: 2px solid #f59e0b; transition: all 0.3s ease; cursor: pointer;">
+                                <h4 class="text-warning mb-2" style="font-weight: 700; font-size: 28px;"><span id="current-month-services-pending-overview">0</span></h4>
+                                <small class="text-muted" style="font-size: 12px; font-weight: 500;">در انتظار</small>
+                            </div>
+                        </a>
                     </div>
                     <div class="col-md-2 col-4 mb-3">
-                        <div style="padding: 20px 10px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 12px; border: 2px solid #4361ee;">
-                            <h4 class="text-primary mb-2" style="font-weight: 700; font-size: 28px;"><span id="current-month-services-assigned-overview">0</span></h4>
-                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">اختصاص داده شده</small>
-                        </div>
+                        <a href="{{ route('organization.services.assigned') }}" class="clickable-stat-card" style="text-decoration: none; display: block;">
+                            <div style="padding: 20px 10px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 12px; border: 2px solid #4361ee; transition: all 0.3s ease; cursor: pointer;">
+                                <h4 class="text-primary mb-2" style="font-weight: 700; font-size: 28px;"><span id="current-month-services-assigned-overview">0</span></h4>
+                                <small class="text-muted" style="font-size: 12px; font-weight: 500;">اختصاص داده شده</small>
+                            </div>
+                        </a>
                     </div>
                     <div class="col-md-2 col-4 mb-3">
-                        <div style="padding: 20px 10px; background: linear-gradient(135deg, #4facfe15 0%, #00f2fe15 100%); border-radius: 12px; border: 2px solid #00d4aa;">
-                            <h4 class="text-success mb-2" style="font-weight: 700; font-size: 28px;"><span id="current-month-services-completed-overview">0</span></h4>
-                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">تکمیل شده</small>
-                        </div>
+                        <a href="{{ route('organization.services.completed') }}" class="clickable-stat-card" style="text-decoration: none; display: block;">
+                            <div style="padding: 20px 10px; background: linear-gradient(135deg, #4facfe15 0%, #00f2fe15 100%); border-radius: 12px; border: 2px solid #00d4aa; transition: all 0.3s ease; cursor: pointer;">
+                                <h4 class="text-success mb-2" style="font-weight: 700; font-size: 28px;"><span id="current-month-services-completed-overview">0</span></h4>
+                                <small class="text-muted" style="font-size: 12px; font-weight: 500;">تکمیل شده</small>
+                            </div>
+                        </a>
                     </div>
                     <div class="col-md-2 col-4 mb-3">
                         <div style="padding: 20px 10px; background: linear-gradient(135deg, #fa709a15 0%, #fee14015 100%); border-radius: 12px; border: 2px solid #e7515a;">
@@ -270,28 +278,36 @@
             <div class="widget-content" style="padding: 25px 20px;">
                 <div class="row text-center">
                     <div class="col-md-2 col-4 mb-3">
-                        <div style="padding: 20px 10px; background: #f1f2f3; border-radius: 12px; border: 2px solid #e0e6ed;">
-                            <h4 class="mb-2" style="color: #3b3f5c; font-weight: 700; font-size: 28px;"><span id="services-total-overview">0</span></h4>
-                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">کل سرویس‌ها</small>
-                        </div>
+                        <a href="{{ route('organization.services.all') }}" class="clickable-stat-card" style="text-decoration: none; display: block;">
+                            <div style="padding: 20px 10px; background: #f1f2f3; border-radius: 12px; border: 2px solid #e0e6ed; transition: all 0.3s ease; cursor: pointer;">
+                                <h4 class="mb-2" style="color: #3b3f5c; font-weight: 700; font-size: 28px;"><span id="services-total-overview">0</span></h4>
+                                <small class="text-muted" style="font-size: 12px; font-weight: 500;">کل سرویس‌ها</small>
+                            </div>
+                        </a>
                     </div>
                     <div class="col-md-2 col-4 mb-3">
-                        <div style="padding: 20px 10px; background: linear-gradient(135deg, #fad96115 0%, #f76b1c15 100%); border-radius: 12px; border: 2px solid #f59e0b;">
-                            <h4 class="text-warning mb-2" style="font-weight: 700; font-size: 28px;"><span id="services-pending-overview">0</span></h4>
-                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">در انتظار</small>
-                        </div>
+                        <a href="{{ route('organization.services.pending') }}" class="clickable-stat-card" style="text-decoration: none; display: block;">
+                            <div style="padding: 20px 10px; background: linear-gradient(135deg, #fad96115 0%, #f76b1c15 100%); border-radius: 12px; border: 2px solid #f59e0b; transition: all 0.3s ease; cursor: pointer;">
+                                <h4 class="text-warning mb-2" style="font-weight: 700; font-size: 28px;"><span id="services-pending-overview">0</span></h4>
+                                <small class="text-muted" style="font-size: 12px; font-weight: 500;">در انتظار</small>
+                            </div>
+                        </a>
                     </div>
                     <div class="col-md-2 col-4 mb-3">
-                        <div style="padding: 20px 10px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 12px; border: 2px solid #4361ee;">
-                            <h4 class="text-primary mb-2" style="font-weight: 700; font-size: 28px;"><span id="services-assigned-overview">0</span></h4>
-                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">اختصاص داده شده</small>
-                        </div>
+                        <a href="{{ route('organization.services.assigned') }}" class="clickable-stat-card" style="text-decoration: none; display: block;">
+                            <div style="padding: 20px 10px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 12px; border: 2px solid #4361ee; transition: all 0.3s ease; cursor: pointer;">
+                                <h4 class="text-primary mb-2" style="font-weight: 700; font-size: 28px;"><span id="services-assigned-overview">0</span></h4>
+                                <small class="text-muted" style="font-size: 12px; font-weight: 500;">اختصاص داده شده</small>
+                            </div>
+                        </a>
                     </div>
                     <div class="col-md-2 col-4 mb-3">
-                        <div style="padding: 20px 10px; background: linear-gradient(135deg, #4facfe15 0%, #00f2fe15 100%); border-radius: 12px; border: 2px solid #00d4aa;">
-                            <h4 class="text-success mb-2" style="font-weight: 700; font-size: 28px;"><span id="services-completed-overview">0</span></h4>
-                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">تکمیل شده</small>
-                        </div>
+                        <a href="{{ route('organization.services.completed') }}" class="clickable-stat-card" style="text-decoration: none; display: block;">
+                            <div style="padding: 20px 10px; background: linear-gradient(135deg, #4facfe15 0%, #00f2fe15 100%); border-radius: 12px; border: 2px solid #00d4aa; transition: all 0.3s ease; cursor: pointer;">
+                                <h4 class="text-success mb-2" style="font-weight: 700; font-size: 28px;"><span id="services-completed-overview">0</span></h4>
+                                <small class="text-muted" style="font-size: 12px; font-weight: 500;">تکمیل شده</small>
+                            </div>
+                        </a>
                     </div>
                     <div class="col-md-2 col-4 mb-3">
                         <div style="padding: 20px 10px; background: linear-gradient(135deg, #fa709a15 0%, #fee14015 100%); border-radius: 12px; border: 2px solid #e7515a;">
@@ -379,6 +395,18 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border-color: #667eea;
+}
+.clickable-stat-card:hover > div {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    border-width: 3px;
+}
+.clickable-stat-card {
+    color: inherit;
+}
+.clickable-stat-card:hover {
+    text-decoration: none;
+    color: inherit;
 }
 </style>
 @endsection
