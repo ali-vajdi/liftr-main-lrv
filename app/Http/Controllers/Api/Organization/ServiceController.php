@@ -319,8 +319,8 @@ class ServiceController extends Controller
         $validator = Validator::make($request->all(), [
             'technician_id' => 'required|exists:technicians,id',
             'organization_note' => 'nullable|string|max:5000',
-            'visit_date' => 'nullable|string',
-            'visit_time_range' => 'nullable|string|max:20',
+            'visit_date' => 'required|string',
+            'visit_time_range' => 'required|string|max:20',
         ]);
 
         if ($validator->fails()) {
@@ -430,8 +430,8 @@ class ServiceController extends Controller
         $validator = Validator::make($request->all(), [
             'technician_id' => 'required|exists:technicians,id',
             'organization_note' => 'nullable|string|max:5000',
-            'visit_date' => 'nullable|string',
-            'visit_time_range' => 'nullable|string|max:20',
+            'visit_date' => 'required|string',
+            'visit_time_range' => 'required|string|max:20',
         ]);
 
         if ($validator->fails()) {
@@ -460,8 +460,8 @@ class ServiceController extends Controller
         $technician = Technician::where('organization_id', $user->organization_id)
             ->findOrFail($request->technician_id);
 
-        // Convert Jalali date to Gregorian for visit_date
-        $visitDate = $service->visit_date; // Keep existing if not provided
+        // Convert Jalali date to Gregorian for visit_date (required)
+        $visitDate = null;
         if (!empty($request->visit_date)) {
             try {
                 // Try parsing with different formats
@@ -487,7 +487,7 @@ class ServiceController extends Controller
             'assigned_at' => now(), // Update assignment time
             'organization_note' => $request->organization_note ?? $service->organization_note,
             'visit_date' => $visitDate,
-            'visit_time_range' => $request->visit_time_range ?? $service->visit_time_range,
+            'visit_time_range' => $request->visit_time_range,
         ]);
 
         // Create automatic message to new technician about change

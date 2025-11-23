@@ -21,6 +21,7 @@ class ServiceController extends Controller
 {
     /**
      * Get assigned buildings/services for the authenticated technician
+     * Grouped by visit_date and visit_time_range
      */
     public function assignedBuildings(Request $request)
     {
@@ -40,28 +41,232 @@ class ServiceController extends Controller
         ])
             ->where('technician_id', $technician->id)
             ->assigned() // Only assigned services
-            ->orderBy('assigned_at', 'desc')
-            ->orderBy('service_year', 'desc')
-            ->orderBy('service_month', 'desc')
+            ->whereNotNull('visit_date')
+            ->whereNotNull('visit_time_range')
+            ->orderBy('visit_date', 'asc')
+            ->orderByRaw("CASE 
+                WHEN visit_time_range = '06:00 - 08:00' THEN 1
+                WHEN visit_time_range = '08:00 - 10:00' THEN 2
+                WHEN visit_time_range = '10:00 - 12:00' THEN 3
+                WHEN visit_time_range = '12:00 - 14:00' THEN 4
+                WHEN visit_time_range = '14:00 - 16:00' THEN 5
+                WHEN visit_time_range = '16:00 - 18:00' THEN 6
+                WHEN visit_time_range = '18:00 - 20:00' THEN 7
+                WHEN visit_time_range = '20:00 - 22:00' THEN 8
+                WHEN visit_time_range = '22:00 - 24:00' THEN 9
+                ELSE 10
+            END")
             ->get();
 
-        // Format response - only return required fields
-        $items = $services->map(function ($service) {
+        // Get current Jalali date for comparison
+        $now = Jalalian::now();
+        $todayCarbon = $now->toCarbon();
+        $todayDate = $todayCarbon->format('Y-m-d');
+        $tomorrowDate = $todayCarbon->copy()->addDay()->format('Y-m-d');
+        $yesterdayDate = $todayCarbon->copy()->subDay()->format('Y-m-d');
+        $dayBeforeYesterdayDate = $todayCarbon->copy()->subDays(2)->format('Y-m-d'); // پریروز
+        $dayAfterTomorrowDate = $todayCarbon->copy()->addDays(2)->format('Y-m-d');
+
+        // Group services by date and time range
+        $grouped = [];
+        
+        foreach ($services as $service) {
             $building = $service->building;
             $elevatorsCount = $building && $building->elevators ? $building->elevators->count() : 0;
             
-            return [
+            // Format service data
+            $serviceData = [
                 'id' => $service->id,
                 'assigned_at_jalali' => $service->assigned_at ? Jalalian::forge($service->assigned_at)->format('Y/m/d H:i:s') : null,
                 'building_name' => $building ? $building->name : null,
                 'building_address' => $building ? $building->address : null,
                 'elevators_count' => $elevatorsCount,
+                'visit_date' => $service->visit_date ? Jalalian::forge($service->visit_date)->format('Y/m/d') : null,
+                'visit_time_range' => $service->visit_time_range,
             ];
+
+            // Get visit date for grouping
+            $visitDate = $service->visit_date ? $service->visit_date->format('Y-m-d') : null;
+            
+            if (!$visitDate || !$service->visit_time_range) {
+                continue; // Skip services without visit_date or visit_time_range
+            }
+
+            // Format date label
+            // Label: پریروز (day before yesterday), دیروز (yesterday), امروز (today), فردا (tomorrow), پسفردا (day after tomorrow)
+            // Special labels include the date in parentheses, all other dates show actual date only
+            $visitDateJalali = Jalalian::forge($service->visit_date)->format('Y/m/d');
+            $dateLabel = null;
+            if ($visitDate === $todayDate) {
+                $dateLabel = 'امروز(' . $visitDateJalali . ')';
+            } elseif ($visitDate === $tomorrowDate) {
+                $dateLabel = 'فردا(' . $visitDateJalali . ')';
+            } elseif ($visitDate === $yesterdayDate) {
+                $dateLabel = 'دیروز(' . $visitDateJalali . ')';
+            } elseif ($visitDate === $dayBeforeYesterdayDate) {
+                $dateLabel = 'پریروز(' . $visitDateJalali . ')';
+            } elseif ($visitDate === $dayAfterTomorrowDate) {
+                $dateLabel = 'پسفردا(' . $visitDateJalali . ')';
+            } else {
+                // Use Jalali date format for all other dates
+                $dateLabel = $visitDateJalali;
+            }
+
+            // Initialize date group if not exists
+            if (!isset($grouped[$dateLabel])) {
+                $grouped[$dateLabel] = [
+                    'is_passed' => false,
+                    'time_ranges' => []
+                ];
+                // Check if this date is in the past
+                if ($service->visit_date) {
+                    $visitDateCarbon = $service->visit_date;
+                    $todayCarbon = Jalalian::now()->toCarbon();
+                    $grouped[$dateLabel]['is_passed'] = $visitDateCarbon->lt($todayCarbon);
+                }
+            }
+
+            // Initialize time range group if not exists
+            if (!isset($grouped[$dateLabel]['time_ranges'][$service->visit_time_range])) {
+                $grouped[$dateLabel]['time_ranges'][$service->visit_time_range] = [];
+            }
+
+            // Add service to the appropriate group
+            $grouped[$dateLabel]['time_ranges'][$service->visit_time_range][] = $serviceData;
+        }
+
+        // Sort time ranges within each date group chronologically
+        $timeRangeOrder = [
+            '06:00 - 08:00' => 1,
+            '08:00 - 10:00' => 2,
+            '10:00 - 12:00' => 3,
+            '12:00 - 14:00' => 4,
+            '14:00 - 16:00' => 5,
+            '16:00 - 18:00' => 6,
+            '18:00 - 20:00' => 7,
+            '20:00 - 22:00' => 8,
+            '22:00 - 24:00' => 9,
+        ];
+        
+        foreach ($grouped as $dateLabel => &$dateGroup) {
+            uksort($dateGroup['time_ranges'], function($a, $b) use ($timeRangeOrder) {
+                $orderA = $timeRangeOrder[$a] ?? 999;
+                $orderB = $timeRangeOrder[$b] ?? 999;
+                return $orderA <=> $orderB;
+            });
+        }
+        unset($dateGroup);
+        
+        // Sort date groups: past dates (oldest first), then پریروز, دیروز, امروز, فردا, پسفردا, then future dates (newest first)
+        $sortedGrouped = [];
+        // Note: Special dates now include the date in the label, so we need to check if label starts with special text
+        $specialDatePrefixes = ['پریروز', 'دیروز', 'امروز', 'فردا', 'پسفردا'];
+        
+        // Separate special dates, past dates, and future dates
+        $specialDates = [];
+        $pastDates = [];
+        $futureDates = [];
+        
+        $todayCarbon = Jalalian::now()->toCarbon();
+        
+        foreach ($grouped as $dateLabel => $dateGroup) {
+            // Check if label starts with any special date prefix
+            $isSpecialDate = false;
+            $specialDateType = null;
+            foreach ($specialDatePrefixes as $prefix) {
+                if (strpos($dateLabel, $prefix) === 0) {
+                    $isSpecialDate = true;
+                    $specialDateType = $prefix;
+                    break;
+                }
+            }
+            
+            if ($isSpecialDate) {
+                $specialDates[$dateLabel] = ['type' => $specialDateType, 'data' => $dateGroup];
+            } else {
+                // Parse the date to determine if it's past or future
+                try {
+                    $dateParts = explode('/', $dateLabel);
+                    if (count($dateParts) === 3) {
+                        $jalaliDate = Jalalian::fromFormat('Y/m/d', $dateLabel);
+                        $dateCarbon = $jalaliDate->toCarbon();
+                        
+                        if ($dateCarbon->lt($todayCarbon)) {
+                            // Past date
+                            $pastDates[$dateLabel] = ['carbon' => $dateCarbon, 'data' => $dateGroup];
+                        } else {
+                            // Future date
+                            $futureDates[$dateLabel] = ['carbon' => $dateCarbon, 'data' => $dateGroup];
+                        }
+                    } else {
+                        // Unknown format, add to past dates
+                        $pastDates[$dateLabel] = ['carbon' => null, 'data' => $dateGroup];
+                    }
+                } catch (\Exception $e) {
+                    // If parsing fails, add to past dates
+                    $pastDates[$dateLabel] = ['carbon' => null, 'data' => $dateGroup];
+                }
+            }
+        }
+        
+        // Sort past dates (oldest first) - these come FIRST
+        uasort($pastDates, function($a, $b) {
+            if ($a['carbon'] === null && $b['carbon'] === null) {
+                return 0;
+            }
+            if ($a['carbon'] === null) {
+                return 1;
+            }
+            if ($b['carbon'] === null) {
+                return -1;
+            }
+            return $a['carbon']->lt($b['carbon']) ? -1 : 1;
         });
+        foreach ($pastDates as $dateLabel => $dateData) {
+            $sortedGrouped[$dateLabel] = $dateData['data'];
+        }
+        
+        // Add special dates in order - these come AFTER past dates
+        // Sort special dates by their type (پریروز, دیروز, امروز, فردا, پسفردا)
+        $specialDateOrder = ['پریروز', 'دیروز', 'امروز', 'فردا', 'پسفردا'];
+        uasort($specialDates, function($a, $b) use ($specialDateOrder) {
+            $indexA = array_search($a['type'], $specialDateOrder);
+            $indexB = array_search($b['type'], $specialDateOrder);
+            return $indexA <=> $indexB;
+        });
+        foreach ($specialDates as $dateLabel => $dateInfo) {
+            $sortedGrouped[$dateLabel] = $dateInfo['data'];
+        }
+        
+        // Sort future dates (newest first) - these come LAST
+        uasort($futureDates, function($a, $b) {
+            if ($a['carbon'] === null && $b['carbon'] === null) {
+                return 0;
+            }
+            if ($a['carbon'] === null) {
+                return 1;
+            }
+            if ($b['carbon'] === null) {
+                return -1;
+            }
+            return $b['carbon']->lt($a['carbon']) ? -1 : 1;
+        });
+        foreach ($futureDates as $dateLabel => $dateData) {
+            $sortedGrouped[$dateLabel] = $dateData['data'];
+        }
+        
+        // Restructure the response to have is_passed at the top level and time_ranges as the data
+        $finalResponse = [];
+        foreach ($sortedGrouped as $dateLabel => $dateGroup) {
+            $finalResponse[$dateLabel] = [
+                'is_passed' => $dateGroup['is_passed'],
+                ...$dateGroup['time_ranges']
+            ];
+        }
 
         return response()->json([
             'success' => true,
-            'data' => $items->all()
+            'data' => $finalResponse
         ]);
     }
 
