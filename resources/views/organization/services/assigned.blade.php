@@ -233,7 +233,9 @@
         </div>
     </div>
 </div>
+@endsection
 
+@section('page-scripts')
 <script>
 let currentServiceId = null;
 let technicians = [];
@@ -264,8 +266,21 @@ window.onChangeTechnician = function(id) {
     currentServiceId = id;
     $('#change_service_id').val(id);
     
+    // Reset form
+    $('#change_organization_note').val('');
+    $('#change_technician_id').html('<option value="">در حال بارگذاری...</option>');
+    
+    // Load technicians if not already loaded, then show modal
     if (technicians.length === 0) {
-        loadTechnicians();
+        loadTechnicians(function() {
+            // Populate change technician select after loading
+            const select = $('#change_technician_id');
+            select.html('<option value="">انتخاب تکنسین</option>');
+            technicians.forEach(function(tech) {
+                select.append(`<option value="${tech.id}">${tech.name} - ${tech.phone_number}</option>`);
+            });
+            $('#changeTechnicianModal').modal('show');
+        });
     } else {
         // Populate change technician select
         const select = $('#change_technician_id');
@@ -273,9 +288,8 @@ window.onChangeTechnician = function(id) {
         technicians.forEach(function(tech) {
             select.append(`<option value="${tech.id}">${tech.name} - ${tech.phone_number}</option>`);
         });
+        $('#changeTechnicianModal').modal('show');
     }
-    
-    $('#changeTechnicianModal').modal('show');
 };
 
 // Define onCancelService function
@@ -414,10 +428,11 @@ function displayServiceDetails(service) {
 }
 
 // Load technicians
-function loadTechnicians() {
+function loadTechnicians(callback) {
     const token = localStorage.getItem('organization_token');
     if (!token) {
         $('#change_technician_id').html('<option value="">خطا در احراز هویت</option>');
+        if (callback) callback();
         return;
     }
 
@@ -432,25 +447,33 @@ function loadTechnicians() {
                 technicians = response.data;
                 const changeSelect = $('#change_technician_id');
                 
-                changeSelect.html('<option value="">انتخاب تکنسین</option>');
-                
-                if (technicians.length > 0) {
-                    technicians.forEach(function(tech) {
-                        changeSelect.append(`<option value="${tech.id}">${tech.name} - ${tech.phone_number}</option>`);
-                    });
-                } else {
-                    changeSelect.html('<option value="">تکنسینی یافت نشد</option>');
+                if (changeSelect.length > 0) {
+                    changeSelect.html('<option value="">انتخاب تکنسین</option>');
+                    
+                    if (technicians.length > 0) {
+                        technicians.forEach(function(tech) {
+                            changeSelect.append(`<option value="${tech.id}">${tech.name} - ${tech.phone_number}</option>`);
+                        });
+                    } else {
+                        changeSelect.html('<option value="">تکنسینی یافت نشد</option>');
+                    }
                 }
             } else {
-                $('#change_technician_id').html('<option value="">خطا در بارگذاری</option>');
+                if ($('#change_technician_id').length > 0) {
+                    $('#change_technician_id').html('<option value="">خطا در بارگذاری</option>');
+                }
             }
+            if (callback) callback();
         },
         error: function(xhr) {
             let errorMessage = 'خطا در بارگذاری تکنسین‌ها';
             if (xhr.responseJSON && xhr.responseJSON.message) {
                 errorMessage = xhr.responseJSON.message;
             }
-            $('#change_technician_id').html(`<option value="">${errorMessage}</option>`);
+            if ($('#change_technician_id').length > 0) {
+                $('#change_technician_id').html(`<option value="">${errorMessage}</option>`);
+            }
+            if (callback) callback();
         }
     });
 }
@@ -500,10 +523,11 @@ $(document).ready(function() {
             type: 'POST',
             data: {
                 technician_id: technicianId,
-                organization_note: organizationNote
+                organization_note: organizationNote || ''
             },
             headers: {
-                'Authorization': 'Bearer ' + token
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/json'
             },
             success: function(response) {
                 if (response.success) {
