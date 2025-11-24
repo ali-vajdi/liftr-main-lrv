@@ -16,6 +16,36 @@ use Carbon\Carbon;
 class ServiceController extends Controller
 {
     /**
+     * Check if a service is locked (building support period has ended)
+     * A service is locked if the service month/year is >= building's service_end_date
+     * Manual services (is_manual = true) should not be locked
+     */
+    private function isServiceLocked($service)
+    {
+        // Manual services should not be locked
+        if ($service->is_manual) {
+            return false;
+        }
+
+        if (!$service->building || !$service->building->service_end_date) {
+            return false;
+        }
+
+        $endDateJalali = Jalalian::forge($service->building->service_end_date);
+        $endYear = $endDateJalali->getYear();
+        $endMonth = $endDateJalali->getMonth();
+
+        // Check if service month/year is >= end date month/year
+        if ($service->service_year > $endYear) {
+            return true;
+        } elseif ($service->service_year == $endYear && $service->service_month >= $endMonth) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Generate missing services for buildings
      * Generates one service per month for each building
      * Checks existing services and their statuses
@@ -192,6 +222,14 @@ class ServiceController extends Controller
             $service->status_badge_class = $service->status_badge_class;
             $service->service_date_text = $service->service_date_text;
             
+            // Check if service is locked (only for pending services)
+            // Lock if service month/year >= building service_end_date
+            if ($service->status === Service::STATUS_PENDING) {
+                $service->is_locked = $this->isServiceLocked($service);
+            } else {
+                $service->is_locked = false;
+            }
+            
             // Get last completed service for this building
             $lastService = Service::where('building_id', $service->building_id)
                 ->where('status', Service::STATUS_COMPLETED)
@@ -285,6 +323,7 @@ class ServiceController extends Controller
             $service->status_text = $service->status_text;
             $service->status_badge_class = $service->status_badge_class;
             $service->service_date_text = $service->service_date_text;
+            
             if ($service->assigned_at) {
                 $service->assigned_at_jalali = Jalalian::forge($service->assigned_at)->format('Y/m/d H:i:s');
             }
@@ -430,8 +469,6 @@ class ServiceController extends Controller
         $validator = Validator::make($request->all(), [
             'technician_id' => 'required|exists:technicians,id',
             'organization_note' => 'nullable|string|max:5000',
-            'visit_date' => 'required|string',
-            'visit_time_range' => 'required|string|max:20',
         ]);
 
         if ($validator->fails()) {
@@ -656,6 +693,158 @@ class ServiceController extends Controller
             'success' => true,
             'message' => 'سرویس با موفقیت لغو شد و تکنسین حذف شد.',
             'data' => $service
+        ]);
+    }
+
+    /**
+     * Revert service (set is_manual to true)
+     * This makes the service manual so it won't be locked
+     */
+    public function revertService($id)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $service = Service::with(['building'])
+            ->whereHas('building', function ($q) use ($user) {
+                $q->where('organization_id', $user->organization_id);
+            })
+            ->findOrFail($id);
+
+        // Set is_manual to true
+        $service->update([
+            'is_manual' => true,
+        ]);
+
+        $service->load(['building.province', 'building.city', 'building.elevators']);
+        $service->status_text = $service->status_text;
+        $service->status_badge_class = $service->status_badge_class;
+        $service->service_date_text = $service->service_date_text;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'سرویس با موفقیت به حالت دستی تبدیل شد.',
+            'data' => $service
+        ]);
+    }
+
+    /**
+     * Cancel building and service
+     * Disables the building and cancels the service
+     */
+    public function cancelBuildingAndService($id)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $service = Service::with(['building'])
+            ->whereHas('building', function ($q) use ($user) {
+                $q->where('organization_id', $user->organization_id);
+            })
+            ->findOrFail($id);
+
+        // Check if service is completed - cannot cancel completed services
+        if ($service->status === Service::STATUS_COMPLETED) {
+            return response()->json([
+                'success' => false,
+                'message' => 'سرویس‌های تکمیل شده را نمی‌توان لغو کرد.'
+            ], 400);
+        }
+
+        // Disable the building
+        $service->building->update([
+            'status' => false,
+        ]);
+
+        // Cancel the service
+        $service->update([
+            'technician_id' => null,
+            'status' => Service::STATUS_CANCELLED,
+            'assigned_at' => null,
+        ]);
+
+        $service->load(['building.province', 'building.city', 'building.elevators']);
+        $service->status_text = $service->status_text;
+        $service->status_badge_class = $service->status_badge_class;
+        $service->service_date_text = $service->service_date_text;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'ساختمان غیرفعال شد و سرویس لغو شد.',
+            'data' => $service
+        ]);
+    }
+
+    /**
+     * Get building information for locked service
+     */
+    public function getBuildingInfo($id)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $service = Service::with(['building'])
+            ->whereHas('building', function ($q) use ($user) {
+                $q->where('organization_id', $user->organization_id);
+            })
+            ->findOrFail($id);
+
+        $building = $service->building;
+        
+        $data = [
+            'building_name' => $building->name,
+            'service_start_date' => null,
+            'service_start_date_jalali' => null,
+            'service_end_date' => null,
+            'service_end_date_jalali' => null,
+            'completed_services_count' => 0,
+            'last_service_date' => null,
+            'last_service_date_jalali' => null,
+            'last_service_days_ago' => null,
+        ];
+
+        // Get service start and end dates
+        if ($building->service_start_date) {
+            $data['service_start_date'] = $building->service_start_date;
+            $data['service_start_date_jalali'] = Jalalian::forge($building->service_start_date)->format('Y/m/d');
+        }
+
+        if ($building->service_end_date) {
+            $data['service_end_date'] = $building->service_end_date;
+            $data['service_end_date_jalali'] = Jalalian::forge($building->service_end_date)->format('Y/m/d');
+        }
+
+        // Get completed services count for this building
+        $completedCount = Service::where('building_id', $building->id)
+            ->where('status', Service::STATUS_COMPLETED)
+            ->count();
+        $data['completed_services_count'] = $completedCount;
+
+        // Get last completed service
+        $lastService = Service::where('building_id', $building->id)
+            ->where('status', Service::STATUS_COMPLETED)
+            ->whereNotNull('completed_at')
+            ->orderBy('completed_at', 'desc')
+            ->first();
+
+        if ($lastService && $lastService->completed_at) {
+            $data['last_service_date'] = $lastService->completed_at;
+            $data['last_service_date_jalali'] = Jalalian::forge($lastService->completed_at)->format('Y/m/d');
+            
+            // Calculate days ago
+            $daysAgo = Carbon::now()->diffInDays($lastService->completed_at, false);
+            $data['last_service_days_ago'] = abs($daysAgo);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $data
         ]);
     }
 
@@ -902,6 +1091,14 @@ class ServiceController extends Controller
             $service->status_text = $service->status_text;
             $service->status_badge_class = $service->status_badge_class;
             $service->service_date_text = $service->service_date_text;
+            
+            // Check if service is locked (only for pending services)
+            // Lock if service month/year >= building service_end_date
+            if ($service->status === Service::STATUS_PENDING) {
+                $service->is_locked = $this->isServiceLocked($service);
+            } else {
+                $service->is_locked = false;
+            }
             
             // Add assigned information
             if ($service->assigned_at) {

@@ -136,6 +136,7 @@ Route::prefix('organization')->name('organization.')->group(function () {
         
         // Organization Users API
         Route::get('users', [OrgUserController::class, 'index']);
+        Route::post('users', [OrgUserController::class, 'store']);
         Route::get('users/{user}', [OrgUserController::class, 'show']);
         
         // Organization Technicians API
@@ -161,6 +162,9 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::post('services/{service}/change-technician', [OrgServiceController::class, 'changeTechnician']);
         Route::post('services/{service}/update-visit', [OrgServiceController::class, 'updateVisit']);
         Route::post('services/{service}/cancel', [OrgServiceController::class, 'cancelService']);
+        Route::post('services/{service}/revert', [OrgServiceController::class, 'revertService']);
+        Route::post('services/{service}/cancel-building', [OrgServiceController::class, 'cancelBuildingAndService']);
+        Route::get('services/{service}/building-info', [OrgServiceController::class, 'getBuildingInfo']);
         Route::get('services/technicians', [OrgServiceController::class, 'getTechnicians']);
         
         // Organization SMS API
