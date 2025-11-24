@@ -24,6 +24,7 @@ class Service extends Model
         'completed_at',
         'visit_date',
         'visit_time_range',
+        'slug',
     ];
 
     protected $casts = [
@@ -143,5 +144,43 @@ class Service extends Model
     public function scopeCancelled($query)
     {
         return $query->where('status', self::STATUS_CANCELLED);
+    }
+
+    /**
+     * Generate a unique 9-character slug
+     */
+    protected static function generateUniqueSlug(): string
+    {
+        $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $maxAttempts = 100;
+        $attempt = 0;
+
+        do {
+            $slug = '';
+            for ($i = 0; $i < 9; $i++) {
+                $slug .= $characters[random_int(0, strlen($characters) - 1)];
+            }
+            $attempt++;
+        } while (static::where('slug', $slug)->exists() && $attempt < $maxAttempts);
+
+        if ($attempt >= $maxAttempts) {
+            throw new \Exception('Unable to generate unique slug after ' . $maxAttempts . ' attempts');
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($service) {
+            if (empty($service->slug)) {
+                $service->slug = static::generateUniqueSlug();
+            }
+        });
     }
 }
