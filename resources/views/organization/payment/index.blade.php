@@ -343,11 +343,24 @@
                         'Authorization': 'Bearer ' + token
                     },
                     success: function(response) {
-                        if (!response.has_active_packages && response.public_packages && response.public_packages.length > 0) {
+                        // If all packages are expired, show expired message and public packages
+                        if (response.all_packages_expired && response.public_packages && response.public_packages.length > 0) {
+                            renderPublicPackages(response.public_packages, response.organization, true);
+                        } else if (!response.has_active_packages && response.public_packages && response.public_packages.length > 0) {
                             renderPublicPackages(response.public_packages, response.organization);
                         } else if (response.data && response.data.length > 0) {
                             renderPaymentForm(response.data, response.organization);
+                        } else if (response.all_packages_expired) {
+                            // All packages expired but no public packages available
+                            $('#payment-container').html(`
+                                <div class="alert alert-danger text-center fade-in" style="border-radius: 15px; padding: 3rem;">
+                                    <i class="fa fa-exclamation-triangle fa-3x mb-3 text-danger"></i>
+                                    <h4 class="mb-3 text-white">اشتراک شما منقضی شده است!</h4>
+                                    <p class="mb-4 text-white">لطفا با مدیر سیستم تماس بگیرید تا اشتراک جدیدی برای شما فعال شود.</p>
+                                </div>
+                            `);
                         } else {
+                            // All valid packages are paid
                             $('#payment-container').html(`
                                 <div class="alert alert-success text-center fade-in" style="border-radius: 15px; padding: 3rem;">
                                     <i class="fa fa-check-circle fa-3x mb-3 text-success"></i>
@@ -379,12 +392,17 @@
                 });
             }
 
-            function renderPublicPackages(publicPackages, organization) {
+            function renderPublicPackages(publicPackages, organization, isExpired = false) {
+                let alertClass = isExpired ? 'alert-danger' : 'alert-info';
+                let alertIcon = isExpired ? 'fa-exclamation-triangle' : 'fa-info-circle';
+                let title = isExpired ? 'اشتراک شما منقضی شده است' : 'شما اشتراک فعالی ندارید';
+                let message = isExpired ? 'لطفا یکی از اشتراک‌های زیر را انتخاب و فعال کنید:' : 'لطفا یکی از اشتراک‌های زیر را انتخاب و فعال کنید:';
+                
                 let html = `
-                    <div class="alert alert-info text-center mb-4 fade-in" style="border-radius: 15px; padding: 2rem;">
-                        <i class="fa fa-info-circle fa-2x mb-3"></i>
-                        <h4>شما اشتراک فعالی ندارید</h4>
-                        <p class="mb-0">لطفا یکی از اشتراک‌های زیر را انتخاب و فعال کنید:</p>
+                    <div class="alert ${alertClass} text-center mb-4 fade-in" style="border-radius: 15px; padding: 2rem;">
+                        <i class="fa ${alertIcon} fa-2x mb-3"></i>
+                        <h4>${title}</h4>
+                        <p class="mb-0">${message}</p>
                     </div>
                     <div class="row">
                 `;

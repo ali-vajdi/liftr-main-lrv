@@ -53,12 +53,28 @@ class CheckOrganizationPackagePayment
             ], 403);
         }
 
-        // Check each active package for payment status
+        // Filter out expired packages - only check non-expired packages
+        $validPackages = $activePackages->filter(function ($package) {
+            // Check if package is expired (remaining_days <= 0)
+            return $package->remaining_days > 0 && !$package->is_expired;
+        });
+
+        // If all packages are expired, lock access
+        if ($validPackages->isEmpty()) {
+            return response()->json([
+                'message' => 'اشتراک شما منقضی شده است. لطفا اشتراک جدید خریداری کنید.',
+                'locked' => true,
+                'requires_payment' => true,
+                'payment_url' => '/packages/payment'
+            ], 403);
+        }
+
+        // Check each valid (non-expired) package for payment status
         $hasAccess = false;
         $needsPayment = false;
         $paymentInfo = [];
 
-        foreach ($activePackages as $package) {
+        foreach ($validPackages as $package) {
             $package->load('periods');
             
             // If periods are not used, check if fully paid

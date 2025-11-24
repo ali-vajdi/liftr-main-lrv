@@ -47,6 +47,7 @@ class PaymentController extends Controller
         $activePackages = $organization->activePackages();
         $paymentInfo = [];
         $publicPackages = [];
+        $allPackagesExpired = false;
 
         // If no active packages, get public packages
         if ($activePackages->isEmpty()) {
@@ -65,65 +66,90 @@ class PaymentController extends Controller
                     ];
                 });
         } else {
-            // Check existing packages for payment requirements
-            foreach ($activePackages as $package) {
-                // Load periods
-                $package->load('periods');
-                
-                // If periods are not used, treat as full payment
-                if (!$package->use_periods) {
-                    if ($package->payment_status !== OrganizationPackage::PAYMENT_STATUS_FULLY_PAID) {
-                        $paymentInfo[] = [
-                            'package_id' => $package->id,
-                            'package_name' => $package->package_name,
-                            'package_duration_days' => $package->package_duration_days,
-                            'total_amount' => $package->package_price,
-                            'paid_amount' => $package->total_paid_amount,
-                            'remaining_amount' => $package->remaining_amount,
-                            'payment_type' => 'full',
-                            'use_periods' => false,
-                            'current_period' => null,
-                            'period_amount' => null,
-                            'periods' => [],
+            // Filter out expired packages - only check non-expired packages
+            $validPackages = $activePackages->filter(function ($package) {
+                // Check if package is expired (remaining_days <= 0)
+                return $package->remaining_days > 0 && !$package->is_expired;
+            });
+
+            // If all packages are expired, set flag and get public packages
+            if ($validPackages->isEmpty()) {
+                $allPackagesExpired = true;
+                $publicPackages = Package::where('is_public', true)
+                    ->orderBy('duration_days', 'asc')
+                    ->orderBy('price', 'asc')
+                    ->get()
+                    ->map(function ($package) {
+                        return [
+                            'id' => $package->id,
+                            'name' => $package->name,
+                            'duration_days' => $package->duration_days,
+                            'duration_label' => $package->duration_label,
+                            'price' => $package->price,
+                            'formatted_price' => $package->formatted_price,
                         ];
-                    }
-                } else {
-                    // For packages with periods - use PackagePeriod records
-                    $currentPeriod = $package->getCurrentPeriod();
-                    $currentPeriodRecord = $package->periods()->where('period_number', $currentPeriod)->first();
+                    });
+            } else {
+                // Check existing valid (non-expired) packages for payment requirements
+                foreach ($validPackages as $package) {
+                    // Load periods
+                    $package->load('periods');
                     
-                    if ($currentPeriodRecord && !$currentPeriodRecord->is_paid) {
-                        $allPeriods = $package->periods->map(function ($period) {
-                            return [
-                                'id' => $period->id,
-                                'period_number' => $period->period_number,
-                                'amount' => $period->amount,
-                                'formatted_amount' => $period->formatted_amount,
-                                'days' => $period->days,
-                                'start_date' => $period->start_date->format('Y-m-d H:i:s'),
-                                'end_date' => $period->end_date->format('Y-m-d H:i:s'),
-                                'is_paid' => $period->is_paid,
-                                'paid_at' => $period->paid_at ? $period->paid_at->format('Y-m-d H:i:s') : null,
-                                'is_current' => $period->is_current,
-                                'is_expired' => $period->is_expired,
+                    // If periods are not used, treat as full payment
+                    if (!$package->use_periods) {
+                        if ($package->payment_status !== OrganizationPackage::PAYMENT_STATUS_FULLY_PAID) {
+                            $paymentInfo[] = [
+                                'package_id' => $package->id,
+                                'package_name' => $package->package_name,
+                                'package_duration_days' => $package->package_duration_days,
+                                'total_amount' => $package->package_price,
+                                'paid_amount' => $package->total_paid_amount,
+                                'remaining_amount' => $package->remaining_amount,
+                                'payment_type' => 'full',
+                                'use_periods' => false,
+                                'current_period' => null,
+                                'period_amount' => null,
+                                'periods' => [],
                             ];
-                        })->toArray();
+                        }
+                    } else {
+                        // For packages with periods - use PackagePeriod records
+                        $currentPeriod = $package->getCurrentPeriod();
+                        $currentPeriodRecord = $package->periods()->where('period_number', $currentPeriod)->first();
                         
-                        $paymentInfo[] = [
-                            'package_id' => $package->id,
-                            'package_name' => $package->package_name,
-                            'package_duration_days' => $package->package_duration_days,
-                            'total_amount' => $package->package_price,
-                            'paid_amount' => $package->total_paid_amount,
-                            'remaining_amount' => $package->remaining_amount,
-                            'payment_type' => 'period',
-                            'use_periods' => true,
-                            'current_period' => $currentPeriod,
-                            'period_amount' => $currentPeriodRecord->amount,
-                            'current_period_id' => $currentPeriodRecord->id,
-                            'total_periods' => $package->getTotalPeriods(),
-                            'periods' => $allPeriods,
-                        ];
+                        if ($currentPeriodRecord && !$currentPeriodRecord->is_paid) {
+                            $allPeriods = $package->periods->map(function ($period) {
+                                return [
+                                    'id' => $period->id,
+                                    'period_number' => $period->period_number,
+                                    'amount' => $period->amount,
+                                    'formatted_amount' => $period->formatted_amount,
+                                    'days' => $period->days,
+                                    'start_date' => $period->start_date->format('Y-m-d H:i:s'),
+                                    'end_date' => $period->end_date->format('Y-m-d H:i:s'),
+                                    'is_paid' => $period->is_paid,
+                                    'paid_at' => $period->paid_at ? $period->paid_at->format('Y-m-d H:i:s') : null,
+                                    'is_current' => $period->is_current,
+                                    'is_expired' => $period->is_expired,
+                                ];
+                            })->toArray();
+                            
+                            $paymentInfo[] = [
+                                'package_id' => $package->id,
+                                'package_name' => $package->package_name,
+                                'package_duration_days' => $package->package_duration_days,
+                                'total_amount' => $package->package_price,
+                                'paid_amount' => $package->total_paid_amount,
+                                'remaining_amount' => $package->remaining_amount,
+                                'payment_type' => 'period',
+                                'use_periods' => true,
+                                'current_period' => $currentPeriod,
+                                'period_amount' => $currentPeriodRecord->amount,
+                                'current_period_id' => $currentPeriodRecord->id,
+                                'total_periods' => $package->getTotalPeriods(),
+                                'periods' => $allPeriods,
+                            ];
+                        }
                     }
                 }
             }
@@ -133,6 +159,7 @@ class PaymentController extends Controller
             'data' => $paymentInfo,
             'public_packages' => $publicPackages,
             'has_active_packages' => $activePackages->isNotEmpty(),
+            'all_packages_expired' => $allPackagesExpired,
             'organization' => [
                 'id' => $organization->id,
                 'name' => $organization->name,
