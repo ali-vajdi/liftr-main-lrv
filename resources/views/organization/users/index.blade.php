@@ -14,7 +14,8 @@
                         @include('organization.components.datatable', [
                             'title' => 'لیست کاربران شرکت',
                             'apiUrl' => '/api/organization/users',
-                            'createButton' => false,
+                            'createButton' => true,
+                            'createButtonText' => 'افزودن کاربر جدید',
                             'hideDefaultActions' => true,
                             'columns' => [
                                 ['field' => 'name', 'label' => 'نام'],
@@ -100,6 +101,53 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal for adding users -->
+        <div class="modal fade" id="userModal" tabindex="-1" role="dialog" aria-labelledby="userModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="userModalLabel">افزودن کاربر</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="userForm">
+                            <div class="form-group">
+                                <label for="name">نام <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone_number">شماره تلفن <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="phone_number" name="phone_number" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="username">نام کاربری</label>
+                                <input type="text" class="form-control" id="username" name="username">
+                            </div>
+                            <div class="form-group">
+                                <label for="password">رمز عبور</label>
+                                <input type="password" class="form-control" id="password" name="password" autocomplete="new-password">
+                                <small class="form-text text-muted">حداقل 6 کاراکتر</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="status">وضعیت <span class="text-danger">*</span></label>
+                                <select class="form-control" id="status" name="status" required>
+                                    <option value="1">فعال</option>
+                                    <option value="0">غیرفعال</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
+                        <button type="button" class="btn btn-primary" id="saveUser">ذخیره</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
 
@@ -153,13 +201,102 @@
                     }
                 });
             };
-        });
 
-        // Load organization name
-        getOrganizationData(function(org, error) {
-            if (!error && org) {
-                $('#org-name-users').text(org.name);
-            }
+            // Load organization name
+            getOrganizationData(function(org, error) {
+                if (!error && org) {
+                    $('#org-name-users').text(org.name);
+                }
+            });
+
+            // Create new user
+            $('.create-new-button').click(function() {
+                $('#userModalLabel').text('افزودن کاربر');
+                $('#userForm')[0].reset();
+                $('#userModal').modal('show');
+            });
+
+            // Save user
+            $('#saveUser').click(function() {
+                const name = $('#name').val();
+                const phoneNumber = $('#phone_number').val();
+                const username = $('#username').val();
+                const password = $('#password').val();
+                const status = $('#status').val() === '1' ? true : false;
+
+                if (!name || !phoneNumber) {
+                    swal({
+                        title: 'خطا',
+                        text: 'لطفا نام و شماره تلفن را وارد کنید',
+                        type: 'error',
+                        padding: '2em'
+                    });
+                    return;
+                }
+
+                const data = {
+                    name: name,
+                    phone_number: phoneNumber,
+                    username: username || null,
+                    password: password || null,
+                    status: status
+                };
+
+                $.ajax({
+                    url: '/api/organization/users',
+                    type: 'POST',
+                    data: data,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
+                    },
+                    success: function(response) {
+                        $('#userModal').modal('hide');
+
+                        swal({
+                            title: 'موفقیت',
+                            text: 'کاربر با موفقیت ایجاد شد',
+                            type: 'success',
+                            padding: '2em'
+                        });
+
+                        window.datatableApi.refresh();
+                    },
+                    error: function(xhr) {
+                        if (xhr.status === 422) {
+                            const errors = xhr.responseJSON.errors;
+                            let errorMessage = '';
+
+                            for (const key in errors) {
+                                errorMessage += errors[key].join('\n') + '\n';
+                            }
+
+                            swal({
+                                title: 'خطا در اعتبارسنجی',
+                                text: errorMessage,
+                                type: 'error',
+                                padding: '2em'
+                            });
+                        } else if (xhr.status === 401) {
+                            swal({
+                                title: 'خطای دسترسی',
+                                text: 'لطفا مجددا وارد سیستم شوید',
+                                type: 'error',
+                                padding: '2em'
+                            }).then(function() {
+                                window.location.href = '/login';
+                            });
+                        } else {
+                            swal({
+                                title: 'خطا',
+                                text: xhr.responseJSON?.message || 'خطا در ذخیره اطلاعات',
+                                type: 'error',
+                                padding: '2em'
+                            });
+                        }
+                    }
+                });
+            });
         });
     </script>
 @endsection

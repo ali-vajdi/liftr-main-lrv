@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api\Organization;
 
 use App\Http\Controllers\Controller;
 use App\Models\OrganizationUser;
+use App\Models\Organization;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -81,5 +83,57 @@ class UserController extends Controller
         return response()->json([
             'data' => $organizationUser
         ]);
+    }
+
+    public function store(Request $request)
+    {
+        // Get organization ID from authenticated user
+        $authUser = auth('organization_api')->user();
+        if (!$authUser) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+        
+        $organizationId = $authUser->organization_id;
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'phone_number' => 'required|string|max:20',
+            'username' => 'nullable|string|max:255|unique:organization_users,username',
+            'password' => 'nullable|string|min:6',
+            'status' => 'required',
+        ], [
+            'name.required' => 'نام کاربر الزامی است',
+            'name.max' => 'نام کاربر نمی‌تواند بیش از 255 کاراکتر باشد',
+            'phone_number.required' => 'شماره تلفن الزامی است',
+            'phone_number.max' => 'شماره تلفن نمی‌تواند بیش از 20 کاراکتر باشد',
+            'username.unique' => 'این نام کاربری قبلاً استفاده شده است',
+            'username.max' => 'نام کاربری نمی‌تواند بیش از 255 کاراکتر باشد',
+            'password.min' => 'رمز عبور باید حداقل 6 کاراکتر باشد',
+            'status.required' => 'وضعیت الزامی است',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Get moderator_id from the organization
+        $organization = Organization::findOrFail($organizationId);
+        $moderatorId = $organization->moderator_id;
+
+        $data = $request->all();
+        $data['organization_id'] = $organizationId;
+        $data['moderator_id'] = $moderatorId;
+        $data['status'] = $request->boolean('status', true);
+
+        $user = OrganizationUser::create($data);
+
+        // Add calculated attributes
+        $user->status_text = $user->status_text;
+        $user->status_badge_class = $user->status_badge_class;
+
+        return response()->json([
+            'message' => 'کاربر شرکت با موفقیت ایجاد شد',
+            'data' => $user
+        ], 201);
     }
 }
