@@ -360,6 +360,16 @@
                         </a>
                     </div>
                     <div class="col-md-3 col-sm-6 mb-3">
+                        <a href="{{ route('organization.buildings.expired') }}" class="btn btn-outline-dark btn-block" style="border-radius: 12px; padding: 15px 20px; font-weight: 600; border-width: 2px; transition: all 0.3s;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 8px;">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                                <line x1="12" y1="18" x2="12" y2="18"></line>
+                            </svg>
+                            قراردادهای تمام شده
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
                         <a href="{{ route('organization.buildings.view') }}" class="btn btn-outline-primary btn-block" style="border-radius: 12px; padding: 15px 20px; font-weight: 600; border-width: 2px; transition: all 0.3s;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 8px;">
                                 <path d="M3 21h18"></path>

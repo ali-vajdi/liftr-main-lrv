@@ -62,6 +62,12 @@ class ViewController extends Controller
         return view('organization.buildings.expiring');
     }
 
+    public function showExpiredBuildings()
+    {
+        // Organization data will be fetched via API in the view
+        return view('organization.buildings.expired');
+    }
+
     public function showBuildingElevators($buildingId)
     {
         // Building and organization data will be fetched via API in the view

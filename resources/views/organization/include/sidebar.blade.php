@@ -141,6 +141,9 @@
                     <li class="{{ request()->routeIs('organization.buildings.expiring') ? 'active' : '' }}">
                         <a href="{{ route('organization.buildings.expiring') }}">قراردادهای رو به اتمام</a>
                     </li>
+                    <li class="{{ request()->routeIs('organization.buildings.expired') ? 'active' : '' }}">
+                        <a href="{{ route('organization.buildings.expired') }}">قراردادهای تمام شده</a>
+                    </li>
                 </ul>
             </li>
 

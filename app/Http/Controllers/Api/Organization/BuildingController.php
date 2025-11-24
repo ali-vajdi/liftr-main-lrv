@@ -55,31 +55,60 @@ class BuildingController extends Controller
             $query->where('city_id', $request->city_id);
         }
 
-        // Filter by status
-        if ($request->has('status') && $request->status !== '') {
+        // Filter by status (only if not 'all')
+        if ($request->has('status') && $request->status !== '' && $request->status !== 'all') {
             $query->where('status', $request->status === 'true' || $request->status === true);
         }
 
-        // Filter expiring contracts (service_end_date within next 30 days)
+        // Filter expiring contracts (service_end_date within next N days, default 30)
         if ($request->has('expiring') && $request->expiring === 'true') {
             $today = Carbon::today();
-            $thirtyDaysLater = Carbon::today()->addDays(30);
+            $days = $request->has('days') ? (int)$request->days : 30;
+            $endDate = Carbon::today()->addDays($days);
             $query->whereNotNull('service_end_date')
-                  ->whereBetween('service_end_date', [$today, $thirtyDaysLater])
+                  ->whereBetween('service_end_date', [$today, $endDate])
+                  ->where('service_end_date', '>=', $today) // Only future dates
                   ->orderBy('service_end_date', 'asc');
-        } else {
+        } 
+        // Filter expired contracts (service_end_date is in the past)
+        elseif ($request->has('expired') && $request->expired === 'true') {
+            $today = Carbon::today();
+            $query->whereNotNull('service_end_date')
+                  ->where('service_end_date', '<', $today)
+                  ->orderBy('service_end_date', 'desc');
+        } 
+        else {
             $query->orderBy('created_at', 'desc');
         }
 
         $buildings = $query->paginate(10);
         
-        // Add Jalali formatted dates
-        $items = collect($buildings->items())->map(function ($building) {
+        $today = Carbon::today();
+        
+        // Add Jalali formatted dates and calculate days difference
+        $items = collect($buildings->items())->map(function ($building) use ($today) {
             if ($building->service_start_date) {
                 $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d');
             }
             if ($building->service_end_date) {
                 $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d');
+                
+                // Calculate days difference
+                $endDate = Carbon::parse($building->service_end_date);
+                $diffDays = $today->diffInDays($endDate, false); // false = signed difference
+                
+                if ($diffDays < 0) {
+                    // Expired - days past
+                    $building->days_past = abs($diffDays);
+                    $building->days_remaining = null;
+                } else {
+                    // Not expired - days remaining
+                    $building->days_remaining = $diffDays;
+                    $building->days_past = null;
+                }
+            } else {
+                $building->days_remaining = null;
+                $building->days_past = null;
             }
             return $building;
         });

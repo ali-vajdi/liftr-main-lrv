@@ -1,6 +1,6 @@
 @extends('organization.layout.master')
 
-@section('title', 'قراردادهای رو به اتمام')
+@section('title', 'قراردادهای تمام شده')
 
 @section('content')
 <div class="layout-px-spacing">
@@ -8,13 +8,13 @@
         <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
             <div class="widget widget-chart-one">
                 <div class="widget-heading">
-                    <h5 class="mb-0">قراردادهای رو به اتمام - <span id="org-name-expiring">...</span></h5>
+                    <h5 class="mb-0">قراردادهای تمام شده - <span id="org-name-expired">...</span></h5>
                 </div>
                 <div class="widget-content">
-                    <div class="alert alert-warning mb-4">
-                        <strong>توجه:</strong> این صفحه ساختمان‌هایی را نمایش می‌دهد که تاریخ پایان قرارداد آن‌ها در بازه زمانی انتخابی است.
+                    <div class="alert alert-danger mb-4">
+                        <strong>توجه:</strong> این صفحه ساختمان‌هایی را نمایش می‌دهد که تاریخ پایان قرارداد آن‌ها گذشته است.
                     </div>
-                    <!-- Custom Filters for Expiring Contracts -->
+                    <!-- Custom Filters for Expired Contracts -->
                     <div class="card mb-4" style="border: 1px solid #e0e6ed; border-radius: 8px;">
                         <div class="card-body">
                             <h6 class="card-title mb-3" style="font-weight: 600; color: #3b3f5c;">
@@ -24,24 +24,7 @@
                                 فیلترها
                             </h6>
                             <div class="row g-3">
-                                <div class="col-md-5">
-                                    <label for="periodSelect" class="form-label" style="font-weight: 500; margin-bottom: 8px;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 5px;">
-                                            <circle cx="12" cy="12" r="10"></circle>
-                                            <polyline points="12 6 12 12 16 14"></polyline>
-                                        </svg>
-                                        بازه زمانی (روز)
-                                    </label>
-                                    <select id="periodSelect" class="form-control" style="border-radius: 6px; padding: 10px 15px;">
-                                        <option value="7">7 روز</option>
-                                        <option value="15">15 روز</option>
-                                        <option value="30" selected>30 روز</option>
-                                        <option value="60">60 روز</option>
-                                        <option value="90">90 روز</option>
-                                        <option value="180">180 روز</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-5">
+                                <div class="col-md-10">
                                     <label for="statusSelect" class="form-label" style="font-weight: 500; margin-bottom: 8px;">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 5px;">
                                             <circle cx="12" cy="12" r="10"></circle>
@@ -77,8 +60,8 @@
                     </div>
                     <div class="widget-content widget-content-area br-6">
                         @include('organization.components.datatable', [
-                            'title' => 'قراردادهای رو به اتمام',
-                            'apiUrl' => '/api/organization/buildings?expiring=true&days=30&status=all',
+                            'title' => 'قراردادهای تمام شده',
+                            'apiUrl' => '/api/organization/buildings?expired=true&status=all',
                             'createButton' => false,
                             'hideDefaultFilters' => true,
                             'columns' => [
@@ -124,14 +107,8 @@
                                     'label' => 'تاریخ پایان قرارداد',
                                     'formatter' => 'function(value, row) { 
                                         if (!value || !row.service_end_date) return "-";
-                                        if (row.days_remaining !== null && row.days_remaining !== undefined) {
-                                            let badgeClass = "badge-success";
-                                            if (row.days_remaining <= 7) {
-                                                badgeClass = "badge-danger";
-                                            } else if (row.days_remaining <= 15) {
-                                                badgeClass = "badge-warning";
-                                            }
-                                            return value + " <span class=\"badge " + badgeClass + "\">" + row.days_remaining + " روز باقی مانده</span>";
+                                        if (row.days_past !== null && row.days_past !== undefined) {
+                                            return value + " <span class=\"badge badge-danger\">" + row.days_past + " روز گذشته</span>";
                                         }
                                         return value;
                                     }',
@@ -448,7 +425,7 @@ function showMap(lat, lng, title) {
 // Load organization name
 getOrganizationData(function(org, error) {
     if (!error && org) {
-        $('#org-name-expiring').text(org.name);
+        $('#org-name-expired').text(org.name);
     }
 });
 
@@ -734,27 +711,23 @@ $('#editDatesForm').on('submit', function(e) {
 // Handle filter changes and update datatable
 $(document).ready(function() {
     // Store custom parameters globally for datatable to use
-    window.expiringFilters = {
-        days: 30,
+    window.expiredFilters = {
         status: 'all'
     };
     
-    // Intercept AJAX calls to add custom parameters (only for buildings API with expiring)
+    // Intercept AJAX calls to add custom parameters (only for buildings API with expired)
     const originalAjax = $.ajax;
-    const expiringAjaxWrapper = function(options) {
-        // Only intercept if it's a buildings API call with expiring parameter
+    const expiredAjaxWrapper = function(options) {
+        // Only intercept if it's a buildings API call with expired parameter
         if (options && typeof options === 'object' && options.url) {
             const url = typeof options.url === 'string' ? options.url : '';
-            if (url.includes('/api/organization/buildings') && (url.includes('expiring=true') || url.includes('expired=true'))) {
+            if (url.includes('/api/organization/buildings') && url.includes('expired=true')) {
                 if (!options.data) options.data = {};
-                // Always add expiring and days for expiring page
-                if (url.includes('expiring=true')) {
-                    options.data.expiring = 'true';
-                    options.data.days = window.expiringFilters.days || 30;
-                    // Add status only if not 'all'
-                    if (window.expiringFilters.status && window.expiringFilters.status !== 'all') {
-                        options.data.status = window.expiringFilters.status;
-                    }
+                // Always add expired
+                options.data.expired = 'true';
+                // Add status only if not 'all'
+                if (window.expiredFilters.status && window.expiredFilters.status !== 'all') {
+                    options.data.status = window.expiredFilters.status;
                 }
             }
         }
@@ -762,16 +735,14 @@ $(document).ready(function() {
     };
     
     // Replace $.ajax only for this page
-    $.ajax = expiringAjaxWrapper;
+    $.ajax = expiredAjaxWrapper;
     
     // Apply filters button
     $('#applyFiltersBtn').on('click', function() {
-        const days = $('#periodSelect').val();
         const status = $('#statusSelect').val();
         
         // Update global filters
-        window.expiringFilters.days = days;
-        window.expiringFilters.status = status;
+        window.expiredFilters.status = status;
         
         // Trigger datatable reload by clicking refresh button
         $('.refresh-button').click();
