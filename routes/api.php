@@ -220,3 +220,8 @@ Route::prefix('technician')->name('technician.')->group(function () {
         Route::get('reports', [TechnicianReportController::class, 'index']);
     });
 });
+
+// Public API Routes (No authentication required)
+Route::prefix('public')->name('public.')->group(function () {
+    Route::post('services/{service}/user-note', [\App\Http\Controllers\Api\Public\ServiceController::class, 'updateUserNote']);
+});

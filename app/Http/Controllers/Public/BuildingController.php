@@ -124,5 +124,79 @@ class BuildingController extends Controller
 
         return view('public.services.show', compact('service', 'monthNames'));
     }
+
+    /**
+     * Show assigned or completed service details
+     *
+     * @param Building $building
+     * @param Service $service
+     * @return \Illuminate\View\View
+     */
+    public function showAssignedService(Building $building, Service $service)
+    {
+        // Ensure service belongs to building
+        if ($service->building_id !== $building->id) {
+            abort(404);
+        }
+
+        // Allow only assigned or completed services
+        if (!in_array($service->status, [Service::STATUS_ASSIGNED, Service::STATUS_COMPLETED])) {
+            abort(404, 'این سرویس در دسترس نیست.');
+        }
+
+        // Load relationships based on status
+        if ($service->status === Service::STATUS_COMPLETED) {
+            // Load complete information for completed services
+            $service->load([
+                'building.province',
+                'building.city',
+                'building.elevators',
+                'technician',
+                'checklist' => function($query) {
+                    $query->with([
+                        'signatures',
+                        'managerSignature',
+                        'technicianSignature',
+                        'elevatorChecklists.elevator',
+                        'elevatorChecklists.descriptions'
+                    ]);
+                }
+            ]);
+
+            // Ensure checklist relationships are loaded
+            if ($service->checklist) {
+                $service->checklist->loadMissing([
+                    'signatures',
+                    'managerSignature', 
+                    'technicianSignature'
+                ]);
+            }
+        } else {
+            // Load basic information for assigned services
+            $service->load([
+                'building.province',
+                'building.city',
+                'technician'
+            ]);
+        }
+
+        // Month names in Persian
+        $monthNames = [
+            1 => 'فروردین',
+            2 => 'اردیبهشت',
+            3 => 'خرداد',
+            4 => 'تیر',
+            5 => 'مرداد',
+            6 => 'شهریور',
+            7 => 'مهر',
+            8 => 'آبان',
+            9 => 'آذر',
+            10 => 'دی',
+            11 => 'بهمن',
+            12 => 'اسفند',
+        ];
+
+        return view('public.services.assigned', compact('service', 'building', 'monthNames'));
+    }
 }
 

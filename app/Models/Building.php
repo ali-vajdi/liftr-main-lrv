@@ -92,6 +92,14 @@ class Building extends Model
     }
 
     /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
+    /**
      * Generate a unique 9-character slug
      */
     protected static function generateUniqueSlug(): string
