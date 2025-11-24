@@ -11,7 +11,10 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libzip-dev \
     libpng-dev \
-    && docker-php-ext-install zip pdo pdo_mysql
+    libjpeg-dev \
+    libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install zip pdo pdo_mysql gd
 
 # Install Redis extension
 RUN pecl install redis && docker-php-ext-enable redis
