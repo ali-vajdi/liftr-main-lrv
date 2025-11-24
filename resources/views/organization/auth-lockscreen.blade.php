@@ -20,7 +20,7 @@
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
                 <input type="password" id="password" name="password" class="form-control" placeholder="رمز عبور" required>
-                <input type="hidden" id="username" name="username">
+                <input type="hidden" id="phone_number" name="phone_number">
             </div>
             <div class="d-sm-flex justify-content-between gap-2">
                 <div class="field-wrapper toggle-pass mr-4">
@@ -53,7 +53,7 @@
                 var user = JSON.parse(localStorage.getItem('organization_user'));
                 if (user) {
                     $('.user-name').text(user.name);
-                    $('#username').val(user.username);
+                    $('#phone_number').val(user.phone_number);
                 } else {
                     // If no user in localStorage, redirect to login
                     window.location.href = "{{ route('organization.login') }}";
@@ -61,14 +61,14 @@
 
                 $('#unlock-btn').click(function () {
                     var password = $('#password').val();
-                    var username = $('#username').val();
+                    var phone_number = $('#phone_number').val();
 
                     $.ajax({
                         url: '/api/organization/unlock-screen',
                         type: 'POST',
                         data: {
                             password: password,
-                            username: username
+                            phone_number: phone_number
                         },
                         success: function (response) {
                             // Store the new token

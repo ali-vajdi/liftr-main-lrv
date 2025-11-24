@@ -18,17 +18,17 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'username' => 'required',
+            'phone_number' => 'required',
             'password' => 'required',
         ]);
 
-        $organizationUser = OrganizationUser::where('username', $request->username)
+        $organizationUser = OrganizationUser::where('phone_number', $request->phone_number)
             ->where('status', true) // Only active users
             ->first();
 
         if (!$organizationUser || !Hash::check($request->password, $organizationUser->password)) {
             return response()->json([
-                'message' => 'نام کاربری یا رمز عبور اشتباه است.'
+                'message' => 'شماره تلفن یا رمز عبور اشتباه است.'
             ], 401);
         }
 
@@ -63,10 +63,10 @@ class AuthController extends Controller
     {
         $request->validate([
             'password' => 'required',
-            'username' => 'required',
+            'phone_number' => 'required',
         ]);
 
-        $organizationUser = OrganizationUser::where('username', $request->username)
+        $organizationUser = OrganizationUser::where('phone_number', $request->phone_number)
             ->where('status', true) // Only active users
             ->first();
         

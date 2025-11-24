@@ -27,8 +27,7 @@ class UserController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('phone_number', 'like', '%' . $search . '%')
-                    ->orWhere('username', 'like', '%' . $search . '%');
+                    ->orWhere('phone_number', 'like', '%' . $search . '%');
             });
         }
 
@@ -97,8 +96,7 @@ class UserController extends Controller
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20',
-            'username' => 'nullable|string|max:255|unique:organization_users,username',
+            'phone_number' => 'required|string|max:20|unique:organization_users,phone_number',
             'password' => 'nullable|string|min:6',
             'status' => 'required',
         ], [
@@ -106,8 +104,7 @@ class UserController extends Controller
             'name.max' => 'نام کاربر نمی‌تواند بیش از 255 کاراکتر باشد',
             'phone_number.required' => 'شماره تلفن الزامی است',
             'phone_number.max' => 'شماره تلفن نمی‌تواند بیش از 20 کاراکتر باشد',
-            'username.unique' => 'این نام کاربری قبلاً استفاده شده است',
-            'username.max' => 'نام کاربری نمی‌تواند بیش از 255 کاراکتر باشد',
+            'phone_number.unique' => 'این شماره تلفن قبلاً استفاده شده است',
             'password.min' => 'رمز عبور باید حداقل 6 کاراکتر باشد',
             'status.required' => 'وضعیت الزامی است',
         ]);

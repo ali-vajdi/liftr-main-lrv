@@ -24,8 +24,7 @@ class OrganizationUserController extends Controller
             $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
                 $q->where('name', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('phone_number', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('username', 'LIKE', "%{$searchTerm}%");
+                  ->orWhere('phone_number', 'LIKE', "%{$searchTerm}%");
             });
         }
 
@@ -85,8 +84,7 @@ class OrganizationUserController extends Controller
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20',
-            'username' => 'nullable|string|max:255|unique:organization_users,username',
+            'phone_number' => 'required|string|max:20|unique:organization_users,phone_number',
             'password' => 'nullable|string|min:6',
             'status' => 'required|in:true,false',
         ], [
@@ -94,8 +92,7 @@ class OrganizationUserController extends Controller
             'name.max' => 'نام کاربر نمی‌تواند بیش از 255 کاراکتر باشد',
             'phone_number.required' => 'شماره تلفن الزامی است',
             'phone_number.max' => 'شماره تلفن نمی‌تواند بیش از 20 کاراکتر باشد',
-            'username.unique' => 'این نام کاربری قبلاً استفاده شده است',
-            'username.max' => 'نام کاربری نمی‌تواند بیش از 255 کاراکتر باشد',
+            'phone_number.unique' => 'این شماره تلفن قبلاً استفاده شده است',
             'password.min' => 'رمز عبور باید حداقل 6 کاراکتر باشد',
             'status.required' => 'وضعیت الزامی است',
             'status.in' => 'وضعیت باید فعال یا غیرفعال باشد',
@@ -133,8 +130,7 @@ class OrganizationUserController extends Controller
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20',
-            'username' => 'nullable|string|max:255|unique:organization_users,username,' . $id,
+            'phone_number' => 'required|string|max:20|unique:organization_users,phone_number,' . $id,
             'password' => 'nullable|string|min:6',
             'status' => 'required|in:true,false',
         ], [
@@ -142,8 +138,7 @@ class OrganizationUserController extends Controller
             'name.max' => 'نام کاربر نمی‌تواند بیش از 255 کاراکتر باشد',
             'phone_number.required' => 'شماره تلفن الزامی است',
             'phone_number.max' => 'شماره تلفن نمی‌تواند بیش از 20 کاراکتر باشد',
-            'username.unique' => 'این نام کاربری قبلاً استفاده شده است',
-            'username.max' => 'نام کاربری نمی‌تواند بیش از 255 کاراکتر باشد',
+            'phone_number.unique' => 'این شماره تلفن قبلاً استفاده شده است',
             'password.min' => 'رمز عبور باید حداقل 6 کاراکتر باشد',
             'status.required' => 'وضعیت الزامی است',
             'status.in' => 'وضعیت باید فعال یا غیرفعال باشد',
@@ -184,12 +179,8 @@ class OrganizationUserController extends Controller
         $user = OrganizationUser::where('organization_id', $organizationId)->findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'username' => 'required|string|max:255|unique:organization_users,username,' . $id,
             'password' => 'required|string|min:6',
         ], [
-            'username.required' => 'نام کاربری الزامی است',
-            'username.unique' => 'این نام کاربری قبلاً استفاده شده است',
-            'username.max' => 'نام کاربری نمی‌تواند بیش از 255 کاراکتر باشد',
             'password.required' => 'رمز عبور الزامی است',
             'password.min' => 'رمز عبور باید حداقل 6 کاراکتر باشد',
         ]);
@@ -199,12 +190,11 @@ class OrganizationUserController extends Controller
         }
 
         $user->update([
-            'username' => $request->username,
             'password' => $request->password,
         ]);
 
         return response()->json([
-            'message' => 'نام کاربری و رمز عبور با موفقیت تنظیم شد',
+            'message' => 'رمز عبور با موفقیت تنظیم شد',
             'data' => $user
         ]);
     }

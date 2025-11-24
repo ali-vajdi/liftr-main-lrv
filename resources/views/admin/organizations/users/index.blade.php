@@ -30,13 +30,6 @@
                                 ['field' => 'name', 'label' => 'نام'],
                                 ['field' => 'phone_number', 'label' => 'شماره تلفن'],
                                 [
-                                    'field' => 'username',
-                                    'label' => 'نام کاربری',
-                                    'formatter' => 'function(value) {
-                                        return value || "تعین نشده";
-                                    }',
-                                ],
-                                [
                                     'field' => 'status',
                                     'label' => 'وضعیت',
                                     'formatter' => 'function(value) {
@@ -61,7 +54,7 @@
                                 html += \'</button>\';
                                 
                                 // Credentials button
-                                html += \'<button type="button" class="btn btn-sm btn-primary credentials-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="تنظیم نام کاربری و رمز عبور">\';
+                                html += \'<button type="button" class="btn btn-sm btn-primary credentials-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="تنظیم رمز عبور">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-key"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>\';
                                 html += \'</button>\';
                             ',
@@ -107,10 +100,6 @@
                                 <input type="text" class="form-control" id="phone_number" name="phone_number" required>
                             </div>
                             <div class="form-group">
-                                <label for="username">نام کاربری</label>
-                                <input type="text" class="form-control" id="username" name="username">
-                            </div>
-                            <div class="form-group">
                                 <label for="password">رمز عبور</label>
                                 <input type="password" class="form-control" id="password" name="password">
                                 <small class="form-text text-muted">حداقل 6 کاراکتر</small>
@@ -138,7 +127,7 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="credentialsModalLabel">تنظیم نام کاربری و رمز عبور</h5>
+                        <h5 class="modal-title" id="credentialsModalLabel">تنظیم رمز عبور</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -146,10 +135,6 @@
                     <div class="modal-body">
                         <form id="credentialsForm">
                             <input type="hidden" id="credentialsUserId">
-                            <div class="form-group">
-                                <label for="credentialsUsername">نام کاربری <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="credentialsUsername" name="username" required>
-                            </div>
                             <div class="form-group">
                                 <label for="credentialsPassword">رمز عبور <span class="text-danger">*</span></label>
                                 <input type="password" class="form-control" id="credentialsPassword" name="password" required>
@@ -191,10 +176,6 @@
                                     <tr>
                                         <th>شماره تلفن</th>
                                         <td id="detailPhoneNumber"></td>
-                                    </tr>
-                                    <tr>
-                                        <th>نام کاربری</th>
-                                        <td id="detailUsername"></td>
                                     </tr>
                                     <tr>
                                         <th>وضعیت</th>
@@ -263,7 +244,6 @@
                         $('#detailId').text(data.id);
                         $('#detailName').text(data.name);
                         $('#detailPhoneNumber').text(data.phone_number);
-                        $('#detailUsername').text(data.username || 'تعین نشده');
                         $('#detailStatus').html(data.status ? 
                             '<span class="badge badge-success">فعال</span>' : 
                             '<span class="badge badge-danger">غیرفعال</span>'
@@ -306,7 +286,6 @@
                     success: function(response) {
                         const data = response.data;
                         $('#credentialsUserId').val(data.id);
-                        $('#credentialsUsername').val(data.username || '');
                         $('#credentialsPassword').val('');
                         $('#credentialsModal').modal('show');
                     },
@@ -345,7 +324,6 @@
                 const id = $('#userId').val();
                 const name = $('#name').val();
                 const phoneNumber = $('#phone_number').val();
-                const username = $('#username').val();
                 const password = $('#password').val();
                 const status = $('#status').val() === '1' ? true : false;
 
@@ -362,7 +340,6 @@
                 const data = {
                     name: name,
                     phone_number: phoneNumber,
-                    username: username,
                     password: password,
                     status: status
                 };
@@ -430,13 +407,12 @@
             // Save credentials
             $('#saveCredentials').click(function() {
                 const userId = $('#credentialsUserId').val();
-                const username = $('#credentialsUsername').val();
                 const password = $('#credentialsPassword').val();
 
-                if (!username || !password) {
+                if (!password) {
                     swal({
                         title: 'خطا',
-                        text: 'لطفا نام کاربری و رمز عبور را وارد کنید',
+                        text: 'لطفا رمز عبور را وارد کنید',
                         type: 'error',
                         padding: '2em'
                     });
@@ -444,7 +420,6 @@
                 }
 
                 const data = {
-                    username: username,
                     password: password
                 };
 
@@ -461,7 +436,7 @@
 
                         swal({
                             title: 'موفقیت',
-                            text: 'نام کاربری و رمز عبور با موفقیت تنظیم شد',
+                            text: 'رمز عبور با موفقیت تنظیم شد',
                             type: 'success',
                             padding: '2em'
                         });
@@ -519,7 +494,6 @@
                         $('#userId').val(user.id);
                         $('#name').val(user.name);
                         $('#phone_number').val(user.phone_number);
-                        $('#username').val(user.username || '');
                         $('#password').val('');
                         $('#status').val(user.status ? '1' : '0');
 

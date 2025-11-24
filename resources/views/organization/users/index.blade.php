@@ -20,7 +20,6 @@
                             'columns' => [
                                 ['field' => 'name', 'label' => 'نام'],
                                 ['field' => 'phone_number', 'label' => 'شماره تلفن'],
-                                ['field' => 'username', 'label' => 'نام کاربری'],
                                 [
                                     'field' => 'status',
                                     'label' => 'وضعیت',
@@ -80,10 +79,6 @@
                                         <td id="detailPhone"></td>
                                     </tr>
                                     <tr>
-                                        <th>نام کاربری</th>
-                                        <td id="detailUsername"></td>
-                                    </tr>
-                                    <tr>
                                         <th>وضعیت</th>
                                         <td id="detailStatus"></td>
                                     </tr>
@@ -122,10 +117,6 @@
                             <div class="form-group">
                                 <label for="phone_number">شماره تلفن <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="phone_number" name="phone_number" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="username">نام کاربری</label>
-                                <input type="text" class="form-control" id="username" name="username">
                             </div>
                             <div class="form-group">
                                 <label for="password">رمز عبور</label>
@@ -167,7 +158,6 @@
                         
                         $('#detailName').text(data.name);
                         $('#detailPhone').text(data.phone_number);
-                        $('#detailUsername').text(data.username);
                         $('#detailStatus').html(data.status ? '<span class="badge badge-success">فعال</span>' : '<span class="badge badge-danger">غیرفعال</span>');
                         $('#detailCreatedAt').text(new Date(data.created_at).toLocaleDateString('fa-IR'));
 
@@ -220,7 +210,6 @@
             $('#saveUser').click(function() {
                 const name = $('#name').val();
                 const phoneNumber = $('#phone_number').val();
-                const username = $('#username').val();
                 const password = $('#password').val();
                 const status = $('#status').val() === '1' ? true : false;
 
@@ -237,7 +226,6 @@
                 const data = {
                     name: name,
                     phone_number: phoneNumber,
-                    username: username || null,
                     password: password || null,
                     status: status
                 };
