@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Building;
 use App\Models\Service;
+use App\Models\UnitChecklist;
+use niklasravnsborg\LaravelPdf\Facades\Pdf;
 
 class BuildingController extends Controller
 {
@@ -197,6 +199,111 @@ class BuildingController extends Controller
         ];
 
         return view('public.services.assigned', compact('service', 'building', 'monthNames'));
+    }
+
+    /**
+     * Generate PDF for service checklist
+     *
+     * @param Building $building
+     * @param Service $service
+     * @return \Illuminate\Http\Response
+     */
+    public function printService(Building $building, Service $service)
+    {
+        // Ensure service belongs to building
+        if ($service->building_id !== $building->id) {
+            abort(404);
+        }
+
+        // Only allow completed services
+        if ($service->status !== Service::STATUS_COMPLETED) {
+            abort(404, 'فقط سرویس‌های تکمیل شده قابل چاپ هستند.');
+        }
+
+        // Load all necessary relationships
+        $service->load([
+            'building.organization',
+            'building.province',
+            'building.city',
+            'technician',
+            'checklist' => function($query) {
+                $query->with([
+                    'signatures',
+                    'managerSignature',
+                    'technicianSignature',
+                    'elevatorChecklists.elevator',
+                    'elevatorChecklists.descriptions'
+                ]);
+            }
+        ]);
+
+        if (!$service->checklist || $service->checklist->elevatorChecklists->count() === 0) {
+            abort(404, 'چک لیست برای این سرویس موجود نیست.');
+        }
+
+        // Get unit checklists ordered by order
+        $unitChecklists = UnitChecklist::orderBy('order')->get();
+
+        // Month names in Persian
+        $monthNames = [
+            1 => 'فروردین',
+            2 => 'اردیبهشت',
+            3 => 'خرداد',
+            4 => 'تیر',
+            5 => 'مرداد',
+            6 => 'شهریور',
+            7 => 'مهر',
+            8 => 'آبان',
+            9 => 'آذر',
+            10 => 'دی',
+            11 => 'بهمن',
+            12 => 'اسفند',
+        ];
+
+        // Format completion date
+        $completedDate = null;
+        if ($service->completed_at) {
+            try {
+                if ($service->completed_at instanceof \Carbon\Carbon) {
+                    $jalaliDate = \Morilog\Jalali\Jalalian::fromCarbon($service->completed_at);
+                } else {
+                    $jalaliDate = \Morilog\Jalali\Jalalian::fromDateTime($service->completed_at);
+                }
+                $completedDate = $jalaliDate->format('Y/m/d');
+            } catch (\Exception $e) {
+                $completedDate = $service->completed_at instanceof \Carbon\Carbon 
+                    ? $service->completed_at->format('Y/m/d')
+                    : date('Y/m/d', strtotime($service->completed_at));
+            }
+        }
+
+        // Get signatures
+        $checklist = $service->checklist;
+        $allSignatures = $checklist->signatures;
+        $technicianSig = $allSignatures->where('type', 'technician')->first();
+        $managerSig = $allSignatures->where('type', 'manager')->first();
+        
+        if (!$technicianSig) {
+            $technicianSig = $checklist->technicianSignature;
+        }
+        if (!$managerSig) {
+            $managerSig = $checklist->managerSignature;
+        }
+
+        // Generate PDF using niklasravnsborg/laravel-pdf
+        $pdf = Pdf::loadView('public.services.pdf', [
+            'service' => $service,
+            'building' => $building,
+            'unitChecklists' => $unitChecklists,
+            'monthNames' => $monthNames,
+            'completedDate' => $completedDate,
+            'technicianSig' => $technicianSig,
+            'managerSig' => $managerSig,
+        ]);
+
+        $filename = 'checklist_' . $service->slug . '_' . date('Y-m-d') . '.pdf';
+        
+        return $pdf->download($filename);
     }
 }
 

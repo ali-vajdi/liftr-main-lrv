@@ -322,6 +322,16 @@
             </div>
             @endif
         @endif
+
+        <!-- Print PDF Button (Only for completed services) -->
+        @if($service->checklist && $service->checklist->elevatorChecklists->count() > 0)
+        <div class="building-info" style="text-align: center;">
+            <a href="{{ route('public.services.print', ['building' => $building->slug, 'service' => $service->slug]) }}" target="_blank" class="btn-print-pdf">
+                <i class="fas fa-print"></i>
+                چاپ چک لیست
+            </a>
+        </div>
+        @endif
     @endif
 
     <!-- User Note Section -->
@@ -726,6 +736,30 @@
 
         .btn-cancel-note:hover {
             background: #4b5563;
+        }
+
+        .btn-print-pdf {
+            padding: 0.75rem 2rem;
+            background: #dc2626;
+            color: white;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-radius: 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .btn-print-pdf:hover {
+            background: #b91c1c;
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-print-pdf i {
+            font-size: 1.125rem;
         }
 
         .note-message {
