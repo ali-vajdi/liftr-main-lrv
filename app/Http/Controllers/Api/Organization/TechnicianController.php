@@ -31,8 +31,7 @@ class TechnicianController extends Controller
                 $q->where('first_name', 'like', '%' . $search . '%')
                     ->orWhere('last_name', 'like', '%' . $search . '%')
                     ->orWhere('national_id', 'like', '%' . $search . '%')
-                    ->orWhere('phone_number', 'like', '%' . $search . '%')
-                    ->orWhere('username', 'like', '%' . $search . '%');
+                    ->orWhere('phone_number', 'like', '%' . $search . '%');
             });
         }
 
@@ -70,7 +69,6 @@ class TechnicianController extends Controller
             'last_name' => 'required|string|max:255',
             'national_id' => 'required|string|unique:technicians,national_id',
             'phone_number' => 'required|string|max:20',
-            'username' => 'nullable|string|max:255|unique:technicians,username',
             'password' => 'nullable|string|min:6',
             'status' => 'required|in:true,false',
         ], [
@@ -79,7 +77,6 @@ class TechnicianController extends Controller
             'national_id.required' => 'کد ملی الزامی است',
             'national_id.unique' => 'کد ملی تکراری است',
             'phone_number.required' => 'شماره تماس الزامی است',
-            'username.unique' => 'نام کاربری تکراری است',
             'password.min' => 'رمز عبور باید حداقل 6 کاراکتر باشد',
             'status.required' => 'وضعیت الزامی است',
         ]);
@@ -156,7 +153,6 @@ class TechnicianController extends Controller
             'last_name' => 'required|string|max:255',
             'national_id' => 'required|string|unique:technicians,national_id,' . $id,
             'phone_number' => 'required|string|max:20',
-            'username' => 'nullable|string|max:255|unique:technicians,username,' . $id,
             'password' => 'nullable|string|min:6',
             'status' => 'required|in:true,false',
         ], [
@@ -165,7 +161,6 @@ class TechnicianController extends Controller
             'national_id.required' => 'کد ملی الزامی است',
             'national_id.unique' => 'کد ملی تکراری است',
             'phone_number.required' => 'شماره تماس الزامی است',
-            'username.unique' => 'نام کاربری تکراری است',
             'password.min' => 'رمز عبور باید حداقل 6 کاراکتر باشد',
             'status.required' => 'وضعیت الزامی است',
         ]);
@@ -246,11 +241,8 @@ class TechnicianController extends Controller
     public function setCredentials(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'username' => 'required|string|max:255|unique:technicians,username,' . $id,
             'password' => 'required|string|min:6',
         ], [
-            'username.required' => 'نام کاربری الزامی است',
-            'username.unique' => 'نام کاربری تکراری است',
             'password.required' => 'رمز عبور الزامی است',
             'password.min' => 'رمز عبور باید حداقل 6 کاراکتر باشد',
         ]);
@@ -278,7 +270,6 @@ class TechnicianController extends Controller
         }
 
         $technician->update([
-            'username' => $request->username,
             'password' => $request->password,
         ]);
 
@@ -291,7 +282,7 @@ class TechnicianController extends Controller
         $technician->credentials_status_badge_class = $technician->credentials_status_badge_class;
 
         return response()->json([
-            'message' => 'اطلاعات ورود با موفقیت تنظیم شد',
+            'message' => 'رمز عبور با موفقیت تنظیم شد',
             'data' => $technician->fresh(['organization', 'organizationUser'])
         ]);
     }

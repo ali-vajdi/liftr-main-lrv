@@ -29,17 +29,40 @@ class TechnicianAuthController extends Controller
             ->where('status', true) // Only active technicians
             ->first();
 
-        if (!$technician || !Hash::check($request->password, $technician->password)) {
+        if (!$technician) {
             return response()->json([
                 'message' => 'شماره تماس یا رمز عبور اشتباه است.'
             ], 401);
         }
 
-        // Check if technician has credentials
-        if (!$technician->has_credentials) {
+        // Check if password is set
+        if (empty($technician->password)) {
             return response()->json([
-                'message' => 'اعتبارنامه برای این تکنسین تعریف نشده است.'
+                'message' => 'رمز عبور برای این تکنسین تعریف نشده است.'
             ], 403);
+        }
+
+        // Check if password is a valid Bcrypt hash (starts with $2y$, $2a$, or $2b$)
+        $isBcryptHash = preg_match('/^\$2[ayb]\$.{56}$/', $technician->password);
+        
+        if (!$isBcryptHash) {
+            // Password is not properly hashed - check if it matches as plain text (for migration)
+            if ($technician->password === $request->password) {
+                // Rehash the password properly
+                $technician->password = Hash::make($request->password);
+                $technician->save();
+            } else {
+                return response()->json([
+                    'message' => 'شماره تماس یا رمز عبور اشتباه است.'
+                ], 401);
+            }
+        } else {
+            // Password is properly hashed - verify it
+            if (!Hash::check($request->password, $technician->password)) {
+                return response()->json([
+                    'message' => 'شماره تماس یا رمز عبور اشتباه است.'
+                ], 401);
+            }
         }
 
         $token = $technician->createToken('technician-token')->accessToken;

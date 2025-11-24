@@ -21,13 +21,6 @@
                                 ['field' => 'national_id', 'label' => 'کد ملی'],
                                 ['field' => 'phone_number', 'label' => 'شماره تماس'],
                                 [
-                                    'field' => 'username',
-                                    'label' => 'نام کاربری',
-                                    'formatter' => 'function(value) {
-                                        return value || "-";
-                                    }',
-                                ],
-                                [
                                     'field' => 'status',
                                     'label' => 'وضعیت',
                                     'formatter' => 'function(value) {
@@ -43,7 +36,7 @@
                                 html += \'</button>\';
                                 
                                 // Set credentials button
-                                html += \'<button type="button" class="btn btn-sm btn-warning credentials-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="تنظیم اطلاعات ورود">\';
+                                html += \'<button type="button" class="btn btn-sm btn-warning credentials-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="تنظیم رمز عبور">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-key"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>\';
                                 html += \'</button>\';
                             ',
@@ -96,10 +89,6 @@
                                 <input type="text" class="form-control" id="phone_number" name="phone_number" required>
                             </div>
                             <div class="form-group">
-                                <label for="username">نام کاربری (اختیاری)</label>
-                                <input type="text" class="form-control" id="username" name="username">
-                            </div>
-                            <div class="form-group">
                                 <label for="password">رمز عبور (اختیاری)</label>
                                 <input type="password" class="form-control" id="password" name="password">
                             </div>
@@ -126,7 +115,7 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="credentialsModalLabel">تنظیم اطلاعات ورود</h5>
+                        <h5 class="modal-title" id="credentialsModalLabel">تنظیم رمز عبور</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -134,12 +123,9 @@
                     <div class="modal-body">
                         <form id="credentialsForm">
                             <div class="form-group">
-                                <label for="credentials_username">نام کاربری</label>
-                                <input type="text" class="form-control" id="credentials_username" name="username" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="credentials_password">رمز عبور</label>
+                                <label for="credentials_password">رمز عبور <span class="text-danger">*</span></label>
                                 <input type="password" class="form-control" id="credentials_password" name="password" required>
+                                <small class="form-text text-muted">حداقل 6 کاراکتر</small>
                             </div>
                         </form>
                     </div>
@@ -181,10 +167,6 @@
                                     <tr>
                                         <th>شماره تماس</th>
                                         <td id="detailPhoneNumber"></td>
-                                    </tr>
-                                    <tr>
-                                        <th>نام کاربری</th>
-                                        <td id="detailUsername"></td>
                                     </tr>
                                     <tr>
                                         <th>وضعیت</th>
@@ -259,7 +241,6 @@
                         $('#detailLastName').text(data.last_name);
                         $('#detailNationalId').text(data.national_id);
                         $('#detailPhoneNumber').text(data.phone_number);
-                        $('#detailUsername').text(data.username || '-');
                         $('#detailStatus').html(data.status ? 
                             '<span class="badge badge-success">فعال</span>' : 
                             '<span class="badge badge-danger">غیرفعال</span>'
@@ -315,7 +296,6 @@
                         $('#last_name').val(data.last_name);
                         $('#national_id').val(data.national_id);
                         $('#phone_number').val(data.phone_number);
-                        $('#username').val(data.username || '');
                         $('#password').val('');
                         $('#status').val(data.status ? 'true' : 'false');
                         
@@ -335,26 +315,8 @@
             // Set credentials
             window.onSetCredentials = function(id) {
                 currentTechnicianId = id;
-                
-                // Get technician data to pre-fill username
-                $.ajax({
-                    url: `/api/organization/technicians/${id}`,
-                    type: 'GET',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
-                    },
-                    success: function(response) {
-                        const data = response.data;
-                        $('#credentials_username').val(data.username || '');
-                        $('#credentials_password').val('');
-                        $('#credentialsModal').modal('show');
-                    },
-                    error: function(xhr) {
-                        // If error, just show modal with empty form
-                        $('#credentialsForm')[0].reset();
-                        $('#credentialsModal').modal('show');
-                    }
-                });
+                $('#credentialsForm')[0].reset();
+                $('#credentialsModal').modal('show');
             };
 
             // Delete technician
@@ -370,7 +332,6 @@
                     last_name: $('#last_name').val(),
                     national_id: $('#national_id').val(),
                     phone_number: $('#phone_number').val(),
-                    username: $('#username').val(),
                     password: $('#password').val(),
                     status: $('#status').val()
                 };
@@ -439,7 +400,6 @@
             // Save credentials
             $('#saveCredentials').click(function() {
                 const formData = {
-                    username: $('#credentials_username').val(),
                     password: $('#credentials_password').val()
                 };
 

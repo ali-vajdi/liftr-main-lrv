@@ -19,7 +19,6 @@ class Technician extends Authenticatable
         'last_name',
         'national_id',
         'phone_number',
-        'username',
         'password',
         'status',
     ];
@@ -58,7 +57,7 @@ class Technician extends Authenticatable
     // Check if has credentials
     public function getHasCredentialsAttribute()
     {
-        return !empty($this->username) && !empty($this->password);
+        return !empty($this->password);
     }
 
     // Get credentials status text
