@@ -45,7 +45,7 @@
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.packages.*') ? 'show' : '' }}"
                     id="packages" data-parent="#accordionExample">
                     <li class="{{ request()->routeIs('organization.packages.view') ? 'active' : '' }}">
-                        <a href="{{ route('organization.packages.view') }}">مشاهده اشتراک‌ها</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.packages.view') }}">مشاهده اشتراک‌ها</a>
                     </li>
                 </ul>
             </li>
@@ -76,7 +76,7 @@
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.users.*') ? 'show' : '' }}"
                     id="users" data-parent="#accordionExample">
                     <li class="{{ request()->routeIs('organization.users.view') ? 'active' : '' }}">
-                        <a href="{{ route('organization.users.view') }}">مدیریت کاربران</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.users.view') }}">مدیریت کاربران</a>
                     </li>
                 </ul>
             </li>
@@ -106,7 +106,7 @@
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.technicians.*') ? 'show' : '' }}"
                     id="technicians" data-parent="#accordionExample">
                     <li class="{{ request()->routeIs('organization.technicians.view') ? 'active' : '' }}">
-                        <a href="{{ route('organization.technicians.view') }}">مدیریت تکنیسین‌ها</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.technicians.view') }}">مدیریت تکنیسین‌ها</a>
                     </li>
                 </ul>
             </li>
@@ -136,13 +136,13 @@
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.buildings.*') ? 'show' : '' }}"
                     id="buildings" data-parent="#accordionExample">
                     <li class="{{ request()->routeIs('organization.buildings.view') ? 'active' : '' }}">
-                        <a href="{{ route('organization.buildings.view') }}">مدیریت ساختمان‌ها/پروژه‌ها</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.buildings.view') }}">مدیریت ساختمان‌ها/پروژه‌ها</a>
                     </li>
                     <li class="{{ request()->routeIs('organization.buildings.expiring') ? 'active' : '' }}">
-                        <a href="{{ route('organization.buildings.expiring') }}">قراردادهای رو به اتمام</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.buildings.expiring') }}">قراردادهای رو به اتمام</a>
                     </li>
                     <li class="{{ request()->routeIs('organization.buildings.expired') ? 'active' : '' }}">
-                        <a href="{{ route('organization.buildings.expired') }}">قراردادهای تمام شده</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.buildings.expired') }}">قراردادهای تمام شده</a>
                     </li>
                 </ul>
             </li>
@@ -171,16 +171,16 @@
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.services.*') ? 'show' : '' }}"
                     id="services" data-parent="#accordionExample">
                     <li class="{{ request()->routeIs('organization.services.all') ? 'active' : '' }}">
-                        <a href="{{ route('organization.services.all') }}">همه سرویس‌ها</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.services.all') }}">همه سرویس‌ها</a>
                     </li>
                     <li class="{{ request()->routeIs('organization.services.pending') ? 'active' : '' }}">
-                        <a href="{{ route('organization.services.pending') }}">سرویس‌های در انتظار</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.services.pending') }}">سرویس‌های در انتظار</a>
                     </li>
                     <li class="{{ request()->routeIs('organization.services.assigned') ? 'active' : '' }}">
-                        <a href="{{ route('organization.services.assigned') }}">سرویس‌های اختصاص داده شده</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.services.assigned') }}">سرویس‌های اختصاص داده شده</a>
                     </li>
                     <li class="{{ request()->routeIs('organization.services.completed') ? 'active' : '' }}">
-                        <a href="{{ route('organization.services.completed') }}">سرویس‌های تکمیل شده</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.services.completed') }}">سرویس‌های تکمیل شده</a>
                     </li>
                 </ul>
             </li>
@@ -209,10 +209,10 @@
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.messages.*') ? 'show' : '' }}"
                     id="messages" data-parent="#accordionExample">
                     <li class="{{ request()->routeIs('organization.messages.view') ? 'active' : '' }}">
-                        <a href="{{ route('organization.messages.view') }}">پیام‌های دریافتی از لیفتر</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.messages.view') }}">پیام‌های دریافتی از لیفتر</a>
                     </li>
                     <li class="{{ request()->routeIs('organization.messages.sent') ? 'active' : '' }}">
-                        <a href="{{ route('organization.messages.sent') }}">پیام‌های ارسالی به تکنسین</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.messages.sent') }}">پیام‌های ارسالی به تکنسین</a>
                     </li>
                 </ul>
             </li>

@@ -28,7 +28,7 @@
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('admin.moderators.*') ? 'show' : '' }}"
                     id="moderators" data-parent="#accordionExample">
                     <li class="{{ request()->routeIs('admin.moderators.view') ? 'active' : '' }}">
-                        <a href="{{ route('admin.moderators.view') }}">مدیریت مدیران</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('admin.moderators.view') }}">مدیریت مدیران</a>
                     </li>
                 </ul>
             </li>
@@ -58,7 +58,7 @@
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('admin.organizations.*') ? 'show' : '' }}"
                     id="organizations" data-parent="#accordionExample">
                     <li class="{{ request()->routeIs('admin.organizations.view') ? 'active' : '' }}">
-                        <a href="{{ route('admin.organizations.view') }}">مدیریت شرکت‌ها</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('admin.organizations.view') }}">مدیریت شرکت‌ها</a>
                     </li>
                 </ul>
             </li>
@@ -88,7 +88,7 @@
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('admin.packages.*') ? 'show' : '' }}"
                     id="packages" data-parent="#accordionExample">
                     <li class="{{ request()->routeIs('admin.packages.view') ? 'active' : '' }}">
-                        <a href="{{ route('admin.packages.view') }}">مدیریت تعرفه‌ها</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('admin.packages.view') }}">مدیریت تعرفه‌ها</a>
                     </li>
                 </ul>
             </li>
@@ -116,7 +116,7 @@
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('admin.sms.*') ? 'show' : '' }}"
                     id="sms" data-parent="#accordionExample">
                     <li class="{{ request()->routeIs('admin.sms.view') ? 'active' : '' }}">
-                        <a href="{{ route('admin.sms.view') }}">مدیریت پیامک‌ها</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('admin.sms.view') }}">مدیریت پیامک‌ها</a>
                     </li>
                 </ul>
             </li>
@@ -145,7 +145,7 @@
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('admin.application-versions.*') ? 'show' : '' }}"
                     id="application-versions" data-parent="#accordionExample">
                     <li class="{{ request()->routeIs('admin.application-versions.view') ? 'active' : '' }}">
-                        <a href="{{ route('admin.application-versions.view') }}">مدیریت نسخه‌های اپلیکیشن</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('admin.application-versions.view') }}">مدیریت نسخه‌های اپلیکیشن</a>
                     </li>
                 </ul>
             </li>
@@ -174,7 +174,7 @@
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('admin.unit-checklists.*') ? 'show' : '' }}"
                     id="unit-checklists" data-parent="#accordionExample">
                     <li class="{{ request()->routeIs('admin.unit-checklists.view') ? 'active' : '' }}">
-                        <a href="{{ route('admin.unit-checklists.view') }}">مدیریت چک لیست های واحد</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('admin.unit-checklists.view') }}">مدیریت چک لیست های واحد</a>
                     </li>
                 </ul>
             </li>
@@ -206,7 +206,7 @@
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('admin.description-checklists.*') ? 'show' : '' }}"
                     id="description-checklists" data-parent="#accordionExample">
                     <li class="{{ request()->routeIs('admin.description-checklists.view') ? 'active' : '' }}">
-                        <a href="{{ route('admin.description-checklists.view') }}">مدیریت چک لیست های توضیحات</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('admin.description-checklists.view') }}">مدیریت چک لیست های توضیحات</a>
                     </li>
                 </ul>
             </li>
