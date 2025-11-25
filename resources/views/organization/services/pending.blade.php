@@ -514,7 +514,7 @@ function displayLastServiceDetails(service) {
     // Completed Information with Checklist
     if (service.status === 'completed' && service.checklist_data) {
         html += '<div class="card mb-3">';
-        html += '<div class="card-header"><h6 class="mb-0">اطلاعات تکمیل و چک‌لیست</h6></div>';
+        html += '<div class="card-header"><h6 class="mb-0">اطلاعات تکمیل</h6></div>';
         html += '<div class="card-body">';
         html += '<table class="table table-bordered mb-3">';
         html += '<tr><th width="30%">تاریخ تکمیل:</th><td>' + (service.completed_at_jalali || '-') + '</td></tr>';
