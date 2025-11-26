@@ -300,7 +300,7 @@ function displayServiceDetails(service) {
             html += '<tr><th>یادداشت تکنسین:</th><td>' + service.technician_note + '</td></tr>';
         }
         if (service.user_note) {
-            html += '<tr><th>یادداشت کاربر:</th><td>' + service.user_note + '</td></tr>';
+            html += '<tr><th>یادداشت مدیر:</th><td>' + service.user_note + '</td></tr>';
         }
         html += '</table>';
         html += '</div></div>';
