@@ -206,7 +206,7 @@
 
     <!-- Back Button -->
     <div style="margin-top: 2rem; text-align: center;">
-        <a href="{{ route('public.buildings.services', $service->building_id) }}" class="btn-detail">
+        <a href="{{ route('public.buildings.services', $service->building->slug) }}" class="btn-detail">
             <i class="fas fa-arrow-right"></i>
             بازگشت به لیست سرویس‌ها
         </a>
