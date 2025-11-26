@@ -235,15 +235,15 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="elevators_count">مدیریت آسانسورها</label>
+                                <label for="elevators_count">مدیریت آسانسورها <span class="text-danger">*</span></label>
                                 <div>
                                     <input type="hidden" id="elevators_count" name="elevators_count" value="0">
                                     <button type="button" class="btn btn-primary" id="manageElevatorsBtn">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-up"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
-                                        مدیریت آسانسورها (<span id="elevatorsCountDisplay">0</span>)
+                                        افزودن آسانسورها (<span id="elevatorsCountDisplay">0</span>)
                                     </button>
                                 </div>
-                                <small class="form-text text-muted">برای افزودن و مدیریت آسانسورها کلیک کنید</small>
+                                <small class="form-text text-muted">برای افزودن و مدیریت آسانسورها کلیک کنید. حداقل یک آسانسور الزامی است.</small>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -754,6 +754,20 @@ $(document).ready(function() {
     $('#saveBuilding').on('click', function() {
         const formData = new FormData($('#buildingForm')[0]);
         const data = Object.fromEntries(formData.entries());
+        
+        // Check if building is being created (not edited)
+        const isNewBuilding = !currentBuildingId;
+        
+        // Validate that at least one elevator is added before creating a new building
+        if (isNewBuilding && temporaryElevators.length === 0) {
+            swal({
+                title: 'خطا',
+                text: 'لطفاً حداقل یک آسانسور اضافه کنید. مدیریت آسانسورها الزامی است.',
+                type: 'error',
+                padding: '2em'
+            });
+            return;
+        }
         
         // Add elevators data if available (from temporary elevators or existing)
         if (temporaryElevators.length > 0) {

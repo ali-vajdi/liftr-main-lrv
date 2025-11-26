@@ -150,7 +150,7 @@ class BuildingController extends Controller
             'status' => 'required|in:true,false',
             'elevators_count' => 'nullable|integer|min:0',
             'monthly_amount' => 'nullable|numeric|min:0',
-            'elevators' => 'nullable|array',
+            'elevators' => 'required|array|min:1',
             'elevators.*.name' => 'required_with:elevators|string|max:255',
             'elevators.*.stops_count' => 'required_with:elevators|integer|min:1',
             'elevators.*.capacity' => 'required_with:elevators|integer|min:1',
@@ -216,30 +216,39 @@ class BuildingController extends Controller
             unset($data['service_end_date']);
         }
 
-        // Extract elevators data if provided
+        // Extract elevators data (required for new buildings)
         $elevatorsData = $request->input('elevators', []);
         unset($data['elevators']);
+
+        // Validate that at least one elevator is provided
+        if (empty($elevatorsData) || count($elevatorsData) === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => [
+                    'elevators' => ['حداقل یک آسانسور الزامی است. لطفاً قبل از ایجاد ساختمان، آسانسورها را اضافه کنید.']
+                ]
+            ], 422);
+        }
 
         DB::beginTransaction();
         try {
             $building = Building::create($data);
             
-            // Create elevators if provided
-            if (!empty($elevatorsData)) {
-                foreach ($elevatorsData as $elevatorData) {
-                    Elevator::create([
-                        'building_id' => $building->id,
-                        'name' => $elevatorData['name'],
-                        'stops_count' => $elevatorData['stops_count'],
-                        'capacity' => $elevatorData['capacity'],
-                        'status' => $elevatorData['status'] === 'true' || $elevatorData['status'] === true,
-                        'description' => $elevatorData['description'] ?? null,
-                    ]);
-                }
-                // Update elevators_count based on actual count
-                $building->elevators_count = count($elevatorsData);
-                $building->save();
+            // Create elevators (required)
+            foreach ($elevatorsData as $elevatorData) {
+                Elevator::create([
+                    'building_id' => $building->id,
+                    'name' => $elevatorData['name'],
+                    'stops_count' => $elevatorData['stops_count'],
+                    'capacity' => $elevatorData['capacity'],
+                    'status' => $elevatorData['status'] === 'true' || $elevatorData['status'] === true,
+                    'description' => $elevatorData['description'] ?? null,
+                ]);
             }
+            // Update elevators_count based on actual count
+            $building->elevators_count = count($elevatorsData);
+            $building->save();
             
             DB::commit();
             
