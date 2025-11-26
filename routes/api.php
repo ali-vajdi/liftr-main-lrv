@@ -145,6 +145,7 @@ Route::prefix('organization')->name('organization.')->group(function () {
         
         // Organization Buildings API
         Route::apiResource('buildings', OrgBuildingController::class);
+        Route::get('buildings/{building}/dashboard', [OrgBuildingController::class, 'dashboard']);
         Route::get('provinces', [OrgBuildingController::class, 'getProvinces']);
         Route::get('cities-by-province', [OrgBuildingController::class, 'getCitiesByProvince']);
         

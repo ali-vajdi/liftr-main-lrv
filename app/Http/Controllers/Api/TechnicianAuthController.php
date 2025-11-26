@@ -189,6 +189,7 @@ class TechnicianAuthController extends Controller
                 'national_id' => $technician->national_id,
                 'organization_id' => $technician->organization_id,
                 'organization_name' => $technician->organization ? $technician->organization->name : null,
+                'status' => $technician->status,
                 'organization' => $technician->organization ? [
                     'id' => $technician->organization->id,
                     'name' => $technician->organization->name,

@@ -7,6 +7,7 @@ use App\Models\Building;
 use App\Models\Elevator;
 use App\Models\Province;
 use App\Models\City;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -542,6 +543,241 @@ class BuildingController extends Controller
         return response()->json([
             'success' => true,
             'data' => $cities
+        ]);
+    }
+
+    /**
+     * Get building dashboard data
+     */
+    public function dashboard(Building $building)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Verify building belongs to user's organization
+        if ($building->organization_id !== $user->organization_id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Load relationships
+        $building->load(['province', 'city', 'organizationUser', 'elevators']);
+
+        // Add Jalali formatted dates
+        if ($building->service_start_date) {
+            $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d');
+        } else {
+            $building->service_start_date_jalali = null;
+        }
+        if ($building->service_end_date) {
+            $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d');
+        } else {
+            $building->service_end_date_jalali = null;
+        }
+
+        // Get all services with complete relationships
+        $services = Service::with([
+            'technician',
+            'checklist' => function($query) {
+                $query->with([
+                    'elevatorChecklists' => function($q) {
+                        $q->with([
+                            'elevator',
+                            'descriptions.checklist'
+                        ]);
+                    },
+                    'managerSignature',
+                    'technicianSignature'
+                ]);
+            }
+        ])
+        ->where('building_id', $building->id)
+        ->orderBy('service_year', 'desc')
+        ->orderBy('service_month', 'desc')
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+        // Format services data
+        $monthNames = [
+            1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
+            5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
+            9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند'
+        ];
+
+        $formattedServices = $services->map(function($service) use ($monthNames) {
+            $serviceData = [
+                'id' => $service->id,
+                'service_month' => $service->service_month,
+                'service_year' => $service->service_year,
+                'service_date_text' => ($monthNames[$service->service_month] ?? $service->service_month) . ' ' . $service->service_year,
+                'status' => $service->status,
+                'status_text' => $service->status_text,
+                'status_badge_class' => $service->status_badge_class,
+                'is_manual' => $service->is_manual,
+                'notes' => $service->notes,
+                'organization_note' => $service->organization_note,
+                'user_note' => $service->user_note,
+                'technician_note' => $service->technician_note,
+                'assigned_at' => $service->assigned_at ? $service->assigned_at->toIso8601String() : null,
+                'assigned_at_jalali' => $service->assigned_at ? Jalalian::forge($service->assigned_at)->format('Y/m/d H:i:s') : null,
+                'completed_at' => $service->completed_at ? $service->completed_at->toIso8601String() : null,
+                'completed_at_jalali' => $service->completed_at ? Jalalian::forge($service->completed_at)->format('Y/m/d H:i:s') : null,
+                'visit_date' => $service->visit_date ? $service->visit_date->format('Y-m-d') : null,
+                'visit_date_jalali' => $service->visit_date ? Jalalian::forge($service->visit_date)->format('Y/m/d') : null,
+                'visit_time_range' => $service->visit_time_range,
+                'technician' => null,
+                'checklist' => null,
+            ];
+
+            // Add technician info
+            if ($service->technician) {
+                $serviceData['technician'] = [
+                    'id' => $service->technician->id,
+                    'name' => $service->technician->name,
+                    'first_name' => $service->technician->first_name,
+                    'last_name' => $service->technician->last_name,
+                    'phone' => $service->technician->phone,
+                    'full_name' => $service->technician->name ?: 
+                        ($service->technician->first_name && $service->technician->last_name ? 
+                            $service->technician->first_name . ' ' . $service->technician->last_name : 
+                            'نامشخص')
+                ];
+            }
+
+            // Add checklist info
+            if ($service->checklist) {
+                $elevatorChecklists = $service->checklist->elevatorChecklists->map(function($elevatorChecklist) {
+                    $elevatorData = [
+                        'id' => $elevatorChecklist->id,
+                        'verified' => $elevatorChecklist->verified,
+                        'elevator' => null,
+                        'descriptions' => []
+                    ];
+
+                    if ($elevatorChecklist->elevator) {
+                        $elevatorData['elevator'] = [
+                            'id' => $elevatorChecklist->elevator->id,
+                            'name' => $elevatorChecklist->elevator->name,
+                            'stops_count' => $elevatorChecklist->elevator->stops_count,
+                            'capacity' => $elevatorChecklist->elevator->capacity,
+                            'description' => $elevatorChecklist->elevator->description,
+                        ];
+                    }
+
+                    if ($elevatorChecklist->descriptions) {
+                        $elevatorData['descriptions'] = $elevatorChecklist->descriptions->map(function($desc) {
+                            return [
+                                'id' => $desc->id,
+                                'title' => $desc->title,
+                                'description' => $desc->description,
+                                'checklist' => $desc->checklist ? [
+                                    'id' => $desc->checklist->id,
+                                    'title' => $desc->checklist->title,
+                                ] : null
+                            ];
+                        })->toArray();
+                    }
+
+                    return $elevatorData;
+                })->toArray();
+
+                $serviceData['checklist'] = [
+                    'id' => $service->checklist->id,
+                    'submitted_at' => $service->checklist->submitted_at ? $service->checklist->submitted_at->toIso8601String() : null,
+                    'submitted_at_jalali' => $service->checklist->submitted_at ? Jalalian::forge($service->checklist->submitted_at)->format('Y/m/d H:i:s') : null,
+                    'elevator_checklists' => $elevatorChecklists,
+                    'elevator_checklists_count' => count($elevatorChecklists),
+                    'manager_signature' => $service->checklist->managerSignature ? [
+                        'id' => $service->checklist->managerSignature->id,
+                        'signature' => $service->checklist->managerSignature->signature,
+                    ] : null,
+                    'technician_signature' => $service->checklist->technicianSignature ? [
+                        'id' => $service->checklist->technicianSignature->id,
+                        'signature' => $service->checklist->technicianSignature->signature,
+                    ] : null,
+                ];
+            }
+
+            return $serviceData;
+        })->toArray();
+
+        // Calculate statistics
+        $totalServices = $services->count();
+        $completedServices = $services->where('status', Service::STATUS_COMPLETED)->count();
+        $pendingServices = $services->where('status', Service::STATUS_PENDING)->count();
+        $assignedServices = $services->where('status', Service::STATUS_ASSIGNED)->count();
+        $expiredServices = $services->where('status', Service::STATUS_EXPIRED)->count();
+        $cancelledServices = $services->where('status', Service::STATUS_CANCELLED)->count();
+
+        // Calculate last service days
+        $lastService = $services->where('status', Service::STATUS_COMPLETED)
+            ->whereNotNull('completed_at')
+            ->sortByDesc('completed_at')
+            ->first();
+
+        $lastServiceDays = null;
+        $lastServiceDate = null;
+        $lastServiceDateJalali = null;
+        $lastServiceDaysText = null;
+        $lastServiceDateJalaliWithMonth = null;
+        
+        if ($lastService && $lastService->completed_at) {
+            $lastServiceDate = $lastService->completed_at->toIso8601String();
+            $lastServiceJalali = Jalalian::forge($lastService->completed_at);
+            $lastServiceDateJalali = $lastServiceJalali->format('Y/m/d');
+            
+            $today = Carbon::today();
+            $lastServiceCarbon = Carbon::parse($lastService->completed_at)->startOfDay();
+            $diffDays = $today->diffInDays($lastServiceCarbon, false);
+            
+            // Format the days text
+            if ($diffDays === 0) {
+                $lastServiceDaysText = 'امروز';
+            } elseif ($diffDays === 1) {
+                $lastServiceDaysText = 'دیروز';
+            } elseif ($diffDays > 1) {
+                $lastServiceDaysText = $diffDays . ' روز پیش';
+            } else {
+                // Future date (shouldn't happen, but handle it)
+                $lastServiceDaysText = abs($diffDays) . ' روز بعد';
+            }
+            
+            $lastServiceDays = $diffDays;
+            
+            // Add month name to the date
+            $monthNames = [
+                1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
+                5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
+                9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند'
+            ];
+            $lastServiceMonthName = $monthNames[$lastServiceJalali->getMonth()] ?? $lastServiceJalali->getMonth();
+            $lastServiceDateJalaliWithMonth = $lastServiceMonthName . ' ' . $lastServiceJalali->getDay() . '، ' . $lastServiceJalali->getYear();
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'building' => $building,
+                'statistics' => [
+                    'total_services' => $totalServices,
+                    'completed_services' => $completedServices,
+                    'pending_services' => $pendingServices,
+                    'assigned_services' => $assignedServices,
+                    'expired_services' => $expiredServices,
+                    'cancelled_services' => $cancelledServices,
+                ],
+                'last_service' => $lastService ? [
+                    'id' => $lastService->id,
+                    'service_date_text' => ($monthNames[$lastService->service_month] ?? $lastService->service_month) . ' ' . $lastService->service_year,
+                    'completed_at' => $lastServiceDate,
+                    'completed_at_jalali' => $lastServiceDateJalali,
+                    'completed_at_jalali_with_month' => $lastServiceDateJalaliWithMonth,
+                    'days_since' => $lastServiceDays,
+                    'days_since_text' => $lastServiceDaysText,
+                ] : null,
+                'services' => $formattedServices,
+            ]
         ]);
     }
 }

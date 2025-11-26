@@ -33,6 +33,7 @@ Route::get('/buildings', [OrganizationViewController::class, 'showBuildings'])->
 Route::get('/buildings/expiring', [OrganizationViewController::class, 'showExpiringBuildings'])->name('organization.buildings.expiring');
 Route::get('/buildings/expired', [OrganizationViewController::class, 'showExpiredBuildings'])->name('organization.buildings.expired');
 Route::get('/buildings/{building}/elevators', [OrganizationViewController::class, 'showBuildingElevators'])->name('organization.buildings.elevators.view');
+Route::get('/buildings/{building}/dashboard', [OrganizationViewController::class, 'showBuildingDashboard'])->name('organization.buildings.dashboard');
 Route::get('/services/pending', [OrganizationViewController::class, 'showPendingServices'])->name('organization.services.pending');
 Route::get('/services/assigned', [OrganizationViewController::class, 'showAssignedServices'])->name('organization.services.assigned');
 Route::get('/services/completed', [OrganizationViewController::class, 'showCompletedServices'])->name('organization.services.completed');

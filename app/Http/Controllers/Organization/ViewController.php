@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Organization;
 
 use App\Http\Controllers\Controller;
+use App\Models\Building;
 
 class ViewController extends Controller
 {
@@ -68,10 +69,19 @@ class ViewController extends Controller
         return view('organization.buildings.expired');
     }
 
-    public function showBuildingElevators($buildingId)
+    public function showBuildingElevators(Building $building)
     {
         // Building and organization data will be fetched via API in the view
+        $buildingId = $building->id;
         return view('organization.elevators.index', compact('buildingId'));
+    }
+
+    public function showBuildingDashboard(Building $building)
+    {
+        // Building and services data will be fetched via API in the view
+        // Pass both ID and slug - use slug for API calls
+        $buildingSlug = $building->slug;
+        return view('organization.buildings.dashboard', compact('buildingSlug'));
     }
 
     // Services Management Views
