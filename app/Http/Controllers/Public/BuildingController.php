@@ -20,7 +20,7 @@ class BuildingController extends Controller
      */
     public function showServices(Building $building)
     {
-        $building->load(['province', 'city']);
+        $building->load(['province', 'city', 'organization']);
 
         // Get all completed services for this building
         $services = Service::where('building_id', $building->id)
@@ -87,6 +87,7 @@ class BuildingController extends Controller
             'building.province',
             'building.city',
             'building.elevators',
+            'building.organization',
             'technician',
             'checklist' => function($query) {
                 $query->with([
@@ -159,6 +160,7 @@ class BuildingController extends Controller
                 'building.province',
                 'building.city',
                 'building.elevators',
+                'building.organization',
                 'technician',
                 'checklist' => function($query) {
                     $query->with([
@@ -184,6 +186,7 @@ class BuildingController extends Controller
             $service->load([
                 'building.province',
                 'building.city',
+                'building.organization',
                 'technician'
             ]);
         }

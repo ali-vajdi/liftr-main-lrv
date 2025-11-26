@@ -204,51 +204,6 @@
         </div>
     @endif
 
-    <!-- Signatures -->
-    @if($service->checklist)
-        @php
-            $checklist = $service->checklist;
-            // Try to get signatures from the collection first
-            $allSignatures = $checklist->signatures;
-            $technicianSig = $allSignatures->where('type', 'technician')->first();
-            $managerSig = $allSignatures->where('type', 'manager')->first();
-            
-            // Fallback to direct relationships
-            if (!$technicianSig) {
-                $technicianSig = $checklist->technicianSignature;
-            }
-            if (!$managerSig) {
-                $managerSig = $checklist->managerSignature;
-            }
-        @endphp
-        
-        @if(($technicianSig && !empty($technicianSig->signature)) || ($managerSig && !empty($managerSig->signature)))
-        <div class="building-info">
-            <h3>امضاها</h3>
-            <div class="signatures-grid">
-                @if($technicianSig && !empty($technicianSig->signature))
-                <div class="signature-item">
-                    <div class="signature-label">امضای تکنسین</div>
-                    <div class="signature-name">{{ $technicianSig->name ?? 'نامشخص' }}</div>
-                    <div class="signature-image">
-                        <img src="{{ trim($technicianSig->signature) }}" alt="امضای تکنسین">
-                    </div>
-                </div>
-                @endif
-                @if($managerSig && !empty($managerSig->signature))
-                <div class="signature-item">
-                    <div class="signature-label">امضای مدیر</div>
-                    <div class="signature-name">{{ $managerSig->name ?? 'نامشخص' }}</div>
-                    <div class="signature-image">
-                        <img src="{{ trim($managerSig->signature) }}" alt="امضای مدیر">
-                    </div>
-                </div>
-                @endif
-            </div>
-        </div>
-        @endif
-    @endif
-
     <!-- Back Button -->
     <div style="margin-top: 2rem; text-align: center;">
         <a href="{{ route('public.buildings.services', $service->building_id) }}" class="btn-detail">
@@ -268,34 +223,41 @@
         }
 
         .elevator-item {
-            border: 1px solid #e5e5e5;
-            padding: 1.25rem;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            background: white;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
         }
 
         .elevator-item:hover {
             border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
         }
 
         .elevator-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid #e5e5e5;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--gray-100);
         }
 
         .elevator-name {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #1a1a1a;
+            font-size: 1.1875rem;
+            font-weight: 700;
+            color: var(--gray-900);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
         }
 
         .elevator-name i {
             color: var(--primary);
+            font-size: 1.125rem;
         }
 
         .elevator-details {
@@ -313,39 +275,59 @@
         .spec-item {
             display: flex;
             flex-direction: column;
-            gap: 0.25rem;
+            gap: 0.5rem;
+            padding: 0.875rem;
+            background: var(--gray-50);
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+
+        .spec-item:hover {
+            background: var(--gray-100);
         }
 
         .spec-label {
-            font-size: 0.875rem;
-            color: #666;
-            font-weight: 500;
+            font-size: 0.8125rem;
+            color: var(--gray-600);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .spec-value {
-            font-size: 1rem;
-            color: #1a1a1a;
-            font-weight: 400;
+            font-size: 1.0625rem;
+            color: var(--gray-900);
+            font-weight: 600;
         }
 
         .elevator-descriptions {
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid #e5e5e5;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid var(--gray-100);
         }
 
         .descriptions-title {
-            font-size: 0.9375rem;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 0.75rem;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary);
+            display: inline-block;
         }
 
         .description-item {
             margin-bottom: 1rem;
-            padding: 0.75rem;
-            background: #f9fafb;
-            border: 1px solid #e5e5e5;
+            padding: 1.25rem;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+
+        .description-item:hover {
+            background: white;
+            box-shadow: var(--shadow-sm);
         }
 
         .description-item:last-child {
@@ -353,59 +335,16 @@
         }
 
         .description-title {
-            font-size: 0.9375rem;
-            font-weight: 600;
+            font-size: 1rem;
+            font-weight: 700;
             color: var(--primary);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
         }
 
         .description-text {
             font-size: 0.9375rem;
-            color: #1a1a1a;
-            line-height: 1.6;
-        }
-
-        .signatures-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-
-        .signature-item {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            padding: 1.25rem;
-            border: 1px solid #e5e5e5;
-            background: #f9fafb;
-        }
-
-        .signature-label {
-            font-size: 0.9375rem;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .signature-name {
-            font-size: 0.875rem;
-            color: #666;
-            font-weight: 500;
-        }
-
-        .signature-image {
-            margin-top: 0.5rem;
-            padding: 1rem;
-            background: white;
-            border: 1px solid #e5e5e5;
-            text-align: center;
-        }
-
-        .signature-image img {
-            max-width: 100%;
-            height: auto;
-            max-height: 150px;
-            display: block;
-            margin: 0 auto;
+            color: var(--gray-800);
+            line-height: 1.7;
         }
 
         @media (max-width: 768px) {

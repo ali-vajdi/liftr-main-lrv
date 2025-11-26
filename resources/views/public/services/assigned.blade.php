@@ -5,6 +5,50 @@
 @section('page-title', 'جزئیات سرویس')
 
 @section('content')
+    <!-- Visit Information (Only for assigned services) -->
+    @if($service->status === 'assigned' && ($service->visit_date || $service->visit_time_range))
+    <div class="building-info">
+        <h3>اطلاعات بازدید</h3>
+        <div class="info-grid">
+            @if($service->visit_date)
+            <div class="info-item">
+                <span class="info-label">تاریخ بازدید</span>
+                <span class="info-value">
+                    @php
+                        try {
+                            if ($service->visit_date instanceof \Carbon\Carbon) {
+                                $jalaliDate = \Morilog\Jalali\Jalalian::fromCarbon($service->visit_date);
+                            } else {
+                                $jalaliDate = \Morilog\Jalali\Jalalian::fromDateTime($service->visit_date);
+                            }
+                            echo $jalaliDate->format('Y/m/d');
+                        } catch (\Exception $e) {
+                            echo $service->visit_date instanceof \Carbon\Carbon 
+                                ? $service->visit_date->format('Y/m/d')
+                                : date('Y/m/d', strtotime($service->visit_date));
+                        }
+                    @endphp
+                </span>
+            </div>
+            @endif
+            @if($service->visit_time_range)
+            <div class="info-item">
+                <span class="info-label">بازه زمانی بازدید</span>
+                <span class="info-value">{{ $service->visit_time_range }}</span>
+            </div>
+            @endif
+            @if($service->visit_date && $service->visit_time_range)
+            <div class="info-item" style="grid-column: 1 / -1;">
+                <div class="visit-info-text">
+                    <i class="fas fa-info-circle"></i>
+                    <span>تکنسین در تاریخ <strong>{{ \Morilog\Jalali\Jalalian::fromCarbon($service->visit_date)->format('Y/m/d') }}</strong> در بازه زمانی <strong>{{ $service->visit_time_range }}</strong> برای انجام سرویس مراجعه خواهد کرد.</span>
+                </div>
+            </div>
+            @endif
+        </div>
+    </div>
+    @endif
+
     <!-- Service Information -->
     <div class="building-info">
         <h3>اطلاعات سرویس</h3>
@@ -114,50 +158,6 @@
                         {{ $service->technician->phone_number }}
                     </a>
                 </span>
-            </div>
-            @endif
-        </div>
-    </div>
-    @endif
-
-    <!-- Visit Information (Only for assigned services) -->
-    @if($service->status === 'assigned' && ($service->visit_date || $service->visit_time_range))
-    <div class="building-info">
-        <h3>اطلاعات بازدید</h3>
-        <div class="info-grid">
-            @if($service->visit_date)
-            <div class="info-item">
-                <span class="info-label">تاریخ بازدید</span>
-                <span class="info-value">
-                    @php
-                        try {
-                            if ($service->visit_date instanceof \Carbon\Carbon) {
-                                $jalaliDate = \Morilog\Jalali\Jalalian::fromCarbon($service->visit_date);
-                            } else {
-                                $jalaliDate = \Morilog\Jalali\Jalalian::fromDateTime($service->visit_date);
-                            }
-                            echo $jalaliDate->format('Y/m/d');
-                        } catch (\Exception $e) {
-                            echo $service->visit_date instanceof \Carbon\Carbon 
-                                ? $service->visit_date->format('Y/m/d')
-                                : date('Y/m/d', strtotime($service->visit_date));
-                        }
-                    @endphp
-                </span>
-            </div>
-            @endif
-            @if($service->visit_time_range)
-            <div class="info-item">
-                <span class="info-label">بازه زمانی بازدید</span>
-                <span class="info-value">{{ $service->visit_time_range }}</span>
-            </div>
-            @endif
-            @if($service->visit_date && $service->visit_time_range)
-            <div class="info-item" style="grid-column: 1 / -1;">
-                <div class="visit-info-text">
-                    <i class="fas fa-info-circle"></i>
-                    <span>تکنسین در تاریخ <strong>{{ \Morilog\Jalali\Jalalian::fromCarbon($service->visit_date)->format('Y/m/d') }}</strong> در بازه زمانی <strong>{{ $service->visit_time_range }}</strong> برای انجام سرویس مراجعه خواهد کرد.</span>
-                </div>
             </div>
             @endif
         </div>
@@ -278,51 +278,6 @@
             </div>
         @endif
 
-        <!-- Signatures (Only for completed services) -->
-        @if($service->checklist)
-            @php
-                $checklist = $service->checklist;
-                // Try to get signatures from the collection first
-                $allSignatures = $checklist->signatures;
-                $technicianSig = $allSignatures->where('type', 'technician')->first();
-                $managerSig = $allSignatures->where('type', 'manager')->first();
-                
-                // Fallback to direct relationships
-                if (!$technicianSig) {
-                    $technicianSig = $checklist->technicianSignature;
-                }
-                if (!$managerSig) {
-                    $managerSig = $checklist->managerSignature;
-                }
-            @endphp
-            
-            @if(($technicianSig && !empty($technicianSig->signature)) || ($managerSig && !empty($managerSig->signature)))
-            <div class="building-info">
-                <h3>امضاها</h3>
-                <div class="signatures-grid">
-                    @if($technicianSig && !empty($technicianSig->signature))
-                    <div class="signature-item">
-                        <div class="signature-label">امضای تکنسین</div>
-                        <div class="signature-name">{{ $technicianSig->name ?? 'نامشخص' }}</div>
-                        <div class="signature-image">
-                            <img src="{{ trim($technicianSig->signature) }}" alt="امضای تکنسین">
-                        </div>
-                    </div>
-                    @endif
-                    @if($managerSig && !empty($managerSig->signature))
-                    <div class="signature-item">
-                        <div class="signature-label">امضای مدیر</div>
-                        <div class="signature-name">{{ $managerSig->name ?? 'نامشخص' }}</div>
-                        <div class="signature-image">
-                            <img src="{{ trim($managerSig->signature) }}" alt="امضای مدیر">
-                        </div>
-                    </div>
-                    @endif
-                </div>
-            </div>
-            @endif
-        @endif
-
         <!-- Print PDF Button (Only for completed services) -->
         @if($service->checklist && $service->checklist->elevatorChecklists->count() > 0)
         <div class="building-info" style="text-align: center;">
@@ -336,7 +291,7 @@
 
     <!-- User Note Section -->
     <div class="building-info">
-        <h3>یادداشت شما</h3>
+        <h3>ایرادات، اشکالات و پیشنهادات شما</h3>
         <div id="user-note-section">
             @if($service->status === 'assigned')
                 {{-- Editable note section for assigned services --}}
@@ -363,7 +318,7 @@
                 <div id="user-note-form" class="user-note-form" style="display: none;">
                     <form id="note-form" onsubmit="saveUserNote(event)">
                         <div class="form-group">
-                            <label for="user_note">یادداشت شما:</label>
+                            <label for="user_note">ایرادات، اشکالات و پیشنهادات شما:</label>
                             <textarea 
                                 id="user_note" 
                                 name="user_note" 
@@ -375,7 +330,7 @@
                         <div class="form-actions">
                             <button type="submit" class="btn-save-note">
                                 <i class="fas fa-save"></i>
-                                ذخیره
+                                ثبت
                             </button>
                             <button type="button" class="btn-cancel-note" onclick="cancelEditNote()">
                                 <i class="fas fa-times"></i>
@@ -447,34 +402,41 @@
         }
 
         .elevator-item {
-            border: 1px solid #e5e5e5;
-            padding: 1.25rem;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            background: white;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
         }
 
         .elevator-item:hover {
             border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
         }
 
         .elevator-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid #e5e5e5;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--gray-100);
         }
 
         .elevator-name {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #1a1a1a;
+            font-size: 1.1875rem;
+            font-weight: 700;
+            color: var(--gray-900);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
         }
 
         .elevator-name i {
             color: var(--primary);
+            font-size: 1.125rem;
         }
 
         .elevator-details {
@@ -492,39 +454,59 @@
         .spec-item {
             display: flex;
             flex-direction: column;
-            gap: 0.25rem;
+            gap: 0.5rem;
+            padding: 0.875rem;
+            background: var(--gray-50);
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+
+        .spec-item:hover {
+            background: var(--gray-100);
         }
 
         .spec-label {
-            font-size: 0.875rem;
-            color: #666;
-            font-weight: 500;
+            font-size: 0.8125rem;
+            color: var(--gray-600);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .spec-value {
-            font-size: 1rem;
-            color: #1a1a1a;
-            font-weight: 400;
+            font-size: 1.0625rem;
+            color: var(--gray-900);
+            font-weight: 600;
         }
 
         .elevator-descriptions {
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid #e5e5e5;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid var(--gray-100);
         }
 
         .descriptions-title {
-            font-size: 0.9375rem;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 0.75rem;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary);
+            display: inline-block;
         }
 
         .description-item {
             margin-bottom: 1rem;
-            padding: 0.75rem;
-            background: #f9fafb;
-            border: 1px solid #e5e5e5;
+            padding: 1.25rem;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+
+        .description-item:hover {
+            background: white;
+            box-shadow: var(--shadow-sm);
         }
 
         .description-item:last-child {
@@ -532,81 +514,42 @@
         }
 
         .description-title {
-            font-size: 0.9375rem;
-            font-weight: 600;
+            font-size: 1rem;
+            font-weight: 700;
             color: var(--primary);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
         }
 
         .description-text {
             font-size: 0.9375rem;
-            color: #1a1a1a;
-            line-height: 1.6;
+            color: var(--gray-800);
+            line-height: 1.7;
         }
 
-        .signatures-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-
-        .signature-item {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            padding: 1.25rem;
-            border: 1px solid #e5e5e5;
-            background: #f9fafb;
-        }
-
-        .signature-label {
-            font-size: 0.9375rem;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .signature-name {
-            font-size: 0.875rem;
-            color: #666;
-            font-weight: 500;
-        }
-
-        .signature-image {
-            margin-top: 0.5rem;
-            padding: 1rem;
-            background: white;
-            border: 1px solid #e5e5e5;
-            text-align: center;
-        }
-
-        .signature-image img {
-            max-width: 100%;
-            height: auto;
-            max-height: 150px;
-            display: block;
-            margin: 0 auto;
-        }
 
         .visit-info-text {
             display: flex;
             align-items: flex-start;
-            gap: 0.75rem;
-            padding: 1rem;
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            border-radius: 0.5rem;
+            gap: 1rem;
+            padding: 1.25rem;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 2px solid #93c5fd;
+            border-radius: var(--radius-lg);
             color: #1e40af;
-            line-height: 1.6;
+            line-height: 1.7;
+            box-shadow: var(--shadow-sm);
         }
 
         .visit-info-text i {
             color: #3b82f6;
             margin-top: 0.25rem;
-            font-size: 1.125rem;
+            font-size: 1.25rem;
+            flex-shrink: 0;
         }
 
         .visit-info-text strong {
-            font-weight: 600;
+            font-weight: 700;
+            color: #1e3a8a;
         }
 
         .user-note-display,
@@ -615,52 +558,57 @@
         }
 
         .user-note-content {
-            padding: 1rem;
-            background: #f9fafb;
-            border: 1px solid #e5e5e5;
-            border-radius: 0.5rem;
+            padding: 1.25rem;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
             margin-bottom: 1rem;
+            box-shadow: var(--shadow-sm);
         }
 
         .user-note-content p {
             margin: 0;
-            color: #1a1a1a;
-            line-height: 1.6;
+            color: var(--gray-900);
+            line-height: 1.7;
             white-space: pre-wrap;
         }
 
         .user-note-empty {
             text-align: center;
-            padding: 2rem;
-            background: #f9fafb;
-            border: 1px dashed #d1d5db;
-            border-radius: 0.5rem;
+            padding: 2.5rem;
+            background: var(--gray-50);
+            border: 2px dashed var(--gray-300);
+            border-radius: var(--radius-lg);
         }
 
         .user-note-empty p {
-            color: #6b7280;
+            color: var(--gray-600);
             margin-bottom: 1rem;
+            font-size: 0.9375rem;
         }
 
         .btn-edit-note,
         .btn-add-note {
-            padding: 0.5rem 1rem;
-            background: var(--primary);
+            padding: 0.625rem 1.25rem;
+            background: var(--primary-gradient);
             color: white;
             border: none;
-            border-radius: 0.375rem;
+            border-radius: var(--radius-md);
             font-size: 0.875rem;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            transition: background 0.2s;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
         }
 
         .btn-edit-note:hover,
         .btn-add-note:hover {
             background: var(--primary-dark);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
         }
 
         .user-note-form {
@@ -680,18 +628,21 @@
 
         .form-control {
             width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
+            padding: 0.875rem;
+            border: 2px solid var(--gray-300);
+            border-radius: var(--radius-md);
             font-size: 0.9375rem;
+            transition: all 0.2s ease;
             font-family: inherit;
             resize: vertical;
+            background: white;
         }
 
         .form-control:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.1);
+            box-shadow: 0 0 0 4px rgba(0, 119, 182, 0.1);
+            background: white;
         }
 
         .form-actions {
@@ -739,8 +690,8 @@
         }
 
         .btn-print-pdf {
-            padding: 0.75rem 2rem;
-            background: #dc2626;
+            padding: 0.875rem 2rem;
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
             color: white;
             text-decoration: none;
             font-size: 1rem;
@@ -748,14 +699,21 @@
             display: inline-flex;
             align-items: center;
             gap: 0.75rem;
-            border-radius: 0.5rem;
-            transition: background 0.2s;
+            border-radius: var(--radius-md);
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
         }
 
         .btn-print-pdf:hover {
-            background: #b91c1c;
+            background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
             color: white;
             text-decoration: none;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .btn-print-pdf:active {
+            transform: translateY(0);
         }
 
         .btn-print-pdf i {
@@ -839,7 +797,7 @@
             const saveButton = form.querySelector('.btn-save-note');
             const originalText = saveButton.innerHTML;
             saveButton.disabled = true;
-            saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال ذخیره...';
+            saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال ثبت...';
             
             // Get CSRF token
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -861,7 +819,7 @@
                 if (data.success) {
                     // Show success message
                     messageDiv.className = 'note-message success';
-                    messageDiv.textContent = data.message || 'یادداشت با موفقیت ذخیره شد.';
+                    messageDiv.textContent = data.message || 'یادداشت با موفقیت ثبت شد.';
                     messageDiv.style.display = 'block';
                     
                     // Update display
@@ -922,7 +880,7 @@
                 } else {
                     // Show error message
                     messageDiv.className = 'note-message error';
-                    messageDiv.textContent = data.message || 'خطا در ذخیره یادداشت. لطفا دوباره تلاش کنید.';
+                    messageDiv.textContent = data.message || 'خطا در ثبت یادداشت. لطفا دوباره تلاش کنید.';
                     messageDiv.style.display = 'block';
                 }
             })
