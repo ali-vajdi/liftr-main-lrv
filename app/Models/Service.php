@@ -59,6 +59,11 @@ class Service extends Model
         return $this->hasOne(ServiceChecklist::class);
     }
 
+    public function views()
+    {
+        return $this->hasMany(ServiceView::class);
+    }
+
     // Accessors
     public function getStatusTextAttribute()
     {

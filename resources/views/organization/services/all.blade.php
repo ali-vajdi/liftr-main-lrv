@@ -645,8 +645,47 @@ function displayServiceDetails(service) {
     html += '<tr><th>شهر:</th><td>' + (service.building && service.building.city ? service.building.city.name : '-') + '</td></tr>';
     html += '<tr><th>ماه سرویس:</th><td>' + (service.service_date_text || '-') + '</td></tr>';
     html += '<tr><th>وضعیت:</th><td>' + (service.status_text || '-') + '</td></tr>';
+    html += '<tr><th>تعداد بازدید:</th><td><span class="badge badge-info"><i class="fas fa-eye"></i> ' + (service.view_count || 0) + '</span></td></tr>';
     html += '</table>';
     html += '</div></div>';
+    
+    // View Details
+    if (service.views && service.views.length > 0) {
+        html += '<div class="card mb-3">';
+        html += '<div class="card-header"><h6 class="mb-0">جزئیات بازدیدها</h6></div>';
+        html += '<div class="card-body">';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-bordered table-sm">';
+        html += '<thead>';
+        html += '<tr>';
+        html += '<th>ردیف</th>';
+        html += '<th>تاریخ و زمان</th>';
+        html += '<th>نوع دستگاه</th>';
+        html += '<th>مرورگر</th>';
+        html += '<th>سیستم عامل</th>';
+        html += '</tr>';
+        html += '</thead>';
+        html += '<tbody>';
+        service.views.forEach(function(view, index) {
+            const deviceTypeText = {
+                'mobile': 'موبایل',
+                'tablet': 'تبلت',
+                'desktop': 'دسکتاپ',
+                'unknown': 'نامشخص'
+            };
+            html += '<tr>';
+            html += '<td>' + (index + 1) + '</td>';
+            html += '<td>' + (view.viewed_at || '-') + '</td>';
+            html += '<td><span class="badge badge-secondary">' + (deviceTypeText[view.device_type] || view.device_type || '-') + '</span></td>';
+            html += '<td>' + (view.browser || '-') + '</td>';
+            html += '<td>' + (view.platform || '-') + '</td>';
+            html += '</tr>';
+        });
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+        html += '</div></div>';
+    }
     
     // Assigned Information
     if (service.status === 'assigned' || service.status === 'completed') {
@@ -668,6 +707,9 @@ function displayServiceDetails(service) {
         }
         if (service.technician_note) {
             html += '<tr><th>یادداشت تکنسین:</th><td>' + service.technician_note + '</td></tr>';
+        }
+        if (service.user_note) {
+            html += '<tr><th>یادداشت کاربر:</th><td>' + service.user_note + '</td></tr>';
         }
         html += '</table>';
         html += '</div></div>';

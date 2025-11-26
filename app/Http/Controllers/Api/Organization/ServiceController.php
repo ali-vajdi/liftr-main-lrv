@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Organization;
 
 use App\Http\Controllers\Controller;
 use App\Models\Service;
+use App\Models\ServiceView;
 use App\Models\Building;
 use App\Models\Technician;
 use App\Models\Message;
@@ -248,6 +249,23 @@ class ServiceController extends Controller
                 $service->last_service_id = null;
             }
             
+            // Add view count and view details
+            $views = ServiceView::where('service_id', $service->id)
+                ->orderBy('viewed_at', 'desc')
+                ->get();
+            
+            $service->view_count = $views->count();
+            $service->views = $views->map(function ($view) {
+                return [
+                    'id' => $view->id,
+                    'ip_address' => $view->ip_address,
+                    'device_type' => $view->device_type,
+                    'browser' => $view->browser,
+                    'platform' => $view->platform,
+                    'viewed_at' => $view->viewed_at ? Jalalian::forge($view->viewed_at)->format('Y/m/d H:i:s') : null,
+                ];
+            });
+            
             return $service;
         });
 
@@ -330,6 +348,24 @@ class ServiceController extends Controller
             if ($service->visit_date) {
                 $service->visit_date_jalali = Jalalian::forge($service->visit_date)->format('Y/m/d');
             }
+            
+            // Add view count and view details
+            $views = ServiceView::where('service_id', $service->id)
+                ->orderBy('viewed_at', 'desc')
+                ->get();
+            
+            $service->view_count = $views->count();
+            $service->views = $views->map(function ($view) {
+                return [
+                    'id' => $view->id,
+                    'ip_address' => $view->ip_address,
+                    'device_type' => $view->device_type,
+                    'browser' => $view->browser,
+                    'platform' => $view->platform,
+                    'viewed_at' => $view->viewed_at ? Jalalian::forge($view->viewed_at)->format('Y/m/d H:i:s') : null,
+                ];
+            });
+            
             return $service;
         });
 
@@ -1002,6 +1038,23 @@ class ServiceController extends Controller
                 ];
             }
             
+            // Add view count and view details
+            $views = ServiceView::where('service_id', $service->id)
+                ->orderBy('viewed_at', 'desc')
+                ->get();
+            
+            $service->view_count = $views->count();
+            $service->views = $views->map(function ($view) {
+                return [
+                    'id' => $view->id,
+                    'ip_address' => $view->ip_address,
+                    'device_type' => $view->device_type,
+                    'browser' => $view->browser,
+                    'platform' => $view->platform,
+                    'viewed_at' => $view->viewed_at ? Jalalian::forge($view->viewed_at)->format('Y/m/d H:i:s') : null,
+                ];
+            });
+            
             return $service;
         });
 
@@ -1154,6 +1207,23 @@ class ServiceController extends Controller
                     }),
                 ];
             }
+            
+            // Add view count and view details
+            $views = ServiceView::where('service_id', $service->id)
+                ->orderBy('viewed_at', 'desc')
+                ->get();
+            
+            $service->view_count = $views->count();
+            $service->views = $views->map(function ($view) {
+                return [
+                    'id' => $view->id,
+                    'ip_address' => $view->ip_address,
+                    'device_type' => $view->device_type,
+                    'browser' => $view->browser,
+                    'platform' => $view->platform,
+                    'viewed_at' => $view->viewed_at ? Jalalian::forge($view->viewed_at)->format('Y/m/d H:i:s') : null,
+                ];
+            });
             
             return $service;
         });

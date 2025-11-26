@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Building;
 use App\Models\Service;
+use App\Models\ServiceView;
 use App\Models\UnitChecklist;
+use Illuminate\Http\Request;
 use niklasravnsborg\LaravelPdf\Facades\Pdf;
 
 class BuildingController extends Controller
@@ -130,11 +132,12 @@ class BuildingController extends Controller
     /**
      * Show assigned or completed service details
      *
+     * @param Request $request
      * @param Building $building
      * @param Service $service
      * @return \Illuminate\View\View
      */
-    public function showAssignedService(Building $building, Service $service)
+    public function showAssignedService(Request $request, Building $building, Service $service)
     {
         // Ensure service belongs to building
         if ($service->building_id !== $building->id) {
@@ -145,6 +148,9 @@ class BuildingController extends Controller
         if (!in_array($service->status, [Service::STATUS_ASSIGNED, Service::STATUS_COMPLETED])) {
             abort(404, 'این سرویس در دسترس نیست.');
         }
+
+        // Record the view
+        $this->recordView($request, $service);
 
         // Load relationships based on status
         if ($service->status === Service::STATUS_COMPLETED) {
@@ -199,6 +205,95 @@ class BuildingController extends Controller
         ];
 
         return view('public.services.assigned', compact('service', 'building', 'monthNames'));
+    }
+
+    /**
+     * Record a view for a service
+     *
+     * @param Request $request
+     * @param Service $service
+     * @return void
+     */
+    protected function recordView(Request $request, Service $service)
+    {
+        $userAgent = $request->userAgent();
+        $ipAddress = $request->ip();
+        
+        // Detect device information
+        $deviceInfo = $this->detectDeviceInfo($userAgent);
+        
+        ServiceView::create([
+            'service_id' => $service->id,
+            'ip_address' => $ipAddress,
+            'user_agent' => $userAgent,
+            'device_type' => $deviceInfo['device_type'],
+            'browser' => $deviceInfo['browser'],
+            'platform' => $deviceInfo['platform'],
+            'viewed_at' => now(),
+        ]);
+    }
+
+    /**
+     * Detect device information from user agent
+     *
+     * @param string|null $userAgent
+     * @return array
+     */
+    protected function detectDeviceInfo(?string $userAgent): array
+    {
+        if (!$userAgent) {
+            return [
+                'device_type' => 'unknown',
+                'browser' => 'unknown',
+                'platform' => 'unknown',
+            ];
+        }
+
+        $userAgent = strtolower($userAgent);
+
+        // Detect device type
+        $deviceType = 'desktop';
+        if (preg_match('/mobile|android|iphone|ipod|blackberry|iemobile|opera mini/i', $userAgent)) {
+            $deviceType = 'mobile';
+        } elseif (preg_match('/tablet|ipad|playbook|silk/i', $userAgent)) {
+            $deviceType = 'tablet';
+        }
+
+        // Detect browser
+        $browser = 'unknown';
+        if (preg_match('/chrome/i', $userAgent) && !preg_match('/edg/i', $userAgent)) {
+            $browser = 'Chrome';
+        } elseif (preg_match('/firefox/i', $userAgent)) {
+            $browser = 'Firefox';
+        } elseif (preg_match('/safari/i', $userAgent) && !preg_match('/chrome/i', $userAgent)) {
+            $browser = 'Safari';
+        } elseif (preg_match('/edg/i', $userAgent)) {
+            $browser = 'Edge';
+        } elseif (preg_match('/opera|opr/i', $userAgent)) {
+            $browser = 'Opera';
+        } elseif (preg_match('/msie|trident/i', $userAgent)) {
+            $browser = 'Internet Explorer';
+        }
+
+        // Detect platform
+        $platform = 'unknown';
+        if (preg_match('/windows/i', $userAgent)) {
+            $platform = 'Windows';
+        } elseif (preg_match('/macintosh|mac os x/i', $userAgent)) {
+            $platform = 'macOS';
+        } elseif (preg_match('/linux/i', $userAgent)) {
+            $platform = 'Linux';
+        } elseif (preg_match('/android/i', $userAgent)) {
+            $platform = 'Android';
+        } elseif (preg_match('/iphone|ipad|ipod/i', $userAgent)) {
+            $platform = 'iOS';
+        }
+
+        return [
+            'device_type' => $deviceType,
+            'browser' => $browser,
+            'platform' => $platform,
+        ];
     }
 
     /**

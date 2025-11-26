@@ -131,6 +131,14 @@
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>\';
                                 html += \'</button>\';
                                 
+                                // Public link button (for assigned and completed services)
+                                if (item.building && item.building.slug && item.slug && (item.status === "assigned" || item.status === "completed")) {
+                                    const publicUrl = `/buildings/${item.building.slug}/services/${item.slug}`;
+                                    html += \'<a href="\' + publicUrl + \'" target="_blank" class="btn btn-sm btn-success public-link-btn mr-1 bs-tooltip" title="مشاهده صفحه عمومی">\';
+                                    html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>\';
+                                    html += \'</a>\';
+                                }
+                                
                                 // Change technician and cancel buttons (only for assigned)
                                 if (item.status === "assigned") {
                                     html += \'<button type="button" class="btn btn-sm btn-primary edit-service-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="ویرایش">\';
@@ -540,6 +548,7 @@ function displayServiceDetails(service) {
                 <p><strong>ماه:</strong> ${service.service_date_text || '-'}</p>
                 <p><strong>سال:</strong> ${service.service_year || '-'}</p>
                 <p><strong>وضعیت:</strong> <span class="badge badge-info">${service.status_text || service.status}</span></p>
+                <p><strong>تعداد بازدید:</strong> <span class="badge badge-info"><i class="fas fa-eye"></i> ${service.view_count || 0}</span></p>
                 <p><strong>تاریخ اختصاص:</strong> ${service.assigned_at_jalali || '-'}</p>
                 ${service.visit_date_jalali ? `<p><strong>تاریخ مراجعه:</strong> ${service.visit_date_jalali}</p>` : ''}
                 ${service.visit_time_range ? `<p><strong>بازه زمانی مراجعه:</strong> ${service.visit_time_range}</p>` : ''}
@@ -552,6 +561,16 @@ function displayServiceDetails(service) {
         </div>
         ${service.organization_note ? `<hr><div class="row"><div class="col-12"><h6>یادداشت شرکت</h6><p>${service.organization_note}</p></div></div>` : ''}
         ${service.technician_note ? `<hr><div class="row"><div class="col-12"><h6>یادداشت تکنسین</h6><p>${service.technician_note}</p></div></div>` : ''}
+        ${service.user_note ? `<hr><div class="row"><div class="col-12"><h6>یادداشت کاربر</h6><p>${service.user_note}</p></div></div>` : ''}
+        ${service.views && service.views.length > 0 ? (function() {
+            let viewsHtml = '<hr><div class="row"><div class="col-12"><h6>جزئیات بازدیدها</h6><div class="table-responsive"><table class="table table-bordered table-sm"><thead><tr><th>ردیف</th><th>تاریخ و زمان</th><th>نوع دستگاه</th><th>مرورگر</th><th>سیستم عامل</th></tr></thead><tbody>';
+            const deviceTypeText = {'mobile': 'موبایل', 'tablet': 'تبلت', 'desktop': 'دسکتاپ', 'unknown': 'نامشخص'};
+            service.views.forEach(function(view, index) {
+                viewsHtml += '<tr><td>' + (index + 1) + '</td><td>' + (view.viewed_at || '-') + '</td><td><span class="badge badge-secondary">' + (deviceTypeText[view.device_type] || view.device_type || '-') + '</span></td><td>' + (view.browser || '-') + '</td><td>' + (view.platform || '-') + '</td></tr>';
+            });
+            viewsHtml += '</tbody></table></div></div></div>';
+            return viewsHtml;
+        })() : ''}
         <hr>
         <div class="row">
             <div class="col-12">
