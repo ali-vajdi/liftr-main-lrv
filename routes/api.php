@@ -142,6 +142,7 @@ Route::prefix('organization')->name('organization.')->group(function () {
         // Organization Technicians API
         Route::apiResource('technicians', OrgTechnicianController::class);
         Route::post('technicians/{technician}/credentials', [OrgTechnicianController::class, 'setCredentials']);
+        Route::get('technicians/{technician}/dashboard', [OrgTechnicianController::class, 'dashboard']);
         
         // Organization Buildings API
         Route::apiResource('buildings', OrgBuildingController::class);

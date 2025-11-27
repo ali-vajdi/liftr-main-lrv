@@ -549,7 +549,7 @@ class BuildingController extends Controller
     /**
      * Get building dashboard data
      */
-    public function dashboard(Building $building)
+    public function dashboard(Request $request, Building $building)
     {
         $user = auth('organization_api')->user();
         if (!$user) {
@@ -576,8 +576,8 @@ class BuildingController extends Controller
             $building->service_end_date_jalali = null;
         }
 
-        // Get all services with complete relationships
-        $services = Service::with([
+        // Get all services with complete relationships and filters
+        $servicesQuery = Service::with([
             'technician',
             'checklist' => function($query) {
                 $query->with([
@@ -592,7 +592,50 @@ class BuildingController extends Controller
                 ]);
             }
         ])
-        ->where('building_id', $building->id)
+        ->where('building_id', $building->id);
+
+        // Apply date filters (filter by service created_at date)
+        if ($request->has('date_from') && !empty($request->date_from)) {
+            try {
+                $jalaliDate = Jalalian::fromFormat('Y/m/d', $request->date_from);
+                $georgianDate = $jalaliDate->toCarbon()->startOfDay();
+                $servicesQuery->where('created_at', '>=', $georgianDate);
+            } catch (\Exception $e) {
+                // If date conversion fails, skip the filter
+            }
+        }
+
+        if ($request->has('date_to') && !empty($request->date_to)) {
+            try {
+                $jalaliDate = Jalalian::fromFormat('Y/m/d', $request->date_to);
+                $georgianDate = $jalaliDate->toCarbon()->endOfDay();
+                $servicesQuery->where('created_at', '<=', $georgianDate);
+            } catch (\Exception $e) {
+                // If date conversion fails, skip the filter
+            }
+        }
+
+        // Apply service status filter
+        if ($request->has('service_status') && !empty($request->service_status)) {
+            $servicesQuery->where('status', $request->service_status);
+        }
+
+        // Apply technician filter
+        if ($request->has('technician_id') && !empty($request->technician_id)) {
+            $servicesQuery->where('technician_id', $request->technician_id);
+        }
+
+        // Apply service year filter
+        if ($request->has('service_year') && !empty($request->service_year)) {
+            $servicesQuery->where('service_year', $request->service_year);
+        }
+
+        // Apply service month filter
+        if ($request->has('service_month') && !empty($request->service_month)) {
+            $servicesQuery->where('service_month', $request->service_month);
+        }
+
+        $services = $servicesQuery
         ->orderBy('service_year', 'desc')
         ->orderBy('service_month', 'desc')
         ->orderBy('created_at', 'desc')
@@ -619,6 +662,8 @@ class BuildingController extends Controller
                 'organization_note' => $service->organization_note,
                 'user_note' => $service->user_note,
                 'technician_note' => $service->technician_note,
+                'created_at' => $service->created_at ? $service->created_at->toIso8601String() : null,
+                'created_at_jalali' => $service->created_at ? Jalalian::forge($service->created_at)->format('Y/m/d H:i:s') : null,
                 'assigned_at' => $service->assigned_at ? $service->assigned_at->toIso8601String() : null,
                 'assigned_at_jalali' => $service->assigned_at ? Jalalian::forge($service->assigned_at)->format('Y/m/d H:i:s') : null,
                 'completed_at' => $service->completed_at ? $service->completed_at->toIso8601String() : null,
@@ -702,7 +747,7 @@ class BuildingController extends Controller
             return $serviceData;
         })->toArray();
 
-        // Calculate statistics
+        // Calculate statistics (using filtered services)
         $totalServices = $services->count();
         $completedServices = $services->where('status', Service::STATUS_COMPLETED)->count();
         $pendingServices = $services->where('status', Service::STATUS_PENDING)->count();

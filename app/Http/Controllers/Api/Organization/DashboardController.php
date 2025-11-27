@@ -68,56 +68,83 @@ class DashboardController extends Controller
                 ->count(),
         ];
 
+        // Build service query with filters
+        $serviceQuery = \App\Models\Service::whereHas('building', function($query) use ($organization) {
+            $query->where('organization_id', $organization->id);
+        });
+
+        // Apply date filters (filter by service created_at date)
+        if ($request->has('date_from') && !empty($request->date_from)) {
+            try {
+                $jalaliDate = Jalalian::fromFormat('Y/m/d', $request->date_from);
+                $georgianDate = $jalaliDate->toCarbon()->startOfDay();
+                $serviceQuery->where('created_at', '>=', $georgianDate);
+            } catch (\Exception $e) {
+                // If date conversion fails, skip the filter
+            }
+        }
+
+        if ($request->has('date_to') && !empty($request->date_to)) {
+            try {
+                $jalaliDate = Jalalian::fromFormat('Y/m/d', $request->date_to);
+                $georgianDate = $jalaliDate->toCarbon()->endOfDay();
+                $serviceQuery->where('created_at', '<=', $georgianDate);
+            } catch (\Exception $e) {
+                // If date conversion fails, skip the filter
+            }
+        }
+
+        // Apply service status filter
+        if ($request->has('service_status') && !empty($request->service_status)) {
+            $serviceQuery->where('status', $request->service_status);
+        }
+
+        // Apply building filter
+        if ($request->has('building_id') && !empty($request->building_id)) {
+            $serviceQuery->where('building_id', $request->building_id);
+        }
+
+        // Apply technician filter
+        if ($request->has('technician_id') && !empty($request->technician_id)) {
+            $serviceQuery->where('technician_id', $request->technician_id);
+        }
+
         // Service Statistics
         $serviceStats = [
-            'total' => \App\Models\Service::whereHas('building', function($query) use ($organization) {
-                $query->where('organization_id', $organization->id);
-            })->count(),
-            'pending' => \App\Models\Service::whereHas('building', function($query) use ($organization) {
-                $query->where('organization_id', $organization->id);
-            })->where('status', 'pending')->count(),
-            'assigned' => \App\Models\Service::whereHas('building', function($query) use ($organization) {
-                $query->where('organization_id', $organization->id);
-            })->where('status', 'assigned')->count(),
-            'completed' => \App\Models\Service::whereHas('building', function($query) use ($organization) {
-                $query->where('organization_id', $organization->id);
-            })->where('status', 'completed')->count(),
-            'expired' => \App\Models\Service::whereHas('building', function($query) use ($organization) {
-                $query->where('organization_id', $organization->id);
-            })->where('status', 'expired')->count(),
+            'total' => (clone $serviceQuery)->count(),
+            'pending' => (clone $serviceQuery)->where('status', 'pending')->count(),
+            'assigned' => (clone $serviceQuery)->where('status', 'assigned')->count(),
+            'completed' => (clone $serviceQuery)->where('status', 'completed')->count(),
+            'expired' => (clone $serviceQuery)->where('status', 'expired')->count(),
         ];
 
-        // Current Month Service Statistics
+        // Current Month Service Statistics (only if no date filters applied)
         $now = Jalalian::now();
         $currentYear = $now->getYear();
         $currentMonth = $now->getMonth();
         
+        $currentMonthServiceQuery = \App\Models\Service::whereHas('building', function($query) use ($organization) {
+            $query->where('organization_id', $organization->id);
+        })->where('service_year', $currentYear)
+          ->where('service_month', $currentMonth);
+        
+        // Apply same filters to current month stats if filters are applied
+        if ($request->has('service_status') && !empty($request->service_status)) {
+            $currentMonthServiceQuery->where('status', $request->service_status);
+        }
+        if ($request->has('building_id') && !empty($request->building_id)) {
+            $currentMonthServiceQuery->where('building_id', $request->building_id);
+        }
+        if ($request->has('technician_id') && !empty($request->technician_id)) {
+            $currentMonthServiceQuery->where('technician_id', $request->technician_id);
+        }
+        
         $currentMonthServiceStats = [
-            'total' => \App\Models\Service::whereHas('building', function($query) use ($organization) {
-                $query->where('organization_id', $organization->id);
-            })->where('service_year', $currentYear)
-              ->where('service_month', $currentMonth)
-              ->count(),
-            'pending' => \App\Models\Service::whereHas('building', function($query) use ($organization) {
-                $query->where('organization_id', $organization->id);
-            })->where('service_year', $currentYear)
-              ->where('service_month', $currentMonth)
-              ->where('status', 'pending')->count(),
-            'assigned' => \App\Models\Service::whereHas('building', function($query) use ($organization) {
-                $query->where('organization_id', $organization->id);
-            })->where('service_year', $currentYear)
-              ->where('service_month', $currentMonth)
-              ->where('status', 'assigned')->count(),
-            'completed' => \App\Models\Service::whereHas('building', function($query) use ($organization) {
-                $query->where('organization_id', $organization->id);
-            })->where('service_year', $currentYear)
-              ->where('service_month', $currentMonth)
-              ->where('status', 'completed')->count(),
-            'expired' => \App\Models\Service::whereHas('building', function($query) use ($organization) {
-                $query->where('organization_id', $organization->id);
-            })->where('service_year', $currentYear)
-              ->where('service_month', $currentMonth)
-              ->where('status', 'expired')->count(),
+            'total' => (clone $currentMonthServiceQuery)->count(),
+            'pending' => (clone $currentMonthServiceQuery)->where('status', 'pending')->count(),
+            'assigned' => (clone $currentMonthServiceQuery)->where('status', 'assigned')->count(),
+            'completed' => (clone $currentMonthServiceQuery)->where('status', 'completed')->count(),
+            'expired' => (clone $currentMonthServiceQuery)->where('status', 'expired')->count(),
         ];
 
         return response()->json([

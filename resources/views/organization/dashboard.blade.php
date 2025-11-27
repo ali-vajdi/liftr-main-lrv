@@ -588,18 +588,8 @@ $(document).ready(function() {
         });
     });
     
-    // Load dashboard data from API
-    getDashboardData(function(data, error) {
-        if (error) {
-            console.error('Error loading dashboard:', error);
-            return;
-        }
-
-        if (!data) {
-            console.error('No data received');
-            return;
-        }
-
+    // Render dashboard data
+    function renderDashboardData(data) {
         var org = data.organization;
         var stats = data.statistics;
 
@@ -686,7 +676,23 @@ $(document).ready(function() {
         if (stats.buildings.expiring_soon > 0) {
             $('#expiring-badge').text(stats.buildings.expiring_soon).show();
         }
+    }
+
+    // Load dashboard data from API
+    getDashboardData(function(data, error) {
+        if (error) {
+            console.error('Error loading dashboard:', error);
+            return;
+        }
+
+        if (!data) {
+            console.error('No data received');
+            return;
+        }
+
+        renderDashboardData(data);
     });
+
 });
 </script>
 @endsection

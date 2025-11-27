@@ -29,6 +29,7 @@ Route::get('/profile', [OrganizationViewController::class, 'showProfile'])->name
 Route::get('/packages', [OrganizationViewController::class, 'showPackages'])->name('organization.packages.view');
 Route::get('/users', [OrganizationViewController::class, 'showUsers'])->name('organization.users.view');
 Route::get('/technicians', [OrganizationViewController::class, 'showTechnicians'])->name('organization.technicians.view');
+Route::get('/technicians/{technician}/dashboard', [OrganizationViewController::class, 'showTechnicianDashboard'])->name('organization.technicians.dashboard');
 Route::get('/buildings', [OrganizationViewController::class, 'showBuildings'])->name('organization.buildings.view');
 Route::get('/buildings/expiring', [OrganizationViewController::class, 'showExpiringBuildings'])->name('organization.buildings.expiring');
 Route::get('/buildings/expired', [OrganizationViewController::class, 'showExpiredBuildings'])->name('organization.buildings.expired');

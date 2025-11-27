@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Organization;
 
 use App\Http\Controllers\Controller;
 use App\Models\Building;
+use App\Models\Technician;
 
 class ViewController extends Controller
 {
@@ -48,6 +49,13 @@ class ViewController extends Controller
     {
         // Organization data will be fetched via API in the view
         return view('organization.technicians.index');
+    }
+
+    public function showTechnicianDashboard(Technician $technician)
+    {
+        // Technician data will be fetched via API in the view
+        $technicianId = $technician->id;
+        return view('organization.technicians.dashboard', compact('technicianId'));
     }
 
     // Buildings Management Views
