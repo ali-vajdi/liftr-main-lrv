@@ -120,6 +120,9 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::post('logout', [OrganizationAuthController::class, 'logout']);
         Route::post('lock-screen', [OrganizationAuthController::class, 'lockScreen']);
         Route::get('check-auth', [OrganizationAuthController::class, 'checkAuth']);
+        Route::get('profile', [OrganizationAuthController::class, 'profile']);
+        Route::put('profile', [OrganizationAuthController::class, 'updateProfile']);
+        Route::post('organization', [OrganizationAuthController::class, 'updateOrganization']);
         
         // Payment routes (excluded from payment check)
         Route::get('payment/info', [\App\Http\Controllers\Organization\PaymentController::class, 'getPaymentInfo']);
