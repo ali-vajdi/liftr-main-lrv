@@ -174,13 +174,13 @@
                         <a style="margin-right: 0; !important;" href="{{ route('organization.services.all') }}">همه سرویس‌ها</a>
                     </li>
                     <li class="{{ request()->routeIs('organization.services.pending') ? 'active' : '' }}">
-                        <a style="margin-right: 0; !important;" href="{{ route('organization.services.pending') }}">سرویس‌های در انتظار</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.services.pending') }}">در انتظار</a>
                     </li>
                     <li class="{{ request()->routeIs('organization.services.assigned') ? 'active' : '' }}">
-                        <a style="margin-right: 0; !important;" href="{{ route('organization.services.assigned') }}">سرویس‌های اختصاص داده شده</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.services.assigned') }}">اختصاص داده شده</a>
                     </li>
                     <li class="{{ request()->routeIs('organization.services.completed') ? 'active' : '' }}">
-                        <a style="margin-right: 0; !important;" href="{{ route('organization.services.completed') }}">سرویس‌های تکمیل شده</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.services.completed') }}">تکمیل شده</a>
                     </li>
                 </ul>
             </li>
