@@ -93,7 +93,7 @@ class ServiceController extends Controller
             }
 
             // Format date label
-            // Label: پریروز (day before yesterday), دیروز (yesterday), امروز (today), فردا (tomorrow), پسفردا (day after tomorrow)
+            // Label: پریروز (day before yesterday), دیروز (yesterday), امروز (today), فردا (tomorrow), پس فردا (day after tomorrow)
             // Special labels include the date in parentheses, all other dates show actual date only
             $visitDateJalali = Jalalian::forge($service->visit_date)->format('Y/m/d');
             $dateLabel = null;
@@ -106,7 +106,7 @@ class ServiceController extends Controller
             } elseif ($visitDate === $dayBeforeYesterdayDate) {
                 $dateLabel = 'پریروز(' . $visitDateJalali . ')';
             } elseif ($visitDate === $dayAfterTomorrowDate) {
-                $dateLabel = 'پسفردا(' . $visitDateJalali . ')';
+                $dateLabel = 'پس فردا(' . $visitDateJalali . ')';
             } else {
                 // Use Jalali date format for all other dates
                 $dateLabel = $visitDateJalali;
@@ -158,10 +158,10 @@ class ServiceController extends Controller
         }
         unset($dateGroup);
         
-        // Sort date groups: past dates (oldest first), then پریروز, دیروز, امروز, فردا, پسفردا, then future dates (newest first)
+        // Sort date groups: past dates (oldest first), then پریروز, دیروز, امروز, فردا, پس فردا, then future dates (newest first)
         $sortedGrouped = [];
         // Note: Special dates now include the date in the label, so we need to check if label starts with special text
-        $specialDatePrefixes = ['پریروز', 'دیروز', 'امروز', 'فردا', 'پسفردا'];
+        $specialDatePrefixes = ['پریروز', 'دیروز', 'امروز', 'فردا', 'پس فردا'];
         
         // Separate special dates, past dates, and future dates
         $specialDates = [];
@@ -228,8 +228,8 @@ class ServiceController extends Controller
         }
         
         // Add special dates in order - these come AFTER past dates
-        // Sort special dates by their type (پریروز, دیروز, امروز, فردا, پسفردا)
-        $specialDateOrder = ['پریروز', 'دیروز', 'امروز', 'فردا', 'پسفردا'];
+        // Sort special dates by their type (پریروز, دیروز, امروز, فردا, پس فردا)
+        $specialDateOrder = ['پریروز', 'دیروز', 'امروز', 'فردا', 'پس فردا'];
         uasort($specialDates, function($a, $b) use ($specialDateOrder) {
             $indexA = array_search($a['type'], $specialDateOrder);
             $indexB = array_search($b['type'], $specialDateOrder);
