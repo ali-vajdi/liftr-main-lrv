@@ -165,5 +165,63 @@ $(document).ready(function() {
             $(this).parent().addClass('active');
         }
     });
+
+    // Load unread messages count
+    loadUnreadMessagesCount();
+    
+    // Refresh unread count every 30 seconds
+    setInterval(function() {
+        loadUnreadMessagesCount();
+    }, 30000);
 });
+
+// Function to load unread messages count
+function loadUnreadMessagesCount() {
+    var token = localStorage.getItem('organization_token');
+    if (!token) {
+        return;
+    }
+
+    $.ajax({
+        url: '/api/organization/messages/unread-count',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(response) {
+            if (response.success && response.data && response.data.unread_count !== undefined) {
+                var count = response.data.unread_count;
+                var badge = $('#unread-messages-badge');
+                
+                if (count > 0) {
+                    badge.text(count);
+                    badge.show();
+                    
+                    // Adjust badge size for double-digit numbers
+                    if (count > 9) {
+                        badge.css({
+                            'padding': '2px 5px',
+                            'min-width': '20px',
+                            'text-align': 'center'
+                        });
+                    } else {
+                        badge.css({
+                            'padding': '2px 6px',
+                            'min-width': 'auto'
+                        });
+                    }
+                } else {
+                    badge.hide();
+                }
+            }
+        },
+        error: function(xhr) {
+            // Silently fail - don't show error for badge updates
+            if (xhr.status === 401) {
+                // User is not authenticated, don't update badge
+                return;
+            }
+        }
+    });
+}
 

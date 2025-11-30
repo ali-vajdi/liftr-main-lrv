@@ -209,7 +209,10 @@
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.messages.*') ? 'show' : '' }}"
                     id="messages" data-parent="#accordionExample">
                     <li class="{{ request()->routeIs('organization.messages.view') ? 'active' : '' }}">
-                        <a style="margin-right: 0; !important;" href="{{ route('organization.messages.view') }}">پیام‌های دریافتی از لیفتر</a>
+                        <a style="margin-right: 0; !important; position: relative; display: flex; align-items: center; justify-content: space-between;" href="{{ route('organization.messages.view') }}">
+                            <span>پیام‌های دریافتی از لیفتر</span>
+                            <span class="badge badge-danger" id="unread-messages-badge" style="display: none; background-color: #e7515a; color: #fff; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: 600; margin-right: auto; margin-left: 8px;">0</span>
+                        </a>
                     </li>
                     <li class="{{ request()->routeIs('organization.messages.sent') ? 'active' : '' }}">
                         <a style="margin-right: 0; !important;" href="{{ route('organization.messages.sent') }}">پیام‌های ارسالی به تکنسین</a>

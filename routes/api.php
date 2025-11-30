@@ -180,6 +180,7 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::get('payment-methods', [\App\Http\Controllers\Api\OrganizationPackageController::class, 'getPaymentMethods']);
         
         // Messages Management (Organization)
+        Route::get('messages/unread-count', [\App\Http\Controllers\Api\Organization\MessageController::class, 'unreadCount']);
         Route::get('messages', [\App\Http\Controllers\Api\Organization\MessageController::class, 'index']);
         Route::get('messages/sent', [\App\Http\Controllers\Api\Organization\MessageController::class, 'sent']);
         Route::get('messages/sent/{message}', [\App\Http\Controllers\Api\Organization\MessageController::class, 'showSent']);

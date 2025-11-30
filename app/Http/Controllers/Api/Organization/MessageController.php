@@ -162,6 +162,29 @@ class MessageController extends Controller
     }
 
     /**
+     * Get unread messages count
+     */
+    public function unreadCount()
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $count = Message::forOrganization($user->organization_id)
+            ->where('receiver_type', Message::RECEIVER_TYPE_ORGANIZATION)
+            ->where('is_read', false)
+            ->count();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'unread_count' => $count
+            ]
+        ]);
+    }
+
+    /**
      * Get messages sent by organization to technicians
      */
     public function sent(Request $request)
