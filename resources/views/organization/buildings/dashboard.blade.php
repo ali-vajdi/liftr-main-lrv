@@ -428,11 +428,11 @@ $(document).ready(function() {
                     <span class="info-value">${building.elevators_count || 0}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">تاریخ شروع سرویس</span>
+                    <span class="info-label">تاریخ شروع قرارداد</span>
                     <span class="info-value">${building.service_start_date_jalali || '-'}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">تاریخ پایان سرویس</span>
+                    <span class="info-label">تاریخ پایان قرارداد</span>
                     <span class="info-value">${building.service_end_date_jalali || '-'}</span>
                 </div>
                 <div class="info-item">
