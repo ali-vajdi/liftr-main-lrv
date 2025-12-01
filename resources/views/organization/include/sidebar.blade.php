@@ -189,7 +189,7 @@
                 <a href="#messages" data-toggle="collapse"
                     aria-expanded="{{ request()->routeIs('organization.messages.*') ? 'true' : 'false' }}"
                     class="dropdown-toggle">
-                    <div class="">
+                    <div class="" style="display: flex; align-items: center; gap: 8px;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             class="feather feather-mail">
@@ -197,6 +197,7 @@
                             <polyline points="22,6 12,13 2,6"></polyline>
                         </svg>
                         <span>پیام‌ها</span>
+                        <span class="badge badge-danger" id="unread-messages-badge" style="display: none; background-color: #e7515a; color: #fff; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: 600;">0</span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -209,9 +210,8 @@
                 <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.messages.*') ? 'show' : '' }}"
                     id="messages" data-parent="#accordionExample">
                     <li class="{{ request()->routeIs('organization.messages.view') ? 'active' : '' }}">
-                        <a style="margin-right: 0; !important; position: relative; display: flex; align-items: center; justify-content: space-between;" href="{{ route('organization.messages.view') }}">
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.messages.view') }}">
                             <span>پیام‌های دریافتی از لیفتر</span>
-                            <span class="badge badge-danger" id="unread-messages-badge" style="display: none; background-color: #e7515a; color: #fff; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: 600; margin-right: auto; margin-left: 8px;">0</span>
                         </a>
                     </li>
                     <li class="{{ request()->routeIs('organization.messages.sent') ? 'active' : '' }}">
