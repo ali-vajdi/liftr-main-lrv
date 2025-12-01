@@ -158,7 +158,7 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="edit-org-name">نام شرکت <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="edit-org-name" name="name" required>
+                            <input type="text" class="form-control" id="edit-org-name" name="name" readonly>
                         </div>
                         <div class="form-group">
                             <label for="edit-org-address">آدرس</label>
@@ -373,7 +373,6 @@ $(document).ready(function() {
         e.preventDefault();
 
         var formData = new FormData();
-        formData.append('name', $('#edit-org-name').val());
         formData.append('address', $('#edit-org-address').val());
         
         var logoFile = $('#edit-org-logo')[0].files[0];
