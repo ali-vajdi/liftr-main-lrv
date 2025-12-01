@@ -177,12 +177,9 @@ class AuthController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
             'address' => 'nullable|string',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], [
-            'name.required' => 'نام شرکت الزامی است',
-            'name.max' => 'نام شرکت نمی‌تواند بیش از 255 کاراکتر باشد',
             'logo.image' => 'فایل انتخاب شده باید تصویر باشد',
             'logo.mimes' => 'فرمت تصویر باید JPG یا PNG باشد',
             'logo.max' => 'حجم تصویر نمی‌تواند بیش از 2 مگابایت باشد',
@@ -192,7 +189,8 @@ class AuthController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $data = $request->only(['name', 'address']);
+        // Explicitly exclude name from updates - organizations cannot change their name
+        $data = $request->only(['address']);
 
         // Handle logo upload
         if ($request->hasFile('logo')) {
