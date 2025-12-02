@@ -495,9 +495,9 @@ $(document).ready(function() {
             
             html += `
                 <tr>
-                    <td>${service.service_date_text}</td>
+                    <td>${service.service_date_text || '-'}</td>
                     <td>${createdDate}</td>
-                    <td>${statusBadges[service.status] || service.status}</td>
+                    <td>${statusBadges[service.status] || service.status || '-'}</td>
                     <td>${technicianName}</td>
                     <td>${assignedDate}</td>
                     <td>${completedDate}</td>
@@ -546,15 +546,15 @@ $(document).ready(function() {
                 <div class="info-grid">
                     <div class="info-item">
                         <span class="info-label">ماه/سال سرویس</span>
-                        <span class="info-value">${service.service_date_text}</span>
+                        <span class="info-value">${service.service_date_text || '-'}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">وضعیت</span>
-                        <span class="info-value">${statusTexts[service.status] || service.status}</span>
+                        <span class="info-value">${statusTexts[service.status] || service.status || '-'}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">نوع سرویس</span>
-                        <span class="info-value">${service.is_manual ? 'دستی' : 'سیستمی'}</span>
+                        <span class="info-value">${service.is_manual !== undefined && service.is_manual !== null ? (service.is_manual ? 'دستی' : 'سیستمی') : '-'}</span>
                     </div>
                 </div>
             </div>
@@ -567,12 +567,12 @@ $(document).ready(function() {
                     <div class="info-grid">
                         <div class="info-item">
                             <span class="info-label">نام تکنسین</span>
-                            <span class="info-value">${service.technician.full_name}</span>
+                            <span class="info-value">${service.technician.full_name || '-'}</span>
                         </div>
                         ${service.technician.phone ? `
                         <div class="info-item">
                             <span class="info-label">شماره تماس</span>
-                            <span class="info-value">${service.technician.phone}</span>
+                            <span class="info-value">${service.technician.phone || '-'}</span>
                         </div>
                         ` : ''}
                     </div>
@@ -680,11 +680,11 @@ $(document).ready(function() {
                         <div style="margin-top: 0.75rem;">
                             <strong>توضیحات:</strong>
                             ${elevatorChecklist.descriptions.map(function(desc) {
-                                const checklistTitle = desc.checklist ? desc.checklist.title : 'نامشخص';
+                                // Use desc.title first, then fall back to desc.checklist.title
+                                const checklistTitle = desc.title || (desc.checklist && desc.checklist.title) || 'نامشخص';
                                 return `
                                     <div class="description-item">
-                                        <strong>${checklistTitle}:</strong> 
-                                        ${desc.description || '-'}
+                                        <strong>${checklistTitle}</strong> 
                                     </div>
                                 `;
                             }).join('')}

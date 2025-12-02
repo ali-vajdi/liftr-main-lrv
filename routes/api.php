@@ -175,6 +175,8 @@ Route::prefix('organization')->name('organization.')->group(function () {
         // Organization SMS API
         Route::get('sms/statistics', [\App\Http\Controllers\Api\Organization\SmsController::class, 'statistics']);
         Route::post('sms/increase-balance', [\App\Http\Controllers\Api\Organization\DashboardController::class, 'increaseSmsBalance']);
+        Route::get('sms/patterns', [\App\Http\Controllers\Api\Organization\SmsController::class, 'getPatterns']);
+        Route::get('sms/patterns/{code}', [\App\Http\Controllers\Api\Organization\SmsController::class, 'getPattern']);
         
         // Payment Methods
         Route::get('payment-methods', [\App\Http\Controllers\Api\OrganizationPackageController::class, 'getPaymentMethods']);

@@ -8,11 +8,12 @@
         "php": "^8.1",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^10.10",
+        "laravel/horizon": "^5.40",
         "laravel/passport": "^11.0",
         "laravel/sanctum": "^3.3",
+        "laravel/telescope": "^5.15",
         "laravel/tinker": "^2.8",
         "morilog/jalali": "^3.4",
-        "laravel/telescope": "^5.15",
         "niklasravnsborg/laravel-pdf": "^4.1"
     },
     "require-dev": {

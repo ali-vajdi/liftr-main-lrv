@@ -212,11 +212,12 @@
                                         <th>تاریخ اختصاص</th>
                                         <th>تاریخ تکمیل</th>
                                         <th>تاریخ بازدید</th>
+                                        <th>عملیات</th>
                                     </tr>
                                 </thead>
                                 <tbody id="services-tbody">
                                     <tr>
-                                        <td colspan="7" class="text-center">
+                                        <td colspan="8" class="text-center">
                                             <div class="spinner-border text-primary" role="status">
                                                 <span class="sr-only">در حال بارگذاری...</span>
                                             </div>
@@ -227,6 +228,30 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Service Details Modal -->
+<div class="modal fade" id="serviceDetailsModal" tabindex="-1" role="dialog" aria-labelledby="serviceDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="serviceDetailsModalLabel">جزئیات سرویس</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="service-details-content">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">در حال بارگذاری...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
             </div>
         </div>
     </div>
@@ -259,6 +284,35 @@
         font-size: 1rem;
         color: #212529;
         font-weight: 600;
+    }
+    
+    .service-details-section {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+    }
+    .service-details-section h6 {
+        margin-bottom: 0.75rem;
+        color: #495057;
+        font-weight: 600;
+    }
+    .elevator-item {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+        background: white;
+        border-radius: 0.5rem;
+        border: 1px solid #dee2e6;
+    }
+    .elevator-item:last-child {
+        margin-bottom: 0;
+    }
+    .description-item {
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        background: white;
+        border-right: 3px solid #007bff;
+        border-radius: 0.25rem;
     }
     
     /* Filter Form Styles */
@@ -405,7 +459,7 @@ $(document).ready(function() {
     // Render services table
     function renderServicesTable(services) {
         if (!services || services.length === 0) {
-            $('#services-tbody').html('<tr><td colspan="7" class="text-center">سرویسی یافت نشد</td></tr>');
+            $('#services-tbody').html('<tr><td colspan="8" class="text-center">سرویسی یافت نشد</td></tr>');
             return;
         }
 
@@ -435,10 +489,227 @@ $(document).ready(function() {
                     <td>${assignedDate}</td>
                     <td>${completedDate}</td>
                     <td>${visitDate}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info view-service-btn" data-service-id="${service.id}" title="مشاهده جزئیات">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
+                    </td>
                 </tr>
             `;
         });
         $('#services-tbody').html(html);
+    }
+
+    // Show service details modal
+    $(document).on('click', '.view-service-btn', function() {
+        if (!dashboardData) return;
+        
+        const serviceId = parseInt($(this).data('service-id'));
+        const service = dashboardData.services.find(s => s.id === serviceId);
+        
+        if (!service) {
+            $('#service-details-content').html('<div class="alert alert-danger">سرویس یافت نشد</div>');
+            return;
+        }
+
+        $('#serviceDetailsModal').modal('show');
+        renderServiceDetails(service);
+    });
+
+    // Render service details
+    function renderServiceDetails(service) {
+        const statusTexts = {
+            'pending': 'در انتظار',
+            'assigned': 'اختصاص داده شده',
+            'completed': 'تکمیل شده',
+            'expired': 'منقضی شده',
+            'cancelled': 'لغو شده'
+        };
+
+        let html = `
+            <div class="service-details-section">
+                <h6>اطلاعات کلی سرویس</h6>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">ماه/سال سرویس</span>
+                        <span class="info-value">${service.service_date_text || '-'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">وضعیت</span>
+                        <span class="info-value">${statusTexts[service.status] || service.status || '-'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">نوع سرویس</span>
+                        <span class="info-value">${service.is_manual !== undefined && service.is_manual !== null ? (service.is_manual ? 'دستی' : 'سیستمی') : '-'}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        if (service.building) {
+            html += `
+                <div class="service-details-section">
+                    <h6>اطلاعات ساختمان</h6>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">نام ساختمان</span>
+                            <span class="info-value">${service.building.name || '-'}</span>
+                        </div>
+                        ${service.building.address ? `
+                        <div class="info-item">
+                            <span class="info-label">آدرس</span>
+                            <span class="info-value">${service.building.address}</span>
+                        </div>
+                        ` : ''}
+                        ${service.building.city ? `
+                        <div class="info-item">
+                            <span class="info-label">شهر</span>
+                            <span class="info-value">${service.building.city}</span>
+                        </div>
+                        ` : ''}
+                        ${service.building.province ? `
+                        <div class="info-item">
+                            <span class="info-label">استان</span>
+                            <span class="info-value">${service.building.province}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        if (service.assigned_at || service.completed_at || service.visit_date) {
+            html += `
+                <div class="service-details-section">
+                    <h6>تاریخ‌ها</h6>
+                    <div class="info-grid">
+                        ${service.assigned_at_jalali ? `
+                        <div class="info-item">
+                            <span class="info-label">تاریخ اختصاص</span>
+                            <span class="info-value">${service.assigned_at_jalali}</span>
+                        </div>
+                        ` : ''}
+                        ${service.completed_at_jalali ? `
+                        <div class="info-item">
+                            <span class="info-label">تاریخ تکمیل</span>
+                            <span class="info-value">${service.completed_at_jalali}</span>
+                        </div>
+                        ` : ''}
+                        ${service.visit_date_jalali ? `
+                        <div class="info-item">
+                            <span class="info-label">تاریخ بازدید</span>
+                            <span class="info-value">${service.visit_date_jalali}</span>
+                        </div>
+                        ` : ''}
+                        ${service.visit_time_range ? `
+                        <div class="info-item">
+                            <span class="info-label">بازه زمانی بازدید</span>
+                            <span class="info-value">${service.visit_time_range}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        if (service.notes || service.organization_note || service.user_note || service.technician_note) {
+            html += `
+                <div class="service-details-section">
+                    <h6>یادداشت‌ها</h6>
+                    <div class="info-grid">
+                        ${service.notes ? `
+                        <div class="info-item">
+                            <span class="info-label">یادداشت عمومی</span>
+                            <span class="info-value">${service.notes}</span>
+                        </div>
+                        ` : ''}
+                        ${service.organization_note ? `
+                        <div class="info-item">
+                            <span class="info-label">یادداشت سازمان</span>
+                            <span class="info-value">${service.organization_note}</span>
+                        </div>
+                        ` : ''}
+                        ${service.user_note ? `
+                        <div class="info-item">
+                            <span class="info-label">یادداشت کاربر</span>
+                            <span class="info-value">${service.user_note}</span>
+                        </div>
+                        ` : ''}
+                        ${service.technician_note ? `
+                        <div class="info-item">
+                            <span class="info-label">یادداشت تکنسین</span>
+                            <span class="info-value">${service.technician_note}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        if (service.checklist && service.checklist.elevator_checklists && service.checklist.elevator_checklists.length > 0) {
+            html += `
+                <div class="service-details-section">
+                    <h6>آسانسورهای سرویس شده</h6>
+            `;
+
+            service.checklist.elevator_checklists.forEach(function(elevatorChecklist) {
+                const elevator = elevatorChecklist.elevator;
+                html += `
+                    <div class="elevator-item">
+                        <h6 style="margin-bottom: 0.5rem;">${elevator ? elevator.name : 'نامشخص'}</h6>
+                        ${elevator ? `
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">تعداد توقف</span>
+                                <span class="info-value">${elevator.stops_count || '-'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">ظرفیت</span>
+                                <span class="info-value">${elevator.capacity ? elevator.capacity + ' نفر' : '-'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">وضعیت تایید</span>
+                                <span class="info-value">${elevatorChecklist.verified ? '<span class="badge badge-success">تایید شده</span>' : '<span class="badge badge-warning">تایید نشده</span>'}</span>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        ${elevatorChecklist.descriptions && elevatorChecklist.descriptions.length > 0 ? `
+                        <div style="margin-top: 0.75rem;">
+                            <strong>توضیحات:</strong>
+                            ${elevatorChecklist.descriptions.map(function(desc) {
+                                // Use desc.title first, then fall back to desc.checklist.title
+                                const checklistTitle = desc.title || (desc.checklist && desc.checklist.title) || 'نامشخص';
+                                return `
+                                    <div class="description-item">
+                                        <strong>${checklistTitle}</strong> 
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+        }
+
+        if (service.checklist && service.checklist.submitted_at_jalali) {
+            html += `
+                <div class="service-details-section">
+                    <h6>اطلاعات چک‌لیست</h6>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">تاریخ ارسال</span>
+                            <span class="info-value">${service.checklist.submitted_at_jalali}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        $('#service-details-content').html(html);
     }
 
     // Show error message

@@ -5,14 +5,19 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Technician;
 use App\Models\TechnicianOtpVerification;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class TechnicianAuthController extends Controller
 {
-    public function __construct()
+    protected $smsService;
+
+    public function __construct(SmsService $smsService)
     {
         $this->middleware('auth:technician_api')->except(['login', 'sendOtp', 'verifyOtp']);
+        $this->smsService = $smsService;
     }
 
     /**
@@ -75,8 +80,7 @@ class TechnicianAuthController extends Controller
     }
 
     /**
-     * Send OTP to phone number
-     * TODO: Connect to SMS panel here
+     * Send OTP to phone number using SMS pattern
      */
     public function sendOtp(Request $request)
     {
@@ -97,19 +101,40 @@ class TechnicianAuthController extends Controller
         // Create OTP verification
         $otpVerification = TechnicianOtpVerification::createOtp($request->phone_number);
 
-        // TODO: Send SMS with OTP code
-        // Example: $this->sendSms($request->phone_number, $otpVerification->otp_code);
-        // 
-        // Placeholder for SMS panel integration:
-        // You should implement this method to connect to your SMS panel
-        // For now, we'll just return success (in production, you should send the SMS)
+        // Get organization from technician
+        $organization = $technician->organization;
         
-        // For development/testing purposes only - remove in production:
-        // In production, implement SMS sending here and don't return the OTP code
+        if (!$organization) {
+            Log::error('Technician OTP: Organization not found', [
+                'technician_id' => $technician->id,
+                'phone_number' => $request->phone_number,
+            ]);
+            
+            return response()->json([
+                'message' => 'خطا در ارسال پیامک. سازمان یافت نشد.',
+            ], 500);
+        }
+
+        // Send SMS with technician welcome pattern via queue (async)
+        $result = $this->smsService->sendTechnicianWelcomeSms(
+            $organization,
+            $request->phone_number,
+            $otpVerification->otp_code,
+            true // Use queue
+        );
+
+        if (!$result['success']) {
+            Log::error('Technician OTP SMS failed', [
+                'technician_id' => $technician->id,
+                'phone_number' => $request->phone_number,
+                'error' => $result['error'] ?? 'Unknown error',
+            ]);
+        }
+
+        // Always return success to prevent OTP code disclosure
+        // In production, don't return the OTP code even in debug mode
         return response()->json([
             'message' => 'کد تایید ارسال شد.',
-            // Remove this in production - only for testing
-            'otp_code' => config('app.debug') ? $otpVerification->otp_code : null,
         ]);
     }
 

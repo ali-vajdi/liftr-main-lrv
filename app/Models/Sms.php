@@ -13,6 +13,8 @@ class Sms extends Model
         'organization_id',
         'phone_number',
         'message',
+        'pattern_code',
+        'sms_count',
         'cost',
         'status',
         'error_message',
@@ -21,6 +23,7 @@ class Sms extends Model
 
     protected $casts = [
         'cost' => 'decimal:2',
+        'sms_count' => 'integer',
         'sent_at' => 'datetime',
     ];
 

@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Run Laravel specific commands
 php /var/www/liftr-main/artisan optimize
 php /var/www/liftr-main/artisan config:cache
@@ -12,6 +14,11 @@ php /var/www/liftr-main/artisan cache:clear
 #   exit 1
 # fi
 
+# Start PHP-FPM in background
+php-fpm -D
 
-#!/bin/sh
-php-fpm -D &&  nginx -g "daemon off;"
+# Start Nginx in background
+nginx
+
+# Start Supervisor (which manages Horizon and Scheduler) in foreground to keep container alive
+exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf

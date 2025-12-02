@@ -36,12 +36,18 @@ RUN chown -R www-data:www-data /var/www/liftr-main/storage /var/www/liftr-main/b
 RUN chown -R www-data:www-data /var/www/liftr-main/storage /var/www/liftr-main/bootstrap/cache
 RUN chmod -R 775 /var/www/liftr-main/storage /var/www/liftr-main/bootstrap/cache
 
-# Install Nginx
-RUN apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+# Install Nginx and Supervisor
+RUN apt-get install -y nginx supervisor && rm -rf /var/lib/apt/lists/*
 
 # Copy Nginx configuration
 COPY ./dockerfiles/production/.nginx/nginx.conf /etc/nginx/nginx.conf
 COPY ./dockerfiles/production/.nginx/vhost.conf /etc/nginx/conf.d/default.conf
+
+# Copy Supervisor configuration
+RUN mkdir -p /etc/supervisor/conf.d /var/log/supervisor /var/run
+COPY ./dockerfiles/production/.supervisor/supervisord.conf /etc/supervisor/supervisord.conf
+COPY ./dockerfiles/production/.supervisor/horizon.conf /etc/supervisor/conf.d/horizon.conf
+COPY ./dockerfiles/production/.supervisor/scheduler.conf /etc/supervisor/conf.d/scheduler.conf
 
 # Copy entrypoint script
 COPY ./dockerfiles/production/.docker/entrypoint.sh /entrypoint.sh

@@ -449,10 +449,22 @@ class TechnicianController extends Controller
                 'status' => $service->status,
                 'status_text' => $service->status_text,
                 'status_badge_class' => $service->status_badge_class,
+                'is_manual' => $service->is_manual,
+                'notes' => $service->notes,
+                'organization_note' => $service->organization_note,
+                'user_note' => $service->user_note,
+                'technician_note' => $service->technician_note,
+                'created_at' => $service->created_at ? $service->created_at->toIso8601String() : null,
+                'created_at_jalali' => $service->created_at ? Jalalian::forge($service->created_at)->format('Y/m/d H:i:s') : null,
+                'assigned_at' => $service->assigned_at ? $service->assigned_at->toIso8601String() : null,
                 'assigned_at_jalali' => $service->assigned_at ? Jalalian::forge($service->assigned_at)->format('Y/m/d H:i:s') : null,
+                'completed_at' => $service->completed_at ? $service->completed_at->toIso8601String() : null,
                 'completed_at_jalali' => $service->completed_at ? Jalalian::forge($service->completed_at)->format('Y/m/d H:i:s') : null,
+                'visit_date' => $service->visit_date ? $service->visit_date->format('Y-m-d') : null,
                 'visit_date_jalali' => $service->visit_date ? Jalalian::forge($service->visit_date)->format('Y/m/d') : null,
+                'visit_time_range' => $service->visit_time_range,
                 'building' => null,
+                'checklist' => null,
             ];
 
             // Add building info
@@ -463,6 +475,60 @@ class TechnicianController extends Controller
                     'address' => $service->building->address,
                     'province' => $service->building->province ? $service->building->province->name : null,
                     'city' => $service->building->city ? $service->building->city->name : null,
+                ];
+            }
+
+            // Add checklist info
+            if ($service->checklist) {
+                $elevatorChecklists = $service->checklist->elevatorChecklists->map(function($elevatorChecklist) {
+                    $elevatorData = [
+                        'id' => $elevatorChecklist->id,
+                        'verified' => $elevatorChecklist->verified,
+                        'elevator' => null,
+                        'descriptions' => []
+                    ];
+
+                    if ($elevatorChecklist->elevator) {
+                        $elevatorData['elevator'] = [
+                            'id' => $elevatorChecklist->elevator->id,
+                            'name' => $elevatorChecklist->elevator->name,
+                            'stops_count' => $elevatorChecklist->elevator->stops_count,
+                            'capacity' => $elevatorChecklist->elevator->capacity,
+                            'description' => $elevatorChecklist->elevator->description,
+                        ];
+                    }
+
+                    if ($elevatorChecklist->descriptions) {
+                        $elevatorData['descriptions'] = $elevatorChecklist->descriptions->map(function($desc) {
+                            return [
+                                'id' => $desc->id,
+                                'title' => $desc->title,
+                                'description' => $desc->description,
+                                'checklist' => $desc->checklist ? [
+                                    'id' => $desc->checklist->id,
+                                    'title' => $desc->checklist->title,
+                                ] : null
+                            ];
+                        })->toArray();
+                    }
+
+                    return $elevatorData;
+                })->toArray();
+
+                $serviceData['checklist'] = [
+                    'id' => $service->checklist->id,
+                    'submitted_at' => $service->checklist->submitted_at ? $service->checklist->submitted_at->toIso8601String() : null,
+                    'submitted_at_jalali' => $service->checklist->submitted_at ? Jalalian::forge($service->checklist->submitted_at)->format('Y/m/d H:i:s') : null,
+                    'elevator_checklists' => $elevatorChecklists,
+                    'elevator_checklists_count' => count($elevatorChecklists),
+                    'manager_signature' => $service->checklist->managerSignature ? [
+                        'id' => $service->checklist->managerSignature->id,
+                        'signature' => $service->checklist->managerSignature->signature,
+                    ] : null,
+                    'technician_signature' => $service->checklist->technicianSignature ? [
+                        'id' => $service->checklist->technicianSignature->id,
+                        'signature' => $service->checklist->technicianSignature->signature,
+                    ] : null,
                 ];
             }
 
