@@ -6,14 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Models\Technician;
 use App\Models\OrganizationUser;
 use App\Models\Service;
+use App\Models\Organization;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use Morilog\Jalali\Jalalian;
 use Carbon\Carbon;
 
 class TechnicianController extends Controller
 {
+    protected $smsService;
+
+    public function __construct(SmsService $smsService)
+    {
+        $this->smsService = $smsService;
+    }
     public function index(Request $request)
     {
         // Get organization ID from authenticated user
@@ -99,7 +108,42 @@ class TechnicianController extends Controller
         $data['organization_user_id'] = $user->id;
         $data['status'] = $data['status'] === 'true' || $data['status'] === true;
 
+        // Store plain password before hashing (for SMS)
+        $plainPassword = $data['password'] ?? null;
+
         $technician = Technician::create($data);
+
+        // Get organization for SMS
+        $organization = Organization::findOrFail($user->organization_id);
+        $technicianName = $technician->full_name;
+
+        // Send SMS based on whether password was provided
+        if ($plainPassword) {
+            // Send SMS with password
+            $smsResult = $this->smsService->sendTechnicianWelcomeWithPasswordSms(
+                $organization,
+                $technician->phone_number,
+                $technicianName,
+                $plainPassword,
+                true // Use queue
+            );
+        } else {
+            // Send SMS without password
+            $smsResult = $this->smsService->sendTechnicianWelcomeNoPasswordSms(
+                $organization,
+                $technician->phone_number,
+                $technicianName,
+                true // Use queue
+            );
+        }
+
+        if (!$smsResult['success']) {
+            Log::error('Technician welcome SMS failed', [
+                'technician_id' => $technician->id,
+                'phone_number' => $technician->phone_number,
+                'error' => $smsResult['error'] ?? 'Unknown error',
+            ]);
+        }
 
         // Add calculated attributes
         $technician->full_name = $technician->full_name;
@@ -193,12 +237,38 @@ class TechnicianController extends Controller
         $data = $request->all();
         $data['status'] = $data['status'] === 'true' || $data['status'] === true;
         
+        // Store plain password before hashing (for SMS)
+        $plainPassword = $data['password'] ?? null;
+        $passwordChanged = !empty($plainPassword);
+        
         // Only update password if provided
         if (empty($data['password'])) {
             unset($data['password']);
         }
 
         $technician->update($data);
+
+        // Send password changed SMS if password was updated
+        if ($passwordChanged) {
+            $organization = Organization::findOrFail($organizationId);
+            $technicianName = $technician->full_name;
+            
+            $smsResult = $this->smsService->sendTechnicianPasswordChangedSms(
+                $organization,
+                $technician->phone_number,
+                $technicianName,
+                $plainPassword,
+                true // Use queue
+            );
+
+            if (!$smsResult['success']) {
+                Log::error('Technician password changed SMS failed', [
+                    'technician_id' => $technician->id,
+                    'phone_number' => $technician->phone_number,
+                    'error' => $smsResult['error'] ?? 'Unknown error',
+                ]);
+            }
+        }
 
         // Add calculated attributes
         $technician->full_name = $technician->full_name;
@@ -272,9 +342,31 @@ class TechnicianController extends Controller
             ], 404);
         }
 
+        $plainPassword = $request->password;
+
         $technician->update([
-            'password' => $request->password,
+            'password' => $plainPassword,
         ]);
+
+        // Send password changed SMS
+        $organization = Organization::findOrFail($organizationId);
+        $technicianName = $technician->full_name;
+        
+        $smsResult = $this->smsService->sendTechnicianPasswordChangedSms(
+            $organization,
+            $technician->phone_number,
+            $technicianName,
+            $plainPassword,
+            true // Use queue
+        );
+
+        if (!$smsResult['success']) {
+            Log::error('Technician password changed SMS failed', [
+                'technician_id' => $technician->id,
+                'phone_number' => $technician->phone_number,
+                'error' => $smsResult['error'] ?? 'Unknown error',
+            ]);
+        }
 
         // Add calculated attributes
         $technician->full_name = $technician->full_name;

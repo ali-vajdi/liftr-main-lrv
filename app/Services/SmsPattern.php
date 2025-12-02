@@ -75,6 +75,24 @@ class SmsPattern
             'description' => 'خوش‌آمدگویی کاربر سازمان با اطلاعات ورود',
             'required_fields' => ['user_name', 'organization_name', 'password'],
         ],
+        'technician_welcome_no_password' => [
+            'code' => '1d5rhmbojz57qv6',
+            'text' => 'تکنسین محترم آقای {technician_name}' . "\n\n" . 'حساب کاربری شما جهت ورود به اپلیکیشن لیفتر توسط شرکت {organization_name} ایجاد گردید.' . "\n\n" . 'جهت نصب اپلیکیشن به لینک زیر مراجعه نمایید.' . "\n" . 'liftr.ir',
+            'description' => 'خوش‌آمدگویی تکنسین بدون رمز عبور',
+            'required_fields' => ['technician_name', 'organization_name'],
+        ],
+        'technician_welcome_with_password' => [
+            'code' => '7axbsjhz2d56edw',
+            'text' => 'تکنسین محترم آقای {technician_name}' . "\n\n" . 'حساب کاربری شما جهت ورود به اپلیکیشن لیفتر توسط شرکت {organization_name} ایجاد گردید.' . "\n\n" . 'رمز عبور: {password}' . "\n\n" . 'جهت نصب اپلیکیشن به لینک زیر مراجعه نمایید.' . "\n" . 'liftr.ir',
+            'description' => 'خوش‌آمدگویی تکنسین با رمز عبور',
+            'required_fields' => ['technician_name', 'organization_name', 'password'],
+        ],
+        'technician_password_changed' => [
+            'code' => 'zkugvxew60gopyn',
+            'text' => 'تکنسین محترم آقای {technician_name}' . "\n\n" . 'رمز ورود شما جهت ورود به اپلیکیشن لیفتر توسط شرکت {organization_name} تغییر گردید' . "\n\n" . 'رمز عبور جدید: {password}',
+            'description' => 'اعلام تغییر رمز عبور تکنسین',
+            'required_fields' => ['technician_name', 'organization_name', 'password'],
+        ],
     ];
 
     /**

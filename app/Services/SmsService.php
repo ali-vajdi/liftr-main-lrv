@@ -820,5 +820,123 @@ class SmsService
             $queue
         );
     }
+
+    /**
+     * Send technician welcome SMS without password
+     *
+     * @param Organization $organization
+     * @param string $phoneNumber
+     * @param string $technicianName
+     * @param bool $queue Whether to queue the SMS sending
+     * @return array
+     */
+    public function sendTechnicianWelcomeNoPasswordSms(Organization $organization, string $phoneNumber, string $technicianName, bool $queue = false): array
+    {
+        $patternKey = 'technician_welcome_no_password';
+        $pattern = SmsPattern::getPattern($patternKey);
+        
+        if (!$pattern) {
+            return [
+                'success' => false,
+                'message' => 'الگوی پیامک یافت نشد',
+                'error' => 'Technician welcome no password pattern not found'
+            ];
+        }
+
+        $patternCode = $pattern['code'];
+        $fillData = [
+            'technician_name' => $technicianName,
+            'organization_name' => $organization->name,
+        ];
+
+        return $this->sendPatternSmsWithKey(
+            $organization,
+            $patternKey,
+            $patternCode,
+            $fillData,
+            $phoneNumber,
+            $queue
+        );
+    }
+
+    /**
+     * Send technician welcome SMS with password
+     *
+     * @param Organization $organization
+     * @param string $phoneNumber
+     * @param string $technicianName
+     * @param string $password
+     * @param bool $queue Whether to queue the SMS sending
+     * @return array
+     */
+    public function sendTechnicianWelcomeWithPasswordSms(Organization $organization, string $phoneNumber, string $technicianName, string $password, bool $queue = false): array
+    {
+        $patternKey = 'technician_welcome_with_password';
+        $pattern = SmsPattern::getPattern($patternKey);
+        
+        if (!$pattern) {
+            return [
+                'success' => false,
+                'message' => 'الگوی پیامک یافت نشد',
+                'error' => 'Technician welcome with password pattern not found'
+            ];
+        }
+
+        $patternCode = $pattern['code'];
+        $fillData = [
+            'technician_name' => $technicianName,
+            'organization_name' => $organization->name,
+            'password' => $password,
+        ];
+
+        return $this->sendPatternSmsWithKey(
+            $organization,
+            $patternKey,
+            $patternCode,
+            $fillData,
+            $phoneNumber,
+            $queue
+        );
+    }
+
+    /**
+     * Send technician password changed SMS
+     *
+     * @param Organization $organization
+     * @param string $phoneNumber
+     * @param string $technicianName
+     * @param string $password
+     * @param bool $queue Whether to queue the SMS sending
+     * @return array
+     */
+    public function sendTechnicianPasswordChangedSms(Organization $organization, string $phoneNumber, string $technicianName, string $password, bool $queue = false): array
+    {
+        $patternKey = 'technician_password_changed';
+        $pattern = SmsPattern::getPattern($patternKey);
+        
+        if (!$pattern) {
+            return [
+                'success' => false,
+                'message' => 'الگوی پیامک یافت نشد',
+                'error' => 'Technician password changed pattern not found'
+            ];
+        }
+
+        $patternCode = $pattern['code'];
+        $fillData = [
+            'technician_name' => $technicianName,
+            'organization_name' => $organization->name,
+            'password' => $password,
+        ];
+
+        return $this->sendPatternSmsWithKey(
+            $organization,
+            $patternKey,
+            $patternCode,
+            $fillData,
+            $phoneNumber,
+            $queue
+        );
+    }
 }
 
