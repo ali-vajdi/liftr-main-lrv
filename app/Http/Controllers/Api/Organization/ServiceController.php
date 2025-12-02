@@ -462,6 +462,9 @@ class ServiceController extends Controller
         ];
 
         $service->update($updateData);
+        
+        // Refresh service to ensure slug is available
+        $service->refresh();
 
         // Create automatic message to technician
         $service->load(['building']);
@@ -486,13 +489,13 @@ class ServiceController extends Controller
         if ($service->building && $service->building->manager_phone) {
             $organization = Organization::findOrFail($user->organization_id);
             
-            // Format time_periods_value: convert "06:00 - 08:00" to "06:00 الی 08:00"
+            // Format time_periods_value: convert "06:00 - 08:00" to "06:00 الی 08:00" (with spaces around الی)
             $timePeriodsValue = str_replace(' - ', ' الی ', $request->visit_time_range);
             
+            // Generate URL using service slug: https://app.liftr.ir/service/{slug}
             // Generate URL
             $urlValue = route('public.services.assigned.show', [
-                'building' => $service->building->id,
-                'service' => $service->id
+                'service' => $service->slug
             ], true); // true = absolute URL
             
             // Use visit_date as date_value (already in Jalali format)
