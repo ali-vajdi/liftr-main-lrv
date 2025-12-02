@@ -18,6 +18,152 @@ class SmsService
     const CHARS_PER_SMS = 70;
 
     /**
+     * Send SMS using a pattern code with internal pattern key (for proper lookup)
+     *
+     * @param Organization $organization
+     * @param string $patternKey Internal pattern key (e.g., 'technician_welcome')
+     * @param string $patternCode FarazSMS pattern code (e.g., '8lt442ze0rimu9k')
+     * @param array $fillData
+     * @param string $phoneNumber
+     * @param bool $queue Whether to queue the SMS sending
+     * @return array
+     */
+    private function sendPatternSmsWithKey(Organization $organization, string $patternKey, string $patternCode, array $fillData, string $phoneNumber, bool $queue = false): array
+    {
+        // Get pattern using internal key for proper lookup
+        $pattern = SmsPattern::getPattern($patternKey);
+        
+        // Calculate message for preview/cost calculation
+        if ($pattern) {
+            $message = $this->fillPattern($pattern['text'], $fillData);
+        } else {
+            // If no internal pattern, create a preview message from params
+            $message = implode(' ', array_values($fillData));
+        }
+
+        // Calculate SMS count and cost
+        $smsCount = $this->calculateSmsCount($message);
+        $cost = $this->calculateCost($organization, $smsCount);
+
+        // Check if cost per message is configured
+        $costPerMessage = (float) ($organization->sms_cost_per_message ?? 0);
+        if ($costPerMessage > 0) {
+            // Only check balance if SMS has a cost
+            $balanceCheck = $this->checkBalance($organization, $cost);
+            if (!$balanceCheck['has_enough']) {
+                return [
+                    'success' => false,
+                    'message' => 'موجودی پیامک کافی نیست',
+                    'error' => 'Insufficient SMS balance',
+                    'required_balance' => $cost,
+                    'current_balance' => $organization->sms_balance
+                ];
+            }
+        } else {
+            // Log warning if cost per message is not configured
+            Log::warning('SMS cost per message is not configured for organization', [
+                'organization_id' => $organization->id,
+                'cost_per_message' => $costPerMessage
+            ]);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Create SMS record
+            $sms = Sms::create([
+                'organization_id' => $organization->id,
+                'phone_number' => $phoneNumber,
+                'message' => $message,
+                'cost' => $cost,
+                'status' => Sms::STATUS_PENDING,
+                'pattern_code' => $patternCode,
+                'sms_count' => $smsCount,
+            ]);
+
+            // Deduct balance only if cost > 0
+            if ($cost > 0) {
+                $this->deductBalance($organization, $cost);
+            }
+
+            // If queue is enabled, dispatch job instead of sending immediately
+            if ($queue) {
+                SendSmsJob::dispatch(
+                    $sms->id,
+                    $organization->id,
+                    $patternCode,
+                    $fillData,
+                    $phoneNumber
+                );
+
+                DB::commit();
+
+                return [
+                    'success' => true,
+                    'message' => 'پیامک در صف ارسال قرار گرفت',
+                    'sms' => $sms,
+                    'sms_count' => $smsCount,
+                    'cost' => $cost,
+                    'remaining_balance' => $organization->fresh()->sms_balance,
+                    'queued' => true
+                ];
+            }
+
+            // Send SMS via FarazSMS panel with pattern (synchronous)
+            $sendResult = $this->sendPatternViaPanel($organization, $patternCode, $fillData, $phoneNumber);
+
+            if ($sendResult['success']) {
+                $sms->update([
+                    'status' => Sms::STATUS_SENT,
+                    'sent_at' => now(),
+                ]);
+
+                DB::commit();
+
+                return [
+                    'success' => true,
+                    'message' => 'پیامک با موفقیت ارسال شد',
+                    'sms' => $sms,
+                    'sms_count' => $smsCount,
+                    'cost' => $cost,
+                    'remaining_balance' => $organization->fresh()->sms_balance
+                ];
+            } else {
+                // If sending fails, refund the balance
+                if ($cost > 0) {
+                    $this->refundBalance($organization, $cost);
+                }
+                
+                $sms->update([
+                    'status' => Sms::STATUS_FAILED,
+                    'error_message' => $sendResult['error'] ?? 'خطا در ارسال پیامک',
+                ]);
+
+                DB::commit();
+
+                return [
+                    'success' => false,
+                    'message' => 'خطا در ارسال پیامک',
+                    'error' => $sendResult['error'] ?? 'Unknown error',
+                    'sms' => $sms
+                ];
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('SMS sending failed', [
+                'organization_id' => $organization->id,
+                'phone_number' => $phoneNumber,
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'خطا در ارسال پیامک',
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
      * Send SMS using a pattern code (synchronously or queued)
      *
      * @param Organization $organization
@@ -604,7 +750,8 @@ class SmsService
      */
     public function sendTechnicianWelcomeSms(Organization $organization, string $phoneNumber, string $otpCode, bool $queue = false): array
     {
-        $pattern = SmsPattern::getPattern('technician_welcome');
+        $patternKey = 'technician_welcome';
+        $pattern = SmsPattern::getPattern($patternKey);
         
         if (!$pattern) {
             return [
@@ -619,8 +766,10 @@ class SmsService
             'code' => $otpCode,
         ];
 
-        return $this->sendPatternSms(
+        // Use internal pattern key for proper lookup in sendPatternSms
+        return $this->sendPatternSmsWithKey(
             $organization,
+            $patternKey,
             $patternCode,
             $fillData,
             $phoneNumber,
@@ -640,7 +789,8 @@ class SmsService
      */
     public function sendOrganizationUserWelcomeSms(Organization $organization, string $phoneNumber, string $userName, string $password, bool $queue = false): array
     {
-        $pattern = SmsPattern::getPattern('organization_user_welcome');
+        $patternKey = 'organization_user_welcome';
+        $pattern = SmsPattern::getPattern($patternKey);
         
         if (!$pattern) {
             return [
@@ -657,8 +807,10 @@ class SmsService
             'password' => $password,
         ];
 
-        return $this->sendPatternSms(
+        // Use internal pattern key for proper lookup in sendPatternSms
+        return $this->sendPatternSmsWithKey(
             $organization,
+            $patternKey,
             $patternCode,
             $fillData,
             $phoneNumber,
