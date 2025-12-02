@@ -31,6 +31,9 @@ class SendSmsJob implements ShouldQueue
     public $backoff = 60;
 
     /**
+     * Create a new job instance.
+     */
+    /**
      * The name of the connection the job should be sent to.
      *
      * @var string|null
@@ -151,10 +154,8 @@ class SendSmsJob implements ShouldQueue
 
             if ($sms && $organization) {
                 $smsService = app(SmsService::class);
-                $cost = (float) $sms->cost;
-                if ($cost > 0) {
-                    $smsService->refundBalance($organization, $cost);
-                }
+                $cost = $sms->cost;
+                $smsService->refundBalance($organization, $cost);
 
                 $sms->update([
                     'status' => Sms::STATUS_FAILED,

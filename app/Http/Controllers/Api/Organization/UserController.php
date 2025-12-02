@@ -106,15 +106,15 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20|unique:organization_users,phone_number',
-            'password' => 'nullable|string|min:6',
+            'password' => 'required|string|min:6',
             'status' => 'required',
-            'send_sms' => 'nullable|boolean',
         ], [
             'name.required' => 'نام کاربر الزامی است',
             'name.max' => 'نام کاربر نمی‌تواند بیش از 255 کاراکتر باشد',
             'phone_number.required' => 'شماره تلفن الزامی است',
             'phone_number.max' => 'شماره تلفن نمی‌تواند بیش از 20 کاراکتر باشد',
             'phone_number.unique' => 'این شماره تلفن قبلاً استفاده شده است',
+            'password.required' => 'رمز عبور الزامی است',
             'password.min' => 'رمز عبور باید حداقل 6 کاراکتر باشد',
             'status.required' => 'وضعیت الزامی است',
         ]);
@@ -133,28 +133,25 @@ class UserController extends Controller
         $data['status'] = $request->boolean('status', true);
 
         // Store plain password before hashing (for SMS)
-        $plainPassword = $data['password'] ?? null;
+        $plainPassword = $data['password'];
 
         $user = OrganizationUser::create($data);
 
-        // Send SMS if requested and password is provided
-        $sendSms = $request->boolean('send_sms', false);
-        if ($sendSms && $plainPassword) {
-            $smsResult = $this->smsService->sendOrganizationUserWelcomeSms(
-                $organization,
-                $user->phone_number,
-                $user->name,
-                $plainPassword,
-                true // Use queue
-            );
+        // Always send SMS with user credentials
+        $smsResult = $this->smsService->sendOrganizationUserWelcomeSms(
+            $organization,
+            $user->phone_number,
+            $user->name,
+            $plainPassword,
+            true // Use queue
+        );
 
-            if (!$smsResult['success']) {
-                Log::error('Organization user welcome SMS failed', [
-                    'user_id' => $user->id,
-                    'phone_number' => $user->phone_number,
-                    'error' => $smsResult['error'] ?? 'Unknown error',
-                ]);
-            }
+        if (!$smsResult['success']) {
+            Log::error('Organization user welcome SMS failed', [
+                'user_id' => $user->id,
+                'phone_number' => $user->phone_number,
+                'error' => $smsResult['error'] ?? 'Unknown error',
+            ]);
         }
 
         // Add calculated attributes
