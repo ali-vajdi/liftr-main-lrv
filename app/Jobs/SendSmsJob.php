@@ -33,20 +33,6 @@ class SendSmsJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    /**
-     * The name of the connection the job should be sent to.
-     *
-     * @var string|null
-     */
-    public $connection = 'redis';
-
-    /**
-     * The name of the queue the job should be sent to.
-     *
-     * @var string|null
-     */
-    public $queue = 'sms';
-
     public function __construct(
         public int $smsId,
         public int $organizationId,
@@ -54,7 +40,9 @@ class SendSmsJob implements ShouldQueue
         public array $params,
         public string $phoneNumber
     ) {
-        // Connection and queue are set via properties above
+        // Set connection and queue using trait methods
+        $this->onConnection('redis');
+        $this->onQueue('sms');
     }
 
     /**
@@ -154,8 +142,10 @@ class SendSmsJob implements ShouldQueue
 
             if ($sms && $organization) {
                 $smsService = app(SmsService::class);
-                $cost = $sms->cost;
-                $smsService->refundBalance($organization, $cost);
+                $cost = (float) $sms->cost;
+                if ($cost > 0) {
+                    $smsService->refundBalance($organization, $cost);
+                }
 
                 $sms->update([
                     'status' => Sms::STATUS_FAILED,

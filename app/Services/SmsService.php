@@ -482,7 +482,10 @@ class SmsService
     public function calculateCost(Organization $organization, int $smsCount): float
     {
         $costPerMessage = (float) ($organization->sms_cost_per_message ?? 0);
-        return $costPerMessage * $smsCount;
+        $calculatedCost = $costPerMessage * $smsCount;
+        
+        // Ensure minimum cost is always sms_cost_per_message (even for messages under 70 characters)
+        return max($calculatedCost, $costPerMessage);
     }
 
     /**
