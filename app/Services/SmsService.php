@@ -206,7 +206,7 @@ class SmsService
                     $finalPatternCode,
                     $params,
                     $phoneNumber
-                );
+                )->onQueue('SendSms');
 
                 DB::commit();
 
