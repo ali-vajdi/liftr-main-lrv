@@ -8,6 +8,8 @@ use App\Models\ServiceView;
 use App\Models\Building;
 use App\Models\Technician;
 use App\Models\Message;
+use App\Models\Organization;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +18,12 @@ use Carbon\Carbon;
 
 class ServiceController extends Controller
 {
+    protected $smsService;
+
+    public function __construct(SmsService $smsService)
+    {
+        $this->smsService = $smsService;
+    }
     /**
      * Check if a service is locked (building support period has ended)
      * A service is locked if the service month/year is >= building's service_end_date
@@ -473,6 +481,42 @@ class ServiceController extends Controller
             'message' => "یک سرویس جدید به شما اختصاص داده شد.\n\nساختمان: {$service->building->name}\nماه: {$monthName} {$service->service_year}\n" . ($request->organization_note ? "یادداشت: {$request->organization_note}" : ''),
             'service_id' => $service->id,
         ]);
+
+        // Send SMS to building manager
+        if ($service->building && $service->building->manager_phone) {
+            $organization = Organization::findOrFail($user->organization_id);
+            
+            // Format time_periods_value: convert "06:00 - 08:00" to "06:00 الی 08:00"
+            $timePeriodsValue = str_replace(' - ', ' الی ', $request->visit_time_range);
+            
+            // Generate URL
+            $urlValue = route('public.services.assigned.show', [
+                'building' => $service->building->id,
+                'service' => $service->id
+            ], true); // true = absolute URL
+            
+            // Use visit_date as date_value (already in Jalali format)
+            $dateValue = $request->visit_date;
+            
+            $smsResult = $this->smsService->sendBuildingManagerTechnicianAssignedSms(
+                $organization,
+                $service->building->manager_phone,
+                $service->building->name,
+                $dateValue,
+                $timePeriodsValue,
+                $urlValue,
+                true // Use queue
+            );
+
+            if (!$smsResult['success']) {
+                Log::error('Building manager technician assigned SMS failed', [
+                    'service_id' => $service->id,
+                    'building_id' => $service->building->id,
+                    'phone_number' => $service->building->manager_phone,
+                    'error' => $smsResult['error'] ?? 'Unknown error',
+                ]);
+            }
+        }
 
         $service->load(['building.province', 'building.city', 'building.elevators', 'technician']);
         $service->status_text = $service->status_text;

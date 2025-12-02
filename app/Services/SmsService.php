@@ -938,5 +938,49 @@ class SmsService
             $queue
         );
     }
+
+    /**
+     * Send building manager notification SMS when technician is assigned
+     *
+     * @param Organization $organization
+     * @param string $phoneNumber Building manager phone number
+     * @param string $buildingName
+     * @param string $dateValue Jalali date (e.g., "1404/09/11")
+     * @param string $timePeriodsValue Time range formatted as "06:00 الی 08:00"
+     * @param string $urlValue Full URL to the service page
+     * @param bool $queue Whether to queue the SMS sending
+     * @return array
+     */
+    public function sendBuildingManagerTechnicianAssignedSms(Organization $organization, string $phoneNumber, string $buildingName, string $dateValue, string $timePeriodsValue, string $urlValue, bool $queue = false): array
+    {
+        $patternKey = 'building_manager_technician_assigned';
+        $pattern = SmsPattern::getPattern($patternKey);
+        
+        if (!$pattern) {
+            return [
+                'success' => false,
+                'message' => 'الگوی پیامک یافت نشد',
+                'error' => 'Building manager technician assigned pattern not found'
+            ];
+        }
+
+        $patternCode = $pattern['code'];
+        $fillData = [
+            'building_name' => $buildingName,
+            'date_value' => $dateValue,
+            'time_periods_value' => $timePeriodsValue,
+            'organization_name' => $organization->name,
+            'url_value' => $urlValue,
+        ];
+
+        return $this->sendPatternSmsWithKey(
+            $organization,
+            $patternKey,
+            $patternCode,
+            $fillData,
+            $phoneNumber,
+            $queue
+        );
+    }
 }
 
