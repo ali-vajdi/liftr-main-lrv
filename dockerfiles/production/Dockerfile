@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install zip pdo pdo_mysql gd
+    && docker-php-ext-install zip pdo pdo_mysql gd pcntl
 
 # Install Redis extension
 RUN pecl install redis && docker-php-ext-enable redis
@@ -26,6 +26,7 @@ COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 COPY . /var/www/liftr-main
 
 # Install project dependencies
+ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --prefer-dist --no-scripts --no-dev --no-progress --no-interaction
 
 # Set permissions for Laravel storage and cache directories
