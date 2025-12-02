@@ -168,11 +168,6 @@ $(document).ready(function() {
 
     // Load unread messages count
     loadUnreadMessagesCount();
-    
-    // Refresh unread count every 30 seconds
-    setInterval(function() {
-        loadUnreadMessagesCount();
-    }, 30000);
 });
 
 // Function to load unread messages count
