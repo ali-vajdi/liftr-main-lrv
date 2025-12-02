@@ -237,9 +237,6 @@ return [
                 'maxProcesses' => 5,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
-                'queue' => [
-                    'SendSms',
-                ],
             ],
         ],
 

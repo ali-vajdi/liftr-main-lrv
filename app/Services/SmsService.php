@@ -46,16 +46,26 @@ class SmsService
         $smsCount = $this->calculateSmsCount($message);
         $cost = $this->calculateCost($organization, $smsCount);
 
-        // Check balance
-        $balanceCheck = $this->checkBalance($organization, $cost);
-        if (!$balanceCheck['has_enough']) {
-            return [
-                'success' => false,
-                'message' => 'موجودی پیامک کافی نیست',
-                'error' => 'Insufficient SMS balance',
-                'required_balance' => $cost,
-                'current_balance' => $organization->sms_balance
-            ];
+        // Check if cost per message is configured
+        $costPerMessage = (float) ($organization->sms_cost_per_message ?? 0);
+        if ($costPerMessage > 0) {
+            // Only check balance if SMS has a cost
+            $balanceCheck = $this->checkBalance($organization, $cost);
+            if (!$balanceCheck['has_enough']) {
+                return [
+                    'success' => false,
+                    'message' => 'موجودی پیامک کافی نیست',
+                    'error' => 'Insufficient SMS balance',
+                    'required_balance' => $cost,
+                    'current_balance' => $organization->sms_balance
+                ];
+            }
+        } else {
+            // Log warning if cost per message is not configured
+            Log::warning('SMS cost per message is not configured for organization', [
+                'organization_id' => $organization->id,
+                'cost_per_message' => $costPerMessage
+            ]);
         }
 
         DB::beginTransaction();
@@ -71,8 +81,10 @@ class SmsService
                 'sms_count' => $smsCount,
             ]);
 
-            // Deduct balance
-            $this->deductBalance($organization, $cost);
+            // Deduct balance only if cost > 0
+            if ($cost > 0) {
+                $this->deductBalance($organization, $cost);
+            }
 
             // If queue is enabled, dispatch job instead of sending immediately
             if ($queue) {
@@ -166,16 +178,26 @@ class SmsService
         $smsCount = $this->calculateSmsCount($message);
         $cost = $this->calculateCost($organization, $smsCount);
 
-        // Check balance
-        $balanceCheck = $this->checkBalance($organization, $cost);
-        if (!$balanceCheck['has_enough']) {
-            return [
-                'success' => false,
-                'message' => 'موجودی پیامک کافی نیست',
-                'error' => 'Insufficient SMS balance',
-                'required_balance' => $cost,
-                'current_balance' => $organization->sms_balance
-            ];
+        // Check if cost per message is configured
+        $costPerMessage = (float) ($organization->sms_cost_per_message ?? 0);
+        if ($costPerMessage > 0) {
+            // Only check balance if SMS has a cost
+            $balanceCheck = $this->checkBalance($organization, $cost);
+            if (!$balanceCheck['has_enough']) {
+                return [
+                    'success' => false,
+                    'message' => 'موجودی پیامک کافی نیست',
+                    'error' => 'Insufficient SMS balance',
+                    'required_balance' => $cost,
+                    'current_balance' => $organization->sms_balance
+                ];
+            }
+        } else {
+            // Log warning if cost per message is not configured
+            Log::warning('SMS cost per message is not configured for organization', [
+                'organization_id' => $organization->id,
+                'cost_per_message' => $costPerMessage
+            ]);
         }
 
         DB::beginTransaction();
@@ -191,8 +213,10 @@ class SmsService
                 'sms_count' => $smsCount,
             ]);
 
-            // Deduct balance
-            $this->deductBalance($organization, $cost);
+            // Deduct balance only if cost > 0
+            if ($cost > 0) {
+                $this->deductBalance($organization, $cost);
+            }
 
             // If queue is enabled, dispatch job instead of sending immediately
             if ($queue) {
@@ -206,7 +230,7 @@ class SmsService
                     $finalPatternCode,
                     $params,
                     $phoneNumber
-                )->onQueue('SendSms');
+                );
 
                 DB::commit();
 
