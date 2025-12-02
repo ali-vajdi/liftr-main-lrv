@@ -5,13 +5,22 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\OrganizationUser;
 use App\Models\Organization;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Morilog\Jalali\Jalalian;
 
 class OrganizationUserController extends Controller
 {
+    protected $smsService;
+
+    public function __construct(SmsService $smsService)
+    {
+        $this->smsService = $smsService;
+    }
+
     public function index(Request $request, $organizationId)
     {
         // Verify organization exists and user has access
@@ -87,6 +96,7 @@ class OrganizationUserController extends Controller
             'phone_number' => 'required|string|max:20|unique:organization_users,phone_number',
             'password' => 'nullable|string|min:6',
             'status' => 'required|in:true,false',
+            'send_sms' => 'nullable|boolean',
         ], [
             'name.required' => 'نام کاربر الزامی است',
             'name.max' => 'نام کاربر نمی‌تواند بیش از 255 کاراکتر باشد',
@@ -107,7 +117,30 @@ class OrganizationUserController extends Controller
         $data['moderator_id'] = Auth::id();
         $data['status'] = $data['status'] === 'true' || $data['status'] === true;
 
+        // Store plain password before hashing (for SMS)
+        $plainPassword = $data['password'] ?? null;
+
         $user = OrganizationUser::create($data);
+
+        // Send SMS if requested and password is provided
+        $sendSms = $request->boolean('send_sms', false);
+        if ($sendSms && $plainPassword) {
+            $smsResult = $this->smsService->sendOrganizationUserWelcomeSms(
+                $organization,
+                $user->phone_number,
+                $user->name,
+                $plainPassword,
+                true // Use queue
+            );
+
+            if (!$smsResult['success']) {
+                Log::error('Organization user welcome SMS failed', [
+                    'user_id' => $user->id,
+                    'phone_number' => $user->phone_number,
+                    'error' => $smsResult['error'] ?? 'Unknown error',
+                ]);
+            }
+        }
 
         return response()->json([
             'message' => 'کاربر شرکت با موفقیت ایجاد شد',

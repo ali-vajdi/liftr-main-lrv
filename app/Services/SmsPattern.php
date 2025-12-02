@@ -69,6 +69,12 @@ class SmsPattern
             'description' => 'خوش‌آمدگویی تکنسین با کد ورود',
             'required_fields' => ['code'],
         ],
+        'organization_user_welcome' => [
+            'code' => 'fpju29q6zt649o8',
+            'text' => 'کاربر {user_name}' . "\n\n" . 'حساب کاربری شما در شرکت {organization_name} ایجاد گردید' . "\n\n" . 'رمز عبور: {password}' . "\n\n" . 'جهت ورود به آدرس زیر مراجعه نمایید' . "\n" . 'app.liftr.ir',
+            'description' => 'خوش‌آمدگویی کاربر سازمان با اطلاعات ورود',
+            'required_fields' => ['user_name', 'organization_name', 'password'],
+        ],
     ];
 
     /**

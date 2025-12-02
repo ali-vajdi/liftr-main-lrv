@@ -420,29 +420,97 @@ class SmsService
                 ])
                 ->post($apiUrl, $requestBody);
 
-            if ($response->successful()) {
-                $responseData = $response->json();
+            $responseData = $response->json();
+            
+            // Log full response for debugging
+            Log::info('FarazSMS API response', [
+                'organization_id' => $organization->id,
+                'phone_number' => $phoneNumber,
+                'pattern_code' => $patternCode,
+                'http_status' => $response->status(),
+                'response' => $responseData,
+                'raw_body' => $response->body()
+            ]);
+
+            // Check if response is valid JSON
+            if ($responseData === null) {
+                Log::error('FarazSMS API invalid JSON response', [
+                    'organization_id' => $organization->id,
+                    'phone_number' => $phoneNumber,
+                    'pattern_code' => $patternCode,
+                    'http_status' => $response->status(),
+                    'raw_body' => $response->body()
+                ]);
                 
-                // Check if FarazSMS returned success
-                // Adjust this based on FarazSMS API response structure
-                if (isset($responseData['status']) && ($responseData['status'] === 'success' || $responseData['status'] === 'ok')) {
+                return [
+                    'success' => false,
+                    'error' => 'Invalid JSON response from FarazSMS API',
+                    'status_code' => $response->status(),
+                    'response' => $response->body()
+                ];
+            }
+
+            if ($response->successful()) {
+                // Check FarazSMS response structure: meta.status indicates success/failure
+                $metaStatus = $responseData['meta']['status'] ?? false;
+                $metaMessage = $responseData['meta']['message'] ?? 'Unknown error';
+                $messageCode = $responseData['meta']['message_code'] ?? null;
+                
+                if ($metaStatus === true) {
                     return [
                         'success' => true,
-                        'response' => $responseData
+                        'response' => $responseData,
+                        'message_outbox_ids' => $responseData['data']['message_outbox_ids'] ?? []
                     ];
                 } else {
+                    // Extract error details from meta
+                    $errorMessage = $metaMessage;
+                    if ($messageCode) {
+                        $errorMessage .= ' (Code: ' . $messageCode . ')';
+                    }
+                    
+                    // Include errors from meta if available
+                    if (isset($responseData['meta']['errors']) && !empty($responseData['meta']['errors'])) {
+                        $errorMessage .= ' - ' . json_encode($responseData['meta']['errors']);
+                    }
+                    
+                    Log::error('FarazSMS API returned error', [
+                        'organization_id' => $organization->id,
+                        'phone_number' => $phoneNumber,
+                        'pattern_code' => $patternCode,
+                        'message' => $metaMessage,
+                        'message_code' => $messageCode,
+                        'errors' => $responseData['meta']['errors'] ?? null,
+                        'full_response' => $responseData
+                    ]);
+                    
                     return [
                         'success' => false,
-                        'error' => $responseData['message'] ?? 'FarazSMS returned error',
+                        'error' => $errorMessage,
+                        'message_code' => $messageCode,
                         'response' => $responseData
                     ];
                 }
             } else {
+                // HTTP error (non-200 status)
+                $errorMessage = 'FarazSMS API request failed';
+                if (isset($responseData['meta']['message'])) {
+                    $errorMessage = $responseData['meta']['message'];
+                }
+                
+                Log::error('FarazSMS API HTTP error', [
+                    'organization_id' => $organization->id,
+                    'phone_number' => $phoneNumber,
+                    'pattern_code' => $patternCode,
+                    'http_status' => $response->status(),
+                    'response' => $responseData
+                ]);
+                
                 return [
                     'success' => false,
-                    'error' => 'FarazSMS API request failed',
+                    'error' => $errorMessage,
                     'status_code' => $response->status(),
-                    'response' => $response->body()
+                    'response' => $responseData
                 ];
             }
         } catch (\Exception $e) {
@@ -525,6 +593,44 @@ class SmsService
         $patternCode = $pattern['code']; // Get FarazSMS pattern code
         $fillData = [
             'code' => $otpCode,
+        ];
+
+        return $this->sendPatternSms(
+            $organization,
+            $patternCode,
+            $fillData,
+            $phoneNumber,
+            $queue
+        );
+    }
+
+    /**
+     * Send organization user welcome SMS with credentials
+     *
+     * @param Organization $organization
+     * @param string $phoneNumber
+     * @param string $userName
+     * @param string $password
+     * @param bool $queue Whether to queue the SMS sending
+     * @return array
+     */
+    public function sendOrganizationUserWelcomeSms(Organization $organization, string $phoneNumber, string $userName, string $password, bool $queue = false): array
+    {
+        $pattern = SmsPattern::getPattern('organization_user_welcome');
+        
+        if (!$pattern) {
+            return [
+                'success' => false,
+                'message' => 'الگوی پیامک یافت نشد',
+                'error' => 'Organization user welcome pattern not found'
+            ];
+        }
+
+        $patternCode = $pattern['code']; // Get FarazSMS pattern code
+        $fillData = [
+            'user_name' => $userName,
+            'organization_name' => $organization->name,
+            'password' => $password,
         ];
 
         return $this->sendPatternSms(
