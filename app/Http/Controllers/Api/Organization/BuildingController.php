@@ -774,7 +774,8 @@ class BuildingController extends Controller
             
             $today = Carbon::today();
             $lastServiceCarbon = Carbon::parse($lastService->completed_at)->startOfDay();
-            $diffDays = $today->diffInDays($lastServiceCarbon, false);
+            // Calculate days passed from last service (positive number = days ago)
+            $diffDays = $lastServiceCarbon->diffInDays($today, false);
             
             // Format the days text
             if ($diffDays === 0) {
@@ -788,7 +789,8 @@ class BuildingController extends Controller
                 $lastServiceDaysText = abs($diffDays) . ' روز بعد';
             }
             
-            $lastServiceDays = $diffDays;
+            // Store absolute value for days passed
+            $lastServiceDays = abs($diffDays);
             
             // Add month name to the date
             $monthNames = [

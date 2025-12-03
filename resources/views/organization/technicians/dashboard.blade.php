@@ -140,7 +140,7 @@
         </div>
 
         <!-- Statistics Cards -->
-        <div class="col-xl-3 col-lg-6 col-sm-12 layout-spacing">
+        <div class="col-xl-4 col-lg-6 col-sm-12 layout-spacing">
             <div class="widget widget-chart-one">
                 <div class="widget-heading">
                     <h5 class="mb-0">کل سرویس‌ها</h5>
@@ -153,7 +153,7 @@
             </div>
         </div>
 
-        <div class="col-xl-3 col-lg-6 col-sm-12 layout-spacing">
+        <div class="col-xl-4 col-lg-6 col-sm-12 layout-spacing">
             <div class="widget widget-chart-one">
                 <div class="widget-heading">
                     <h5 class="mb-0">سرویس‌های تکمیل شده</h5>
@@ -166,7 +166,7 @@
             </div>
         </div>
 
-        <div class="col-xl-3 col-lg-6 col-sm-12 layout-spacing">
+        <div class="col-xl-4 col-lg-6 col-sm-12 layout-spacing">
             <div class="widget widget-chart-one">
                 <div class="widget-heading">
                     <h5 class="mb-0">سرویس‌های در انتظار</h5>
@@ -174,20 +174,6 @@
                 <div class="widget-content">
                     <div class="text-center p-4">
                         <h2 id="pending-services" class="mb-0 text-warning">-</h2>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-6 col-sm-12 layout-spacing">
-            <div class="widget widget-chart-one">
-                <div class="widget-heading">
-                    <h5 class="mb-0">روز از آخرین سرویس</h5>
-                </div>
-                <div class="widget-content">
-                    <div class="text-center p-4">
-                        <h2 id="last-service-days" class="mb-0 text-info">-</h2>
-                        <small id="last-service-date" class="text-muted">-</small>
                     </div>
                 </div>
             </div>
@@ -374,7 +360,7 @@ $(document).ready(function() {
                 if (response.success) {
                     dashboardData = response.data;
                     renderTechnicianInfo(dashboardData.technician);
-                    renderStatistics(dashboardData.statistics, dashboardData.last_service);
+                    renderStatistics(dashboardData.statistics);
                     renderServicesTable(dashboardData.services);
                 } else {
                     showError('خطا در بارگذاری اطلاعات داشبورد');
@@ -436,24 +422,10 @@ $(document).ready(function() {
     }
 
     // Render statistics
-    function renderStatistics(stats, lastService) {
+    function renderStatistics(stats) {
         $('#total-services').text(stats.total_services);
         $('#completed-services').text(stats.completed_services);
         $('#pending-services').text(stats.pending_services);
-        
-        if (lastService && lastService.days_since_text) {
-            // Show formatted text like "5 روز پیش" or "امروز"
-            $('#last-service-days').text(lastService.days_since_text);
-            
-            // Show date with month name
-            const dateText = lastService.completed_at_jalali_with_month || 
-                            lastService.completed_at_jalali || 
-                            '-';
-            $('#last-service-date').text(dateText);
-        } else {
-            $('#last-service-days').text('-');
-            $('#last-service-date').text('سرویس تکمیل شده‌ای وجود ندارد');
-        }
     }
 
     // Render services table

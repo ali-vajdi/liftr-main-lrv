@@ -95,17 +95,17 @@
                                 html += \'</button>\';
                                 
                                 // Elevators list button (page)
-                                html += \'<button type="button" class="btn btn-sm btn-primary elevators-list-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="لیست آسانسورها">\';
+                                html += \'<button type="button" class="btn btn-sm btn-primary elevators-list-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" data-slug="\' + (item.slug || item.id) + \'" title="لیست آسانسورها">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>\';
                                 html += \'</button>\';
                                 
                                 // Public page button
-                                html += \'<button type="button" class="btn btn-sm btn-info public-page-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="آرشیو عمومی سرویس ها">\';
+                                html += \'<button type="button" class="btn btn-sm btn-info public-page-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" data-slug="\' + (item.slug || item.id) + \'" title="آرشیو عمومی سرویس ها">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>\';
                                 html += \'</button>\';
                                 
                                 // QR Code button
-                                html += \'<button type="button" class="btn btn-sm btn-secondary qrcode-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="نمایش QR Code">\';
+                                html += \'<button type="button" class="btn btn-sm btn-secondary qrcode-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" data-slug="\' + (item.slug || item.id) + \'" title="نمایش QR Code">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-grid"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>\';
                                 html += \'</button>\';
                                 
@@ -135,21 +135,21 @@
                                 
                                 // Handle elevators list button click (page)
                                 $(".elevators-list-btn").on("click", function() {
-                                    const id = $(this).data("id");
-                                    window.location.href = `/buildings/${id}/elevators`;
+                                    const slug = $(this).data("slug") || $(this).data("id");
+                                    window.location.href = `/buildings/${slug}/elevators`;
                                 });
                                 
                                 // Handle public page button click
                                 $(".public-page-btn").on("click", function() {
-                                    const id = $(this).data("id");
-                                    const url = `${window.location.origin}/buildings/${id}/services`;
+                                    const slug = $(this).data("slug") || $(this).data("id");
+                                    const url = `${window.location.origin}/buildings/${slug}/services`;
                                     window.open(url, \'_blank\');
                                 });
                                 
                                 // Handle QR code button click
                                 $(".qrcode-btn").on("click", function() {
-                                    const id = $(this).data("id");
-                                    window.onShowQRCode(id);
+                                    const slug = $(this).data("slug") || $(this).data("id");
+                                    window.onShowQRCode(slug);
                                 });
                                 
                                 // Handle dashboard button click
@@ -1653,8 +1653,8 @@ $('#confirmDelete').on('click', function() {
 });
 
 // Show QR Code
-window.onShowQRCode = function(id) {
-    const publicUrl = `${window.location.origin}/buildings/${id}/services`;
+window.onShowQRCode = function(slug) {
+    const publicUrl = `${window.location.origin}/buildings/${slug}/services`;
     
     // Set the link input
     $('#public-link-input').val(publicUrl);
