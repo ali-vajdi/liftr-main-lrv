@@ -270,7 +270,7 @@ class AuthController extends Controller
             $user->phone_number,
             $user->name,
             $resetUrl,
-            false // Send immediately, not queued
+            true // Queue the SMS sending
         );
 
         if (!$smsResult['success']) {
@@ -389,7 +389,7 @@ class AuthController extends Controller
         }
 
         // Update password
-        $user->password = Hash::make($request->password);
+        $user->password = $request->password;
         $user->save();
 
         // Delete reset token
