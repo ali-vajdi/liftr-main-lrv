@@ -29,7 +29,7 @@
                 </div>
             </div>
         </div>
-        <div class="form-image">
+        <div class="form-image admin-form-image">
             <div class="l-image">
             </div>
         </div>
