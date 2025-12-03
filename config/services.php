@@ -32,9 +32,17 @@ return [
     ],
 
     'sms' => [
+        'panel' => env('SMS_PANEL', 'iranpayamak'), // 'farazsms' or 'iranpayamak'
         'api_url' => env('SMS_API_URL', 'https://edge.ippanel.com/v1'),
         'token' => env('SMS_TOKEN', 'YTA3ZDgzYjktZDYxNS00ZGM0LWIwOTctMGViN2Q4ZWY0ZGYxN2VhMzE4NTEzNWRhMGQxZGI0NjBmY2MwODU2YThkZTA='),
         'from_number' => env('SMS_FROM_NUMBER', '+98PRO'),
+        // Iranpayamak configuration
+        'iranpayamak' => [
+            'base_url' => env('IRANPAYAMAK_BASE_URL', 'https://api.iranpayamak.com/'),
+            'api_key' => env('IRANPAYAMAK_API_KEY', ''),
+            'line_number' => env('IRANPAYAMAK_LINE_NUMBER', 'PRO'),
+            'number_format' => env('IRANPAYAMAK_NUMBER_FORMAT', 'persian'),
+        ],
     ],
 
 ];

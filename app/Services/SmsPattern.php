@@ -94,7 +94,9 @@ class SmsPattern
             'required_fields' => ['technician_name', 'organization_name', 'password'],
         ],
         'building_manager_technician_assigned' => [
-            'code' => 'nktfdutobk8zoe6',
+            'code' => 'nktfdutobk8zoe6', // Default/FarazSMS code
+            'farazsms_code' => 'nktfdutobk8zoe6',
+            'iranpayamak_code' => 'kNVbpNIOX7',
             'text' => 'مدیر محترم ساختمان {building_name}' . "\n\n" . 'با سلام' . "\n\n" . 'به اطلاع می‌رساند نماینده شرکت در تاریخ {date_value} و بازه زمانی {time_periods_value} جهت انجام سرویس آسانسور به ساختمان مراجعه خواهد نمود.' . "\n\n" . 'آسانسور {organization_name}' . "\n\n" . 'ایرادات و اشکالات آسانسور را از طریق لینک زیر اعلام نمایید.' . "\n\n" . '{url_value}',
             'description' => 'اعلام اختصاص تکنسین به ساختمان',
             'required_fields' => ['building_name', 'date_value', 'time_periods_value', 'organization_name', 'url_value'],
@@ -173,6 +175,35 @@ class SmsPattern
     {
         $pattern = self::getPattern($code);
         return $pattern['required_fields'] ?? [];
+    }
+
+    /**
+     * Get pattern code for the active SMS panel
+     *
+     * @param string $patternKey
+     * @param string|null $panel Panel name ('farazsms' or 'iranpayamak'), null to use config default
+     * @return string|null
+     */
+    public static function getPatternCode(string $patternKey, ?string $panel = null): ?string
+    {
+        $pattern = self::getPattern($patternKey);
+        if (!$pattern) {
+            return null;
+        }
+
+        // If panel is not specified, get from config
+        if ($panel === null) {
+            $panel = config('services.sms.panel', 'iranpayamak');
+        }
+
+        // Get panel-specific code if available
+        $panelCodeKey = $panel . '_code';
+        if (isset($pattern[$panelCodeKey])) {
+            return $pattern[$panelCodeKey];
+        }
+
+        // Fall back to default code
+        return $pattern['code'] ?? null;
     }
 }
 

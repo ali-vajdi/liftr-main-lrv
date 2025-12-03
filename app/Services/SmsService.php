@@ -560,7 +560,7 @@ class SmsService
     }
 
     /**
-     * Send SMS via FarazSMS panel with pattern
+     * Send SMS via SMS panel with pattern (routes to appropriate panel)
      *
      * @param Organization $organization
      * @param string $patternCode
@@ -569,6 +569,27 @@ class SmsService
      * @return array
      */
     public function sendPatternViaPanel(Organization $organization, string $patternCode, array $params, string $phoneNumber): array
+    {
+        $panel = config('services.sms.panel', 'farazsms');
+        
+        if ($panel === 'iranpayamak') {
+            return $this->sendPatternViaIranpayamak($organization, $patternCode, $params, $phoneNumber);
+        }
+        
+        // Default to FarazSMS
+        return $this->sendPatternViaFarazSms($organization, $patternCode, $params, $phoneNumber);
+    }
+
+    /**
+     * Send SMS via FarazSMS panel with pattern
+     *
+     * @param Organization $organization
+     * @param string $patternCode
+     * @param array $params
+     * @param string $phoneNumber
+     * @return array
+     */
+    private function sendPatternViaFarazSms(Organization $organization, string $patternCode, array $params, string $phoneNumber): array
     {
         try {
             $apiUrl = config('services.sms.api_url') . '/api/send';
@@ -702,6 +723,148 @@ class SmsService
     }
 
     /**
+     * Send SMS via Iranpayamak panel with pattern
+     *
+     * @param Organization $organization
+     * @param string $patternCode
+     * @param array $params
+     * @param string $phoneNumber
+     * @return array
+     */
+    private function sendPatternViaIranpayamak(Organization $organization, string $patternCode, array $params, string $phoneNumber): array
+    {
+        try {
+            $baseUrl = config('services.sms.iranpayamak.base_url', 'https://api.iranpayamak.com/');
+            $apiKey = config('services.sms.iranpayamak.api_key');
+            $lineNumber = config('services.sms.iranpayamak.line_number', '50002178584000');
+            $numberFormat = config('services.sms.iranpayamak.number_format', 'english');
+
+            // Build full URL for pattern sending
+            $apiUrl = rtrim($baseUrl, '/') . '/ws/v1/sms/pattern';
+
+            // Convert params array to attributes format expected by iranpayamak
+            // Iranpayamak expects attributes like { "var1": "value1", "var2": "value2" }
+            $attributes = [];
+            
+            // Check if params already have var1, var2 format keys
+            $hasVarKeys = false;
+            foreach (array_keys($params) as $key) {
+                if (preg_match('/^var\d+$/', $key)) {
+                    $hasVarKeys = true;
+                    break;
+                }
+            }
+            
+            if ($hasVarKeys) {
+                // Use params as-is if they already have var1, var2 format
+                foreach ($params as $key => $value) {
+                    if (preg_match('/^var\d+$/', $key)) {
+                        $attributes[$key] = (string) $value;
+                    }
+                }
+            } else {
+                // Convert params to var1, var2 format
+                $index = 1;
+                foreach ($params as $key => $value) {
+                    $attributes['var' . $index] = (string) $value;
+                    $index++;
+                }
+            }
+
+            // Prepare request body for Iranpayamak API
+            $requestBody = [
+                'code' => $patternCode,
+                'attributes' => $attributes,
+                'recipient' => $phoneNumber,
+                'line_number' => $lineNumber,
+                'number_format' => $numberFormat,
+            ];
+
+            // Make API request to Iranpayamak panel
+            $response = Http::timeout(30)
+                ->withHeaders([
+                    'Api-Key' => $apiKey,
+                    'Content-Type' => 'application/json',
+                ])
+                ->post($apiUrl, $requestBody);
+
+            $responseData = $response->json();
+            
+            // Log full response for debugging
+            Log::info('Iranpayamak API response', [
+                'organization_id' => $organization->id,
+                'phone_number' => $phoneNumber,
+                'pattern_code' => $patternCode,
+                'http_status' => $response->status(),
+                'response' => $responseData,
+                'raw_body' => $response->body()
+            ]);
+
+            // Check if response is valid JSON
+            if ($responseData === null) {
+                Log::error('Iranpayamak API invalid JSON response', [
+                    'organization_id' => $organization->id,
+                    'phone_number' => $phoneNumber,
+                    'pattern_code' => $patternCode,
+                    'http_status' => $response->status(),
+                    'raw_body' => $response->body()
+                ]);
+                
+                return [
+                    'success' => false,
+                    'error' => 'Invalid JSON response from Iranpayamak API',
+                    'status_code' => $response->status(),
+                    'response' => $response->body()
+                ];
+            }
+
+            if ($response->successful()) {
+                // Iranpayamak typically returns success on 200 status
+                // Adjust based on actual API response structure
+                return [
+                    'success' => true,
+                    'response' => $responseData,
+                ];
+            } else {
+                // HTTP error (non-200 status)
+                $errorMessage = 'Iranpayamak API request failed';
+                if (isset($responseData['message'])) {
+                    $errorMessage = $responseData['message'];
+                } elseif (isset($responseData['error'])) {
+                    $errorMessage = is_string($responseData['error']) ? $responseData['error'] : json_encode($responseData['error']);
+                }
+                
+                Log::error('Iranpayamak API HTTP error', [
+                    'organization_id' => $organization->id,
+                    'phone_number' => $phoneNumber,
+                    'pattern_code' => $patternCode,
+                    'http_status' => $response->status(),
+                    'response' => $responseData
+                ]);
+                
+                return [
+                    'success' => false,
+                    'error' => $errorMessage,
+                    'status_code' => $response->status(),
+                    'response' => $responseData
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::error('Iranpayamak panel request failed', [
+                'organization_id' => $organization->id,
+                'phone_number' => $phoneNumber,
+                'pattern_code' => $patternCode,
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
      * Send SMS via SMS panel (for direct messages without pattern)
      *
      * @param Organization $organization
@@ -764,7 +927,15 @@ class SmsService
             ];
         }
 
-        $patternCode = $pattern['code']; // Get FarazSMS pattern code
+        $patternCode = SmsPattern::getPatternCode($patternKey);
+        if (!$patternCode) {
+            return [
+                'success' => false,
+                'message' => 'کد الگوی پیامک یافت نشد',
+                'error' => 'Pattern code not found'
+            ];
+        }
+        
         $fillData = [
             'code' => $otpCode,
         ];
@@ -803,7 +974,14 @@ class SmsService
             ];
         }
 
-        $patternCode = $pattern['code']; // Get FarazSMS pattern code
+        $patternCode = SmsPattern::getPatternCode($patternKey);
+        if (!$patternCode) {
+            return [
+                'success' => false,
+                'message' => 'کد الگوی پیامک یافت نشد',
+                'error' => 'Pattern code not found'
+            ];
+        }
         $fillData = [
             'user_name' => $userName,
             'organization_name' => $organization->name,
@@ -843,7 +1021,15 @@ class SmsService
             ];
         }
 
-        $patternCode = $pattern['code'];
+        $patternCode = SmsPattern::getPatternCode($patternKey);
+        if (!$patternCode) {
+            return [
+                'success' => false,
+                'message' => 'کد الگوی پیامک یافت نشد',
+                'error' => 'Pattern code not found'
+            ];
+        }
+        
         $fillData = [
             'technician_name' => $technicianName,
             'organization_name' => $organization->name,
@@ -882,7 +1068,14 @@ class SmsService
             ];
         }
 
-        $patternCode = $pattern['code'];
+        $patternCode = SmsPattern::getPatternCode($patternKey);
+        if (!$patternCode) {
+            return [
+                'success' => false,
+                'message' => 'کد الگوی پیامک یافت نشد',
+                'error' => 'Pattern code not found'
+            ];
+        }
         $fillData = [
             'technician_name' => $technicianName,
             'organization_name' => $organization->name,
@@ -922,7 +1115,15 @@ class SmsService
             ];
         }
 
-        $patternCode = $pattern['code'];
+        $patternCode = SmsPattern::getPatternCode($patternKey);
+        if (!$patternCode) {
+            return [
+                'success' => false,
+                'message' => 'کد الگوی پیامک یافت نشد',
+                'error' => 'Pattern code not found'
+            ];
+        }
+        
         $fillData = [
             'technician_name' => $technicianName,
             'organization_name' => $organization->name,
@@ -964,7 +1165,15 @@ class SmsService
             ];
         }
 
-        $patternCode = $pattern['code'];
+        $patternCode = SmsPattern::getPatternCode($patternKey);
+        if (!$patternCode) {
+            return [
+                'success' => false,
+                'message' => 'کد الگوی پیامک یافت نشد',
+                'error' => 'Pattern code not found'
+            ];
+        }
+        
         $fillData = [
             'building_name' => $buildingName,
             'date_value' => $dateValue,
@@ -1008,7 +1217,14 @@ class SmsService
             ];
         }
 
-        $patternCode = $pattern['code'];
+        $patternCode = SmsPattern::getPatternCode($patternKey);
+        if (!$patternCode) {
+            return [
+                'success' => false,
+                'message' => 'کد الگوی پیامک یافت نشد',
+                'error' => 'Pattern code not found'
+            ];
+        }
         $fillData = [
             'building_name' => $buildingName,
             'old_technician_name' => $oldTechnicianName,
@@ -1050,7 +1266,15 @@ class SmsService
             ];
         }
 
-        $patternCode = $pattern['code'];
+        $patternCode = SmsPattern::getPatternCode($patternKey);
+        if (!$patternCode) {
+            return [
+                'success' => false,
+                'message' => 'کد الگوی پیامک یافت نشد',
+                'error' => 'Pattern code not found'
+            ];
+        }
+        
         $fillData = [
             'building_name' => $buildingName,
             'url_value' => $urlValue,
@@ -1089,7 +1313,14 @@ class SmsService
             ];
         }
 
-        $patternCode = $pattern['code'];
+        $patternCode = SmsPattern::getPatternCode($patternKey);
+        if (!$patternCode) {
+            return [
+                'success' => false,
+                'message' => 'کد الگوی پیامک یافت نشد',
+                'error' => 'Pattern code not found'
+            ];
+        }
         $fillData = [
             'user_name' => $userName,
             'url_value' => $urlValue,
