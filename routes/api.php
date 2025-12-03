@@ -170,6 +170,7 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::post('services/{service}/revert', [OrgServiceController::class, 'revertService']);
         Route::post('services/{service}/cancel-building', [OrgServiceController::class, 'cancelBuildingAndService']);
         Route::get('services/{service}/building-info', [OrgServiceController::class, 'getBuildingInfo']);
+        Route::post('services/{service}/resend-checklist-sms', [OrgServiceController::class, 'resendChecklistSms']);
         Route::get('services/technicians', [OrgServiceController::class, 'getTechnicians']);
         
         // Organization SMS API

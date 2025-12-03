@@ -1352,4 +1352,90 @@ class ServiceController extends Controller
             'data' => $service
         ], 201);
     }
+
+    /**
+     * Resend checklist SMS to building manager for an assigned service
+     */
+    public function resendChecklistSms($id)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $service = Service::with(['building'])
+            ->whereHas('building', function ($q) use ($user) {
+                $q->where('organization_id', $user->organization_id);
+            })
+            ->findOrFail($id);
+
+        // Refresh service to ensure slug is available
+        $service->refresh();
+
+        // Check if service is assigned
+        if ($service->status !== Service::STATUS_ASSIGNED) {
+            return response()->json([
+                'success' => false,
+                'message' => 'فقط سرویس‌های اختصاص داده شده را می‌توان ارسال مجدد کرد.'
+            ], 400);
+        }
+
+        // Check if building has manager phone
+        if (!$service->building || !$service->building->manager_phone) {
+            return response()->json([
+                'success' => false,
+                'message' => 'شماره تماس مدیر ساختمان ثبت نشده است.'
+            ], 400);
+        }
+
+        // Check if service has visit_date and visit_time_range
+        if (!$service->visit_date || !$service->visit_time_range) {
+            return response()->json([
+                'success' => false,
+                'message' => 'تاریخ و بازه زمانی مراجعه برای این سرویس ثبت نشده است.'
+            ], 400);
+        }
+
+        $organization = Organization::findOrFail($user->organization_id);
+        
+        // Format time_periods_value: convert "06:00 - 08:00" to "06:00 الی 08:00" (with spaces around الی)
+        $timePeriodsValue = str_replace(' - ', ' الی ', $service->visit_time_range);
+        
+        // Generate URL using service slug
+        $urlValue = route('public.services.assigned.show', [
+            'service' => $service->slug
+        ], true); // true = absolute URL
+        
+        // Convert visit_date to Jalali format
+        $dateValue = Jalalian::forge($service->visit_date)->format('Y/m/d');
+        
+        $smsResult = $this->smsService->sendBuildingManagerTechnicianAssignedSms(
+            $organization,
+            $service->building->manager_phone,
+            $service->building->name,
+            $dateValue,
+            $timePeriodsValue,
+            $urlValue,
+            true // Use queue
+        );
+
+        if (!$smsResult['success']) {
+            Log::error('Resend building manager technician assigned SMS failed', [
+                'service_id' => $service->id,
+                'building_id' => $service->building->id,
+                'phone_number' => $service->building->manager_phone,
+                'error' => $smsResult['error'] ?? 'Unknown error',
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => $smsResult['message'] ?? 'خطا در ارسال پیامک',
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'پیامک با موفقیت ارسال شد.',
+        ]);
+    }
 }
