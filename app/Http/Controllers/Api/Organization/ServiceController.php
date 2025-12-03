@@ -580,6 +580,12 @@ class ServiceController extends Controller
         $technician = Technician::where('organization_id', $user->organization_id)
             ->findOrFail($request->technician_id);
 
+        // Get old technician before updating
+        $oldTechnician = null;
+        if ($service->technician_id) {
+            $oldTechnician = Technician::find($service->technician_id);
+        }
+
         // Convert Jalali date to Gregorian for visit_date (required)
         $visitDate = null;
         if (!empty($request->visit_date)) {
@@ -610,6 +616,9 @@ class ServiceController extends Controller
             'visit_time_range' => $request->visit_time_range,
         ]);
 
+        // Refresh service to ensure slug is available
+        $service->refresh();
+
         // Create automatic message to new technician about change
         $service->load(['building']);
         $monthNames = [
@@ -628,6 +637,41 @@ class ServiceController extends Controller
             'message' => "تکنسین یک سرویس تغییر کرد و به شما اختصاص داده شد.\n\nساختمان: {$service->building->name}\nماه: {$monthName} {$service->service_year}\n" . ($request->organization_note ? "یادداشت: {$request->organization_note}" : ''),
             'service_id' => $service->id,
         ]);
+
+        // Send SMS to building manager about technician change
+        if ($service->building && $service->building->manager_phone && $oldTechnician) {
+            $organization = Organization::findOrFail($user->organization_id);
+            
+            // Generate URL using service slug
+            $urlValue = route('public.services.assigned.show', [
+                'service' => $service->slug
+            ], true); // true = absolute URL
+            
+            // Get technician names
+            $oldTechnicianName = trim($oldTechnician->first_name . ' ' . $oldTechnician->last_name);
+            $newTechnicianName = trim($technician->first_name . ' ' . $technician->last_name);
+            
+            $smsResult = $this->smsService->sendBuildingManagerTechnicianChangedSms(
+                $organization,
+                $service->building->manager_phone,
+                $service->building->name,
+                $oldTechnicianName,
+                $newTechnicianName,
+                $urlValue,
+                true // Use queue
+            );
+
+            if (!$smsResult['success']) {
+                Log::error('Building manager technician changed SMS failed', [
+                    'service_id' => $service->id,
+                    'building_id' => $service->building->id,
+                    'phone_number' => $service->building->manager_phone,
+                    'old_technician_id' => $oldTechnicianId,
+                    'new_technician_id' => $request->technician_id,
+                    'error' => $smsResult['error'] ?? 'Unknown error',
+                ]);
+            }
+        }
 
         $service->load(['building.province', 'building.city', 'building.elevators', 'technician']);
         $service->status_text = $service->status_text;
@@ -708,6 +752,36 @@ class ServiceController extends Controller
             'visit_date' => $visitDate,
             'visit_time_range' => $request->visit_time_range,
         ]);
+
+        // Refresh service to ensure slug is available
+        $service->refresh();
+
+        // Send SMS to building manager about visit date/time update
+        if ($service->building && $service->building->manager_phone) {
+            $organization = Organization::findOrFail($user->organization_id);
+            
+            // Generate URL using service slug
+            $urlValue = route('public.services.assigned.show', [
+                'service' => $service->slug
+            ], true); // true = absolute URL
+            
+            $smsResult = $this->smsService->sendBuildingManagerVisitUpdatedSms(
+                $organization,
+                $service->building->manager_phone,
+                $service->building->name,
+                $urlValue,
+                true // Use queue
+            );
+
+            if (!$smsResult['success']) {
+                Log::error('Building manager visit updated SMS failed', [
+                    'service_id' => $service->id,
+                    'building_id' => $service->building->id,
+                    'phone_number' => $service->building->manager_phone,
+                    'error' => $smsResult['error'] ?? 'Unknown error',
+                ]);
+            }
+        }
 
         $service->load(['building.province', 'building.city', 'building.elevators', 'technician']);
         $service->status_text = $service->status_text;

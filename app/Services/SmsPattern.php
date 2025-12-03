@@ -99,6 +99,18 @@ class SmsPattern
             'description' => 'اعلام اختصاص تکنسین به ساختمان',
             'required_fields' => ['building_name', 'date_value', 'time_periods_value', 'organization_name', 'url_value'],
         ],
+        'building_manager_technician_changed' => [
+            'code' => 'z83uvx493u1nzg0',
+            'text' => 'مدیر محترم ساختمان {building_name}' . "\n\n" . 'سرویسکار آقای {old_technician_name} به آقای {new_technician_name} تغییر گردید.' . "\n\n" . 'آسانسور {organization_name}' . "\n\n" . '{url_value}',
+            'description' => 'اعلام تغییر تکنسین به ساختمان',
+            'required_fields' => ['building_name', 'old_technician_name', 'new_technician_name', 'organization_name', 'url_value'],
+        ],
+        'building_manager_visit_updated' => [
+            'code' => 'nrb8fjjatmxzchf',
+            'text' => 'مدیر محترم ساختمان {building_name}' . "\n\n" . 'اطلاعات مربوط به تاریخ و بازه زمانی انجام سرویس تغییر گردید.' . "\n\n" . 'جهت مشاهده به لینک زیر مراجعه نمایید.' . "\n\n" . '{url_value}',
+            'description' => 'اعلام تغییر تاریخ و بازه زمانی سرویس',
+            'required_fields' => ['building_name', 'url_value'],
+        ],
     ];
 
     /**
