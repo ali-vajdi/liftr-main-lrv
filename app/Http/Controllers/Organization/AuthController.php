@@ -5,17 +5,20 @@ namespace App\Http\Controllers\Organization;
 use App\Http\Controllers\Controller;
 use App\Models\OrganizationUser;
 use App\Models\Organization;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:organization_api')->except(['login', 'unlockScreen']);
+        $this->middleware('auth:organization_api')->except(['login', 'unlockScreen', 'showForgotPassword', 'forgotPassword', 'showResetPassword', 'resetPassword']);
     }
 
     public function login(Request $request)
@@ -212,5 +215,190 @@ class AuthController extends Controller
             'message' => 'اطلاعات شرکت با موفقیت بروزرسانی شد',
             'data' => $organization
         ]);
+    }
+
+    /**
+     * Show forgot password page
+     */
+    public function showForgotPassword()
+    {
+        return view('organization.forgot-password');
+    }
+
+    /**
+     * Handle forgot password request
+     */
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'phone_number' => 'required|string',
+        ], [
+            'phone_number.required' => 'شماره تلفن الزامی است',
+        ]);
+
+        $user = OrganizationUser::where('phone_number', $request->phone_number)
+            ->where('status', true)
+            ->first();
+
+        // Always return success message for security (don't reveal if user exists)
+        if (!$user) {
+            return response()->json([
+                'message' => 'اگر شماره تلفن شما در سیستم موجود باشد، لینک بازنشانی رمز عبور به شما ارسال خواهد شد.'
+            ], 200);
+        }
+
+        // Generate reset token
+        $token = Str::random(64);
+        $expiresAt = now()->addHours(2); // 2 hours validity
+
+        // Store token in database
+        DB::table('organization_password_reset_tokens')->updateOrInsert(
+            ['phone_number' => $user->phone_number],
+            [
+                'token' => Hash::make($token),
+                'created_at' => now(),
+            ]
+        );
+
+        // Generate reset URL
+        $resetUrl = route('organization.reset-password', ['token' => $token]) . '?phone=' . urlencode($user->phone_number);
+
+        // Send SMS
+        $smsService = new SmsService();
+        $smsResult = $smsService->sendOrganizationPasswordResetSms(
+            $user->organization,
+            $user->phone_number,
+            $user->name,
+            $resetUrl,
+            false // Send immediately, not queued
+        );
+
+        if (!$smsResult['success']) {
+            return response()->json([
+                'message' => 'خطا در ارسال پیامک. لطفا دوباره تلاش کنید.',
+                'error' => $smsResult['error'] ?? 'Unknown error'
+            ], 500);
+        }
+
+        return response()->json([
+            'message' => 'اگر شماره تلفن شما در سیستم موجود باشد، لینک بازنشانی رمز عبور به شما ارسال خواهد شد.'
+        ], 200);
+    }
+
+    /**
+     * Show reset password page
+     */
+    public function showResetPassword(Request $request, $token)
+    {
+        $phoneNumber = $request->query('phone');
+
+        if (!$phoneNumber) {
+            return redirect()->route('organization.forgot-password')
+                ->with('error', 'لینک نامعتبر است.');
+        }
+
+        // Verify token
+        $resetToken = DB::table('organization_password_reset_tokens')
+            ->where('phone_number', $phoneNumber)
+            ->first();
+
+        if (!$resetToken) {
+            return redirect()->route('organization.forgot-password')
+                ->with('error', 'لینک بازنشانی رمز عبور نامعتبر یا منقضی شده است.');
+        }
+
+        // Check if token is expired (2 hours)
+        $tokenAge = now()->diffInHours($resetToken->created_at);
+        if ($tokenAge >= 2) {
+            DB::table('organization_password_reset_tokens')
+                ->where('phone_number', $phoneNumber)
+                ->delete();
+            
+            return redirect()->route('organization.forgot-password')
+                ->with('error', 'لینک بازنشانی رمز عبور منقضی شده است. لطفا دوباره درخواست دهید.');
+        }
+
+        // Verify token hash
+        if (!Hash::check($token, $resetToken->token)) {
+            return redirect()->route('organization.forgot-password')
+                ->with('error', 'لینک بازنشانی رمز عبور نامعتبر است.');
+        }
+
+        return view('organization.reset-password', [
+            'token' => $token,
+            'phone_number' => $phoneNumber
+        ]);
+    }
+
+    /**
+     * Handle password reset
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string',
+            'phone_number' => 'required|string',
+            'password' => 'required|string|min:6|confirmed',
+        ], [
+            'token.required' => 'توکن الزامی است',
+            'phone_number.required' => 'شماره تلفن الزامی است',
+            'password.required' => 'رمز عبور الزامی است',
+            'password.min' => 'رمز عبور باید حداقل 6 کاراکتر باشد',
+            'password.confirmed' => 'رمز عبور و تکرار آن مطابقت ندارند',
+        ]);
+
+        // Verify token
+        $resetToken = DB::table('organization_password_reset_tokens')
+            ->where('phone_number', $request->phone_number)
+            ->first();
+
+        if (!$resetToken) {
+            return response()->json([
+                'message' => 'لینک بازنشانی رمز عبور نامعتبر یا منقضی شده است.'
+            ], 422);
+        }
+
+        // Check if token is expired (2 hours)
+        $tokenAge = now()->diffInHours($resetToken->created_at);
+        if ($tokenAge >= 2) {
+            DB::table('organization_password_reset_tokens')
+                ->where('phone_number', $request->phone_number)
+                ->delete();
+            
+            return response()->json([
+                'message' => 'لینک بازنشانی رمز عبور منقضی شده است. لطفا دوباره درخواست دهید.'
+            ], 422);
+        }
+
+        // Verify token hash
+        if (!Hash::check($request->token, $resetToken->token)) {
+            return response()->json([
+                'message' => 'لینک بازنشانی رمز عبور نامعتبر است.'
+            ], 422);
+        }
+
+        // Find user
+        $user = OrganizationUser::where('phone_number', $request->phone_number)
+            ->where('status', true)
+            ->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'کاربر یافت نشد.'
+            ], 404);
+        }
+
+        // Update password
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        // Delete reset token
+        DB::table('organization_password_reset_tokens')
+            ->where('phone_number', $request->phone_number)
+            ->delete();
+
+        return response()->json([
+            'message' => 'رمز عبور با موفقیت تغییر یافت. اکنون می‌توانید با رمز عبور جدید وارد شوید.'
+        ], 200);
     }
 }

@@ -39,6 +39,10 @@
                 </div>
             </div>
 
+            <div class="field-wrapper text-center mt-3">
+                <a href="{{ route('organization.forgot-password') }}" class="forgot-pass-link">فراموشی رمز عبور</a>
+            </div>
+
             <div id="error-message" class="alert alert-danger mt-2" style="display: none;">
                 <ul id="error-list">
                 </ul>

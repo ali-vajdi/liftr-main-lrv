@@ -1065,5 +1065,44 @@ class SmsService
             $queue
         );
     }
+
+    /**
+     * Send organization user password reset SMS
+     *
+     * @param Organization $organization
+     * @param string $phoneNumber User phone number
+     * @param string $userName User name
+     * @param string $urlValue Full URL to reset password page
+     * @param bool $queue Whether to queue the SMS sending
+     * @return array
+     */
+    public function sendOrganizationPasswordResetSms(Organization $organization, string $phoneNumber, string $userName, string $urlValue, bool $queue = false): array
+    {
+        $patternKey = 'organization_password_reset';
+        $pattern = SmsPattern::getPattern($patternKey);
+        
+        if (!$pattern) {
+            return [
+                'success' => false,
+                'message' => 'الگوی پیامک یافت نشد',
+                'error' => 'Organization password reset pattern not found'
+            ];
+        }
+
+        $patternCode = $pattern['code'];
+        $fillData = [
+            'user_name' => $userName,
+            'url_value' => $urlValue,
+        ];
+
+        return $this->sendPatternSmsWithKey(
+            $organization,
+            $patternKey,
+            $patternCode,
+            $fillData,
+            $phoneNumber,
+            $queue
+        );
+    }
 }
 

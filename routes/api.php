@@ -114,6 +114,8 @@ Route::prefix('organization')->name('organization.')->group(function () {
     // Organization Authentication Routes
     Route::post('login', [OrganizationAuthController::class, 'login']);
     Route::post('unlock-screen', [OrganizationAuthController::class, 'unlockScreen']);
+    Route::post('forgot-password', [OrganizationAuthController::class, 'forgotPassword']);
+    Route::post('reset-password', [OrganizationAuthController::class, 'resetPassword']);
     
     // Protected Organization API Routes
     Route::middleware('auth:organization_api')->group(function () {

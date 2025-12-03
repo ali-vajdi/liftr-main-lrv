@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Route;
 // Organization Panel Routes (Main Routes)
 Route::get('/login', [OrganizationViewController::class, 'showLogin'])->name('organization.login');
 Route::get('/lock-screen', [OrganizationViewController::class, 'showLockScreen'])->name('organization.lock');
+Route::get('/forgot-password', [OrganizationAuthController::class, 'showForgotPassword'])->name('organization.forgot-password');
+Route::get('/reset-password/{token}', [OrganizationAuthController::class, 'showResetPassword'])->name('organization.reset-password');
 
 // Organization Dashboard and Management Routes
 Route::get('/', [OrganizationViewController::class, 'showDashboard'])->name('organization.dashboard');

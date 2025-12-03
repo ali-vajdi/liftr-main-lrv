@@ -111,6 +111,12 @@ class SmsPattern
             'description' => 'اعلام تغییر تاریخ و بازه زمانی سرویس',
             'required_fields' => ['building_name', 'url_value'],
         ],
+        'organization_password_reset' => [
+            'code' => 'lbtvitpikacpeku',
+            'text' => 'کاربر {user_name}' . "\n\n" . 'از طریق لینک زیر جهت بازنشانی رمز عبور خود اقدام نمایید.' . "\n\n" . 'با تشکر – لیفتر' . "\n\n" . '{url_value}',
+            'description' => 'بازنشانی رمز عبور کاربر سازمان',
+            'required_fields' => ['user_name', 'url_value'],
+        ],
     ];
 
     /**
