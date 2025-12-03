@@ -15,7 +15,7 @@ class SmsService
     /**
      * Characters per SMS (standard GSM 7-bit encoding)
      */
-    const CHARS_PER_SMS = 70;
+    const CHARS_PER_SMS = 64;
 
     /**
      * Send SMS using a pattern code with internal pattern key (for proper lookup)
