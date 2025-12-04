@@ -24,6 +24,7 @@ Route::get('/login', [OrganizationViewController::class, 'showLogin'])->name('or
 Route::get('/lock-screen', [OrganizationViewController::class, 'showLockScreen'])->name('organization.lock');
 Route::get('/forgot-password', [OrganizationAuthController::class, 'showForgotPassword'])->name('organization.forgot-password');
 Route::get('/reset-password/{token}', [OrganizationAuthController::class, 'showResetPassword'])->name('organization.reset-password');
+Route::get('/rp/{token}', [OrganizationAuthController::class, 'showResetPassword'])->name('organization.reset-password.short'); // Shorter route for SMS
 
 // Organization Dashboard and Management Routes
 Route::get('/', [OrganizationViewController::class, 'showDashboard'])->name('organization.dashboard');

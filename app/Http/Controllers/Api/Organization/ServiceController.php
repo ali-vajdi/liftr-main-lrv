@@ -492,11 +492,8 @@ class ServiceController extends Controller
             // Format time_periods_value: convert "06:00 - 08:00" to "06:00 الی 08:00" (with spaces around الی)
             $timePeriodsValue = str_replace(' - ', ' الی ', $request->visit_time_range);
             
-            // Generate URL using service slug: https://app.liftr.ir/service/{slug}
-            // Generate URL
-            $urlValue = route('public.services.assigned.show', [
-                'service' => $service->slug
-            ], true); // true = absolute URL
+            // Generate URL in format: service/{slug}
+            $urlValue = 'service/' . $service->slug;
             
             // Use visit_date as date_value (already in Jalali format)
             $dateValue = $request->visit_date;
@@ -642,10 +639,8 @@ class ServiceController extends Controller
         if ($service->building && $service->building->manager_phone && $oldTechnician) {
             $organization = Organization::findOrFail($user->organization_id);
             
-            // Generate URL using service slug
-            $urlValue = route('public.services.assigned.show', [
-                'service' => $service->slug
-            ], true); // true = absolute URL
+            // Generate URL in format: service/{slug}
+            $urlValue = 'service/' . $service->slug;
             
             // Get technician names
             $oldTechnicianName = trim($oldTechnician->first_name . ' ' . $oldTechnician->last_name);
@@ -760,10 +755,8 @@ class ServiceController extends Controller
         if ($service->building && $service->building->manager_phone) {
             $organization = Organization::findOrFail($user->organization_id);
             
-            // Generate URL using service slug
-            $urlValue = route('public.services.assigned.show', [
-                'service' => $service->slug
-            ], true); // true = absolute URL
+            // Generate URL in format: service/{slug}
+            $urlValue = 'service/' . $service->slug;
             
             $smsResult = $this->smsService->sendBuildingManagerVisitUpdatedSms(
                 $organization,
@@ -1475,10 +1468,8 @@ class ServiceController extends Controller
         // Format time_periods_value: convert "06:00 - 08:00" to "06:00 الی 08:00" (with spaces around الی)
         $timePeriodsValue = str_replace(' - ', ' الی ', $service->visit_time_range);
         
-        // Generate URL using service slug
-        $urlValue = route('public.services.assigned.show', [
-            'service' => $service->slug
-        ], true); // true = absolute URL
+        // Generate URL in format: service/{slug}
+        $urlValue = 'service/' . $service->slug;
         
         // Convert visit_date to Jalali format
         $dateValue = Jalalian::forge($service->visit_date)->format('Y/m/d');

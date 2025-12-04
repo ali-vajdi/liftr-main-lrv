@@ -247,8 +247,13 @@ class AuthController extends Controller
             ], 200);
         }
 
-        // Generate reset token
-        $token = Str::random(64);
+        // Generate reset token (shorter for SMS compatibility - max 40 chars after domain)
+        // Target: /reset-password/{token}?p={encoded_phone} <= 40 chars
+        // /reset-password/ = 16 chars, ?p= = 3 chars, encoded phone ~15 chars
+        // So token can be max: 40 - 16 - 3 - 15 = 6 chars (too short for security)
+        // Using shorter route /rp/ = 4 chars instead
+        // New calculation: /rp/ = 4, ?p= = 3, encoded phone ~15, so token max = 40 - 4 - 3 - 15 = 18 chars
+        $token = Str::random(18);
         $expiresAt = now()->addHours(2); // 2 hours validity
 
         // Store token in database
@@ -260,8 +265,11 @@ class AuthController extends Controller
             ]
         );
 
-        // Generate reset URL
-        $resetUrl = route('organization.reset-password', ['token' => $token]) . '?phone=' . urlencode($user->phone_number);
+        // Generate reset URL - encode phone number in base64url format to shorten it
+        // Format: /rp/{token}?p={base64url_encoded_phone}
+        // This keeps the URL path + query under 40 characters
+        $encodedPhone = rtrim(strtr(base64_encode($user->phone_number), '+/', '-_'), '=');
+        $resetUrl = '/rp/' . $token . '?p=' . $encodedPhone;
 
         // Send SMS
         $smsService = new SmsService();
@@ -290,8 +298,16 @@ class AuthController extends Controller
      */
     public function showResetPassword(Request $request, $token)
     {
-        $phoneNumber = $request->query('phone');
-
+        // Decode phone number from base64url encoded 'p' parameter
+        $encodedPhone = $request->query('p');
+        if (!$encodedPhone) {
+            return redirect()->route('organization.forgot-password')
+                ->with('error', 'لینک نامعتبر است.');
+        }
+        
+        // Decode base64url to get phone number
+        $phoneNumber = base64_decode(strtr($encodedPhone, '-_', '+/'));
+        
         if (!$phoneNumber) {
             return redirect()->route('organization.forgot-password')
                 ->with('error', 'لینک نامعتبر است.');
