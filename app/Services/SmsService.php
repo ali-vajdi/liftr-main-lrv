@@ -742,33 +742,11 @@ class SmsService
             // Build full URL for pattern sending
             $apiUrl = rtrim($baseUrl, '/') . '/ws/v1/sms/pattern';
 
-            // Convert params array to attributes format expected by iranpayamak
-            // Iranpayamak expects attributes like { "var1": "value1", "var2": "value2" }
+            // Use actual parameter names as attribute keys (not var1, var2 format)
+            // Iranpayamak expects attributes with the actual variable names from the pattern
             $attributes = [];
-            
-            // Check if params already have var1, var2 format keys
-            $hasVarKeys = false;
-            foreach (array_keys($params) as $key) {
-                if (preg_match('/^var\d+$/', $key)) {
-                    $hasVarKeys = true;
-                    break;
-                }
-            }
-            
-            if ($hasVarKeys) {
-                // Use params as-is if they already have var1, var2 format
-                foreach ($params as $key => $value) {
-                    if (preg_match('/^var\d+$/', $key)) {
-                        $attributes[$key] = (string) $value;
-                    }
-                }
-            } else {
-                // Convert params to var1, var2 format
-                $index = 1;
-                foreach ($params as $key => $value) {
-                    $attributes['var' . $index] = (string) $value;
-                    $index++;
-                }
+            foreach ($params as $key => $value) {
+                $attributes[$key] = (string) $value;
             }
 
             // Prepare request body for Iranpayamak API
