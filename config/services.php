@@ -39,7 +39,7 @@ return [
         // Iranpayamak configuration
         'iranpayamak' => [
             'base_url' => env('IRANPAYAMAK_BASE_URL', 'https://api.iranpayamak.com/'),
-            'api_key' => env('IRANPAYAMAK_API_KEY', ''),
+            'api_key' => env('IRANPAYAMAK_API_KEY', 'Plpu2SuGiTljRv0NHIl5UPVk0OyeVqPIGLC4IJNx9zWgMKanDm'),
             'line_number' => env('IRANPAYAMAK_LINE_NUMBER', 'PRO'),
             'number_format' => env('IRANPAYAMAK_NUMBER_FORMAT', 'persian'),
         ],
