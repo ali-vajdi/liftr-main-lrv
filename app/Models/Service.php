@@ -160,17 +160,17 @@ class Service extends Model
     }
 
     /**
-     * Generate a unique 9-character slug
+     * Generate a unique 3-character slug
      */
     protected static function generateUniqueSlug(): string
     {
-        $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
         $maxAttempts = 100;
         $attempt = 0;
 
         do {
             $slug = '';
-            for ($i = 0; $i < 9; $i++) {
+            for ($i = 0; $i < 5; $i++) {
                 $slug .= $characters[random_int(0, strlen($characters) - 1)];
             }
             $attempt++;
