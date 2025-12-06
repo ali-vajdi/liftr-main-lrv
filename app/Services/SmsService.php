@@ -1125,12 +1125,11 @@ class SmsService
      * @param string $phoneNumber Building manager phone number
      * @param string $buildingName
      * @param string $dateValue Jalali date (e.g., "1404/09/11")
-     * @param string $timePeriodsValue Time range formatted as "06:00 الی 08:00"
-     * @param string $urlValue Full URL to the service page
+     * @param string $serviceSlug Service slug for the URL
      * @param bool $queue Whether to queue the SMS sending
      * @return array
      */
-    public function sendBuildingManagerTechnicianAssignedSms(Organization $organization, string $phoneNumber, string $buildingName, string $dateValue, string $timePeriodsValue, string $urlValue, bool $queue = false): array
+    public function sendBuildingManagerTechnicianAssignedSms(Organization $organization, string $phoneNumber, string $buildingName, string $dateValue, string $serviceSlug, bool $queue = false): array
     {
         $patternKey = 'building_manager_technician_assigned';
         $pattern = SmsPattern::getPattern($patternKey);
@@ -1155,9 +1154,8 @@ class SmsService
         $fillData = [
             'building_name' => $buildingName,
             'date_value' => $dateValue,
-            'time_periods_value' => $timePeriodsValue,
+            'service_slug' => $serviceSlug,
             'organization_name' => $organization->name,
-            'url_value' => $urlValue,
         ];
 
         return $this->sendPatternSmsWithKey(

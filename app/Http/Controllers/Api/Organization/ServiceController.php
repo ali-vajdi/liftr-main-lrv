@@ -489,22 +489,34 @@ class ServiceController extends Controller
         if ($service->building && $service->building->manager_phone) {
             $organization = Organization::findOrFail($user->organization_id);
             
-            // Format time_periods_value: convert "06:00 - 08:00" to "06:00 الی 08:00" (with spaces around الی)
-            $timePeriodsValue = str_replace(' - ', ' الی ', $request->visit_time_range);
-            
-            // Generate URL in format: service/{slug}
-            $urlValue = 'service/' . $service->slug;
-            
-            // Use visit_date as date_value (already in Jalali format)
+            // Format date_value as "آبان 1404" (month name + year)
             $dateValue = $request->visit_date;
+            if (!empty($request->visit_date)) {
+                try {
+                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $request->visit_date);
+                    $monthNames = [
+                        1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
+                        5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
+                        9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
+                    ];
+                    $monthName = $monthNames[$jalaliDate->getMonth()] ?? $jalaliDate->getMonth();
+                    $year = $jalaliDate->getYear();
+                    $dateValue = $monthName . ' ' . $year;
+                } catch (\Exception $e) {
+                    // Fallback to original format if parsing fails
+                    Log::warning('Failed to format date_value for SMS', [
+                        'visit_date' => $request->visit_date,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
             
             $smsResult = $this->smsService->sendBuildingManagerTechnicianAssignedSms(
                 $organization,
                 $service->building->manager_phone,
                 $service->building->name,
                 $dateValue,
-                $timePeriodsValue,
-                $urlValue,
+                $service->slug,
                 true // Use queue
             );
 
@@ -1465,22 +1477,35 @@ class ServiceController extends Controller
 
         $organization = Organization::findOrFail($user->organization_id);
         
-        // Format time_periods_value: convert "06:00 - 08:00" to "06:00 الی 08:00" (with spaces around الی)
-        $timePeriodsValue = str_replace(' - ', ' الی ', $service->visit_time_range);
-        
-        // Generate URL in format: service/{slug}
-        $urlValue = 'service/' . $service->slug;
-        
-        // Convert visit_date to Jalali format
-        $dateValue = Jalalian::forge($service->visit_date)->format('Y/m/d');
+        // Format date_value as "آبان 1404" (month name + year)
+        $dateValue = '';
+        if ($service->visit_date) {
+            try {
+                $jalaliDate = Jalalian::forge($service->visit_date);
+                $monthNames = [
+                    1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
+                    5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
+                    9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
+                ];
+                $monthName = $monthNames[$jalaliDate->getMonth()] ?? $jalaliDate->getMonth();
+                $year = $jalaliDate->getYear();
+                $dateValue = $monthName . ' ' . $year;
+            } catch (\Exception $e) {
+                // Fallback to original format if parsing fails
+                $dateValue = Jalalian::forge($service->visit_date)->format('Y/m/d');
+                Log::warning('Failed to format date_value for SMS', [
+                    'visit_date' => $service->visit_date,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
         
         $smsResult = $this->smsService->sendBuildingManagerTechnicianAssignedSms(
             $organization,
             $service->building->manager_phone,
             $service->building->name,
             $dateValue,
-            $timePeriodsValue,
-            $urlValue,
+            $service->slug,
             true // Use queue
         );
 

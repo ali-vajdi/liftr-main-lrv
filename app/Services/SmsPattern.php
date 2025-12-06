@@ -104,12 +104,12 @@ class SmsPattern
             'required_fields' => ['technician_name', 'organization_name', 'password'],
         ],
         'building_manager_technician_assigned' => [
-            'code' => 'nktfdutobk8zoe6', // Default/FarazSMS code
-            'farazsms_code' => 'nktfdutobk8zoe6',
+            'code' => 'x0dcf0teel7ybxg', // Default/FarazSMS code
+            'farazsms_code' => 'x0dcf0teel7ybxg',
             'iranpayamak_code' => 'I4DZ2NEBS0',
-            'text' => 'مدیر محترم ساختمان {building_name}' . "\n\n" . 'با سلام' . "\n\n" . 'به اطلاع می‌رساند نماینده شرکت در تاریخ {date_value} و بازه زمانی {time_periods_value} جهت انجام سرویس آسانسور به ساختمان مراجعه خواهد نمود.' . "\n\n" . 'آسانسور {organization_name}' . "\n\n" . 'ایرادات و اشکالات آسانسور را از طریق لینک زیر اعلام نمایید.' . "\n\n" . '{url_value}',
+            'text' => 'مدیر ساختمان {building_name}' . "\n\n" . 'لینک اطلاع از زمان سرویس {date_value} و ثبت مشکلات آسانسور' . "\n\n" . 'app.liftr.ir/d/{service_slug}' . "\n\n" . 'آسانسور {organization_name}',
             'description' => 'اعلام اختصاص تکنسین به ساختمان',
-            'required_fields' => ['building_name', 'date_value', 'time_periods_value', 'organization_name', 'url_value'],
+            'required_fields' => ['building_name', 'date_value', 'service_slug', 'organization_name'],
         ],
         'building_manager_technician_changed' => [
             'code' => 'z83uvx493u1nzg0',
@@ -209,7 +209,7 @@ class SmsPattern
 
         // If panel is not specified, get from config
         if ($panel === null) {
-            $panel = config('services.sms.panel', 'iranpayamak');
+            $panel = config('services.sms.panel', 'farazsms');
         }
 
         // Get panel-specific code if available
