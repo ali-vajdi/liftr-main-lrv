@@ -120,12 +120,12 @@ class SmsPattern
             'required_fields' => ['building_name', 'organization_name', 'service_slug'],
         ],
         'building_manager_visit_updated' => [
-            'code' => 'nrb8fjjatmxzchf',
-            'farazsms_code' => 'nrb8fjjatmxzchf',
+            'code' => 'fbrp6wuo144p4uu', // Default/FarazSMS code
+            'farazsms_code' => 'fbrp6wuo144p4uu',
             'iranpayamak_code' => 'pcsyKVx968',
-            'text' => 'مدیر محترم ساختمان {building_name}' . "\n\n" . 'اطلاعات مربوط به تاریخ و بازه زمانی انجام سرویس تغییر گردید.' . "\n\n" . 'جهت مشاهده به لینک زیر مراجعه نمایید.' . "\n\n" . '{url_value}',
+            'text' => 'مدیر ساختمان {building_name}' . "\n\n" . 'اطلاعات مربوط به زمان انجام سرویس تغییر گردید' . "\n\n" . 'جهت مشاهده به لینک زیر مراجعه نمایید' . "\n\n" . 'app.liftr.ir/d/{service_slug}',
             'description' => 'اعلام تغییر تاریخ و بازه زمانی سرویس',
-            'required_fields' => ['building_name', 'url_value'],
+            'required_fields' => ['building_name', 'service_slug'],
         ],
         'organization_password_reset' => [
             'code' => 'lbtvitpikacpeku',

@@ -1221,11 +1221,11 @@ class SmsService
      * @param Organization $organization
      * @param string $phoneNumber Building manager phone number
      * @param string $buildingName
-     * @param string $urlValue Full URL to the service page
+     * @param string $serviceSlug Service slug for the URL
      * @param bool $queue Whether to queue the SMS sending
      * @return array
      */
-    public function sendBuildingManagerVisitUpdatedSms(Organization $organization, string $phoneNumber, string $buildingName, string $urlValue, bool $queue = false): array
+    public function sendBuildingManagerVisitUpdatedSms(Organization $organization, string $phoneNumber, string $buildingName, string $serviceSlug, bool $queue = false): array
     {
         $patternKey = 'building_manager_visit_updated';
         $pattern = SmsPattern::getPattern($patternKey);
@@ -1249,7 +1249,7 @@ class SmsService
         
         $fillData = [
             'building_name' => $buildingName,
-            'url_value' => $urlValue,
+            'service_slug' => $serviceSlug,
         ];
 
         return $this->sendPatternSmsWithKey(

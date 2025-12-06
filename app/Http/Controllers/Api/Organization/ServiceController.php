@@ -758,14 +758,11 @@ class ServiceController extends Controller
         if ($service->building && $service->building->manager_phone) {
             $organization = Organization::findOrFail($user->organization_id);
             
-            // Generate URL in format: service/{slug}
-            $urlValue = 'service/' . $service->slug;
-            
             $smsResult = $this->smsService->sendBuildingManagerVisitUpdatedSms(
                 $organization,
                 $service->building->manager_phone,
                 $service->building->name,
-                $urlValue,
+                $service->slug,
                 true // Use queue
             );
 
