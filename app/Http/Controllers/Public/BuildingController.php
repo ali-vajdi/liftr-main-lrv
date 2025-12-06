@@ -141,6 +141,7 @@ class BuildingController extends Controller
     public function showAssignedService(Request $request, $slug)
     {
         $service = Service::where('slug', $slug)->firstOrFail();
+        $building = $service->building;
 
         // Allow only assigned or completed services
         if (!in_array($service->status, [Service::STATUS_ASSIGNED])) {
