@@ -138,15 +138,12 @@ class BuildingController extends Controller
      * @param Service $service
      * @return \Illuminate\View\View
      */
-    public function showAssignedService(Request $request, Building $building, Service $service)
+    public function showAssignedService(Request $request, $slug)
     {
-        // Ensure service belongs to building
-        if ($service->building_id !== $building->id) {
-            abort(404);
-        }
+        $service = Service::where('slug', $slug)->firstOrFail();
 
         // Allow only assigned or completed services
-        if (!in_array($service->status, [Service::STATUS_ASSIGNED, Service::STATUS_COMPLETED])) {
+        if (!in_array($service->status, [Service::STATUS_ASSIGNED])) {
             abort(404, 'این سرویس در دسترس نیست.');
         }
 
