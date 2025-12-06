@@ -112,12 +112,12 @@ class SmsPattern
             'required_fields' => ['building_name', 'date_value', 'service_slug', 'organization_name'],
         ],
         'building_manager_technician_changed' => [
-            'code' => 'z83uvx493u1nzg0',
-            'farazsms_code' => 'z83uvx493u1nzg0',
+            'code' => '8zwdspajvdb9ybt', // Default/FarazSMS code
+            'farazsms_code' => '8zwdspajvdb9ybt',
             'iranpayamak_code' => 'DmzoazcaKm',
-            'text' => 'مدیر محترم ساختمان {building_name}' . "\n\n" . 'سرویسکار آقای {old_technician_name} به آقای {new_technician_name} تغییر گردید.' . "\n\n" . 'آسانسور {organization_name}' . "\n\n" . '{url_value}',
+            'text' => 'مدیر ساختمان {building_name}' . "\n\n" . "\n\n" . 'سرویسکار شما تغییر کرد.' . "\n\n" . 'آسانسور {organization_name}' . "\n\n" . 'app.liftr.ir/d/{service_slug}',
             'description' => 'اعلام تغییر تکنسین به ساختمان',
-            'required_fields' => ['building_name', 'old_technician_name', 'new_technician_name', 'organization_name', 'url_value'],
+            'required_fields' => ['building_name', 'organization_name', 'service_slug'],
         ],
         'building_manager_visit_updated' => [
             'code' => 'nrb8fjjatmxzchf',

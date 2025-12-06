@@ -651,20 +651,11 @@ class ServiceController extends Controller
         if ($service->building && $service->building->manager_phone && $oldTechnician) {
             $organization = Organization::findOrFail($user->organization_id);
             
-            // Generate URL in format: service/{slug}
-            $urlValue = 'service/' . $service->slug;
-            
-            // Get technician names
-            $oldTechnicianName = trim($oldTechnician->first_name . ' ' . $oldTechnician->last_name);
-            $newTechnicianName = trim($technician->first_name . ' ' . $technician->last_name);
-            
             $smsResult = $this->smsService->sendBuildingManagerTechnicianChangedSms(
                 $organization,
                 $service->building->manager_phone,
                 $service->building->name,
-                $oldTechnicianName,
-                $newTechnicianName,
-                $urlValue,
+                $service->slug,
                 true // Use queue
             );
 

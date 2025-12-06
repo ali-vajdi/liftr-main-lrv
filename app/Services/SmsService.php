@@ -1174,13 +1174,11 @@ class SmsService
      * @param Organization $organization
      * @param string $phoneNumber Building manager phone number
      * @param string $buildingName
-     * @param string $oldTechnicianName
-     * @param string $newTechnicianName
-     * @param string $urlValue Full URL to the service page
+     * @param string $serviceSlug Service slug for the URL
      * @param bool $queue Whether to queue the SMS sending
      * @return array
      */
-    public function sendBuildingManagerTechnicianChangedSms(Organization $organization, string $phoneNumber, string $buildingName, string $oldTechnicianName, string $newTechnicianName, string $urlValue, bool $queue = false): array
+    public function sendBuildingManagerTechnicianChangedSms(Organization $organization, string $phoneNumber, string $buildingName, string $serviceSlug, bool $queue = false): array
     {
         $patternKey = 'building_manager_technician_changed';
         $pattern = SmsPattern::getPattern($patternKey);
@@ -1203,10 +1201,8 @@ class SmsService
         }
         $fillData = [
             'building_name' => $buildingName,
-            'old_technician_name' => $oldTechnicianName,
-            'new_technician_name' => $newTechnicianName,
             'organization_name' => $organization->name,
-            'url_value' => $urlValue,
+            'service_slug' => $serviceSlug,
         ];
 
         return $this->sendPatternSmsWithKey(
