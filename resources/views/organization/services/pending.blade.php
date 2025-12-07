@@ -483,7 +483,7 @@ function displayLastServiceDetails(service) {
     html += '<tr><th>شهر:</th><td>' + (service.building && service.building.city ? service.building.city.name : '-') + '</td></tr>';
     html += '<tr><th>ماه سرویس:</th><td>' + (service.service_date_text || '-') + '</td></tr>';
     html += '<tr><th>وضعیت:</th><td>' + (service.status_text || '-') + '</td></tr>';
-    html += '<tr><th>تعداد بازدید:</th><td><span class="badge badge-info"><i class="fas fa-eye"></i> ' + (service.view_count || 0) + '</span></td></tr>';
+    html += '<tr><th>دفعات بازدید برگه سرویس توسط مدیرساختمان:</th><td><span class="badge badge-info"><i class="fas fa-eye"></i> ' + (service.view_count || 0) + '</span></td></tr>';
     html += '</table>';
     html += '</div></div>';
     

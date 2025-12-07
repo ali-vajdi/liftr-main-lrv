@@ -687,7 +687,7 @@ $(document).ready(function() {
                     </div>
                     ${service.view_count !== undefined ? `
                     <div class="info-item">
-                        <span class="info-label">تعداد بازدید</span>
+                        <span class="info-label">دفعات بازدید برگه سرویس توسط مدیرساختمان</span>
                         <span class="info-value"><span class="badge badge-info"><i class="fas fa-eye"></i> ${service.view_count || 0}</span></span>
                     </div>
                     ` : ''}
