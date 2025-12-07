@@ -143,6 +143,8 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::get('users', [OrgUserController::class, 'index']);
         Route::post('users', [OrgUserController::class, 'store']);
         Route::get('users/{user}', [OrgUserController::class, 'show']);
+        Route::put('users/{user}', [OrgUserController::class, 'update']);
+        Route::delete('users/{user}', [OrgUserController::class, 'destroy']);
         
         // Organization Technicians API
         Route::apiResource('technicians', OrgTechnicianController::class);

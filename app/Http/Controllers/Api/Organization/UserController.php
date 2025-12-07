@@ -29,6 +29,15 @@ class UserController extends Controller
         
         $organizationId = $user->organization_id;
         
+        // Find the first user (main user) - user with minimum ID
+        $firstUser = OrganizationUser::where('organization_id', $organizationId)
+            ->orderBy('id', 'asc')
+            ->first();
+        $firstUserId = $firstUser ? $firstUser->id : null;
+        
+        // Check if current user is the main user
+        $currentUserIsMain = $user->id === $firstUserId;
+        
         $query = OrganizationUser::where('organization_id', $organizationId);
 
         // Filtering and sorting
@@ -52,6 +61,8 @@ class UserController extends Controller
         foreach ($items as $item) {
             $item->status_text = $item->status_text;
             $item->status_badge_class = $item->status_badge_class;
+            // Mark if this is the main user (first user)
+            $item->is_main_user = ($item->id === $firstUserId);
         }
 
         return response()->json([
@@ -60,6 +71,7 @@ class UserController extends Controller
             'last_page' => $organizationUsers->lastPage(),
             'per_page' => $organizationUsers->perPage(),
             'total' => $organizationUsers->total(),
+            'current_user_is_main' => $currentUserIsMain,
         ]);
     }
 
@@ -72,6 +84,12 @@ class UserController extends Controller
         }
         
         $organizationId = $user->organization_id;
+        
+        // Find the first user (main user)
+        $firstUser = OrganizationUser::where('organization_id', $organizationId)
+            ->orderBy('id', 'asc')
+            ->first();
+        $firstUserId = $firstUser ? $firstUser->id : null;
         
         $organizationUser = OrganizationUser::where('organization_id', $organizationId)
             ->where('id', $id)
@@ -87,6 +105,7 @@ class UserController extends Controller
         // Add calculated attributes
         $organizationUser->status_text = $organizationUser->status_text;
         $organizationUser->status_badge_class = $organizationUser->status_badge_class;
+        $organizationUser->is_main_user = ($organizationUser->id === $firstUserId);
         
         return response()->json([
             'data' => $organizationUser
@@ -158,9 +177,143 @@ class UserController extends Controller
         $user->status_text = $user->status_text;
         $user->status_badge_class = $user->status_badge_class;
 
+        // Add calculated attributes
+        $user->status_text = $user->status_text;
+        $user->status_badge_class = $user->status_badge_class;
+
         return response()->json([
             'message' => 'کاربر شرکت با موفقیت ایجاد شد',
             'data' => $user
         ], 201);
+    }
+
+    public function update(Request $request, $id)
+    {
+        // Get organization ID from authenticated user
+        $authUser = auth('organization_api')->user();
+        if (!$authUser) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+        
+        $organizationId = $authUser->organization_id;
+        
+        // Find the first user (main user)
+        $firstUser = OrganizationUser::where('organization_id', $organizationId)
+            ->orderBy('id', 'asc')
+            ->first();
+        $firstUserId = $firstUser ? $firstUser->id : null;
+        
+        // Only the main user can update other users
+        if ($authUser->id !== $firstUserId) {
+            return response()->json([
+                'message' => 'شما اجازه ویرایش کاربران را ندارید'
+            ], 403);
+        }
+        
+        $organizationUser = OrganizationUser::where('organization_id', $organizationId)
+            ->where('id', $id)
+            ->first();
+        
+        if (!$organizationUser) {
+            return response()->json([
+                'message' => 'کاربر مورد نظر یافت نشد'
+            ], 404);
+        }
+        
+        // Prevent updating the main user's status to inactive
+        if ($id === $firstUserId && $request->has('status') && !$request->boolean('status')) {
+            return response()->json([
+                'message' => 'نمی‌توانید وضعیت مدیر عامل را غیرفعال کنید'
+            ], 422);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'sometimes|required|string|max:255',
+            'phone_number' => 'sometimes|required|string|max:20|unique:organization_users,phone_number,' . $id,
+            'password' => 'sometimes|nullable|string|min:6',
+            'status' => 'sometimes|required',
+        ], [
+            'name.required' => 'نام کاربر الزامی است',
+            'name.max' => 'نام کاربر نمی‌تواند بیش از 255 کاراکتر باشد',
+            'phone_number.required' => 'شماره تلفن الزامی است',
+            'phone_number.max' => 'شماره تلفن نمی‌تواند بیش از 20 کاراکتر باشد',
+            'phone_number.unique' => 'این شماره تلفن قبلاً استفاده شده است',
+            'password.min' => 'رمز عبور باید حداقل 6 کاراکتر باشد',
+            'status.required' => 'وضعیت الزامی است',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $data = $request->only(['name', 'phone_number', 'status']);
+        
+        // Only update password if provided
+        if ($request->has('password') && $request->password) {
+            $data['password'] = $request->password;
+        }
+        
+        if ($request->has('status')) {
+            $data['status'] = $request->boolean('status');
+        }
+
+        $organizationUser->update($data);
+
+        // Add calculated attributes
+        $organizationUser->status_text = $organizationUser->status_text;
+        $organizationUser->status_badge_class = $organizationUser->status_badge_class;
+        $organizationUser->is_main_user = ($organizationUser->id === $firstUserId);
+
+        return response()->json([
+            'message' => 'کاربر با موفقیت به‌روزرسانی شد',
+            'data' => $organizationUser
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        // Get organization ID from authenticated user
+        $authUser = auth('organization_api')->user();
+        if (!$authUser) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+        
+        $organizationId = $authUser->organization_id;
+        
+        // Find the first user (main user)
+        $firstUser = OrganizationUser::where('organization_id', $organizationId)
+            ->orderBy('id', 'asc')
+            ->first();
+        $firstUserId = $firstUser ? $firstUser->id : null;
+        
+        // Only the main user can delete other users
+        if ($authUser->id !== $firstUserId) {
+            return response()->json([
+                'message' => 'شما اجازه حذف کاربران را ندارید'
+            ], 403);
+        }
+        
+        $organizationUser = OrganizationUser::where('organization_id', $organizationId)
+            ->where('id', $id)
+            ->first();
+        
+        if (!$organizationUser) {
+            return response()->json([
+                'message' => 'کاربر مورد نظر یافت نشد'
+            ], 404);
+        }
+        
+        // Prevent deleting the main user
+        if ($id === $firstUserId) {
+            return response()->json([
+                'message' => 'نمی‌توانید مدیر عامل را حذف کنید'
+            ], 422);
+        }
+
+        $organizationUser->delete();
+
+        return response()->json([
+            'message' => 'کاربر با موفقیت حذف شد'
+        ]);
     }
 }
