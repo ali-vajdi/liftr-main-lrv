@@ -625,7 +625,7 @@ function displayServiceDetails(service) {
         </div>
         ${service.organization_note ? `<hr><div class="row"><div class="col-12"><h6>یادداشت شرکت</h6><p>${service.organization_note}</p></div></div>` : ''}
         ${service.technician_note ? `<hr><div class="row"><div class="col-12"><h6>یادداشت تکنسین</h6><p>${service.technician_note}</p></div></div>` : ''}
-        ${service.user_note ? `<hr><div class="row"><div class="col-12"><h6>یادداشت کاربر</h6><p>${service.user_note}</p></div></div>` : ''}
+        ${service.user_note ? `<hr><div class="row"><div class="col-12"><h6>یادداشت مدیر</h6><p>${service.user_note}</p></div></div>` : ''}
         ${service.views && service.views.length > 0 ? (function() {
             let viewsHtml = '<hr><div class="row"><div class="col-12"><h6>جزئیات بازدیدها</h6><div class="table-responsive"><table class="table table-bordered table-sm"><thead><tr><th>ردیف</th><th>تاریخ و زمان</th><th>نوع دستگاه</th><th>مرورگر</th><th>سیستم عامل</th></tr></thead><tbody>';
             const deviceTypeText = {'mobile': 'موبایل', 'tablet': 'تبلت', 'desktop': 'دسکتاپ', 'unknown': 'نامشخص'};

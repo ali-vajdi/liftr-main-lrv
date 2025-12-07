@@ -805,13 +805,13 @@ $(document).ready(function() {
                         ` : ''}
                         ${service.organization_note ? `
                         <div class="info-item">
-                            <span class="info-label">یادداشت سازمان</span>
+                            <span class="info-label">یادداشت شرکت</span>
                             <span class="info-value">${service.organization_note}</span>
                         </div>
                         ` : ''}
                         ${service.user_note ? `
                         <div class="info-item">
-                            <span class="info-label">یادداشت کاربر</span>
+                            <span class="info-label">یادداشت مدیر</span>
                             <span class="info-value">${service.user_note}</span>
                         </div>
                         ` : ''}
