@@ -16,6 +16,8 @@
         $orgName = $organization && $organization->name ? $organization->name : 'لیفتر';
     @endphp
     <title>{{ $orgName }} - @yield('title', 'سرویس‌های ساختمان')</title>
+    <link rel="icon" type="image/png" href="{{ asset('assets/img/logo.png') }}" />
+    <link rel="apple-touch-icon" href="{{ asset('assets/img/logo.png') }}" />
     
     <!-- Bootstrap RTL CSS -->
     <link href="{{ asset('bootstrap/css/bootstrap.min.css')}}" rel="stylesheet" type="text/css" />
