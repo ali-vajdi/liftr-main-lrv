@@ -57,63 +57,17 @@
                 <span class="info-label">دوره سرویس</span>
                 <span class="info-value">{{ $monthNames[$service->service_month] }} {{ $service->service_year }}</span>
             </div>
+            @if($service->status === 'completed')
             <div class="info-item">
                 <span class="info-label">وضعیت</span>
                 <span class="info-value">
-                    @if($service->status === 'assigned')
-                        <span class="badge badge-info">{{ $service->status_text }}</span>
-                    @elseif($service->status === 'completed')
-                        <span class="badge badge-success">{{ $service->status_text }}</span>
-                    @else
-                        <span class="badge badge-secondary">{{ $service->status_text }}</span>
-                    @endif
-                </span>
-            </div>
-            @if($service->assigned_at)
-            <div class="info-item">
-                <span class="info-label">تاریخ اختصاص</span>
-                <span class="info-value">
-                    @php
-                        try {
-                            if ($service->assigned_at instanceof \Carbon\Carbon) {
-                                $jalaliDate = \Morilog\Jalali\Jalalian::fromCarbon($service->assigned_at);
-                            } else {
-                                $jalaliDate = \Morilog\Jalali\Jalalian::fromDateTime($service->assigned_at);
-                            }
-                            echo $jalaliDate->format('Y/m/d H:i');
-                        } catch (\Exception $e) {
-                            echo $service->assigned_at instanceof \Carbon\Carbon 
-                                ? $service->assigned_at->format('Y/m/d H:i')
-                                : date('Y/m/d H:i', strtotime($service->assigned_at));
-                        }
-                    @endphp
-                </span>
-            </div>
-            @endif
-            @if($service->status === 'completed' && $service->completed_at)
-            <div class="info-item">
-                <span class="info-label">تاریخ تکمیل</span>
-                <span class="info-value">
-                    @php
-                        try {
-                            if ($service->completed_at instanceof \Carbon\Carbon) {
-                                $jalaliDate = \Morilog\Jalali\Jalalian::fromCarbon($service->completed_at);
-                            } else {
-                                $jalaliDate = \Morilog\Jalali\Jalalian::fromDateTime($service->completed_at);
-                            }
-                            echo $jalaliDate->format('Y/m/d H:i');
-                        } catch (\Exception $e) {
-                            echo $service->completed_at instanceof \Carbon\Carbon 
-                                ? $service->completed_at->format('Y/m/d H:i')
-                                : date('Y/m/d H:i', strtotime($service->completed_at));
-                        }
-                    @endphp
+                    <span class="badge badge-success">سرویس انجام شد</span>
                 </span>
             </div>
             @endif
             @if($service->status === 'completed' && $service->checklist && $service->checklist->submitted_at)
             <div class="info-item">
-                <span class="info-label">تاریخ ثبت چک‌لیست</span>
+                <span class="info-label">تاریخ و زمان ثبت چک‌ لیست</span>
                 <span class="info-value">
                     @php
                         try {
@@ -289,11 +243,12 @@
         @endif
     @endif
 
-    <!-- User Note Section -->
+    @if($service->status === 'assigned')
+    <!-- User Note Section for assigned services -->
     <div class="building-info">
         <h3>ایرادات، اشکالات و پیشنهادات شما</h3>
+        <p>لطفا در صورت وجود هرگونه ایراد یا مشکل در عملکرد آسانسور ها موارد را ثبت و اعلام فرمایید تا اقدامات لازم در حین سرویس انجام شود</p>
         <div id="user-note-section">
-            @if($service->status === 'assigned')
                 {{-- Editable note section for assigned services --}}
                 @if($service->user_note)
                 <div id="user-note-display" class="user-note-display">
@@ -341,22 +296,10 @@
                 </div>
 
                 <div id="note-message" class="note-message" style="display: none;"></div>
-            @else
-                {{-- Read-only note display for completed services --}}
-                @if($service->user_note)
-                <div class="user-note-display">
-                    <div class="user-note-content">
-                        <p>{{ $service->user_note }}</p>
-                    </div>
-                </div>
-                @else
-                <div class="user-note-empty">
-                    <p>یادداشتی ثبت نشده است.</p>
-                </div>
-                @endif
-            @endif
         </div>
     </div>
+    @endif
+
 @endsection
 
 @section('page-styles')
