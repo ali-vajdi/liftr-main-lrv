@@ -999,7 +999,11 @@ window.onShow = function(id) {
                 );
                 $('#detailElevatorsCount').text(data.elevators_count || 0);
                 const monthlyAmount = data.monthly_amount ? 
-                    new Intl.NumberFormat('fa-IR', { style: 'currency', currency: 'IRR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(data.monthly_amount) : 
+                    (() => {
+                        // Format the amount as a number without the currency, then append 'ریال'
+                        const formatted = new Intl.NumberFormat('fa-IR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(data.monthly_amount);
+                        return `${formatted} ریال`;
+                    })() : 
                     '-';
                 $('#detailMonthlyAmount').text(monthlyAmount);
                 $('#detailStatus').html(data.status ? 
