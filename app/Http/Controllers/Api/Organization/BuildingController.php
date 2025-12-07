@@ -8,6 +8,7 @@ use App\Models\Elevator;
 use App\Models\Province;
 use App\Models\City;
 use App\Models\Service;
+use App\Models\ServiceView;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -671,9 +672,29 @@ class BuildingController extends Controller
                 'visit_date' => $service->visit_date ? $service->visit_date->format('Y-m-d') : null,
                 'visit_date_jalali' => $service->visit_date ? Jalalian::forge($service->visit_date)->format('Y/m/d') : null,
                 'visit_time_range' => $service->visit_time_range,
+                'slug' => $service->slug,
                 'technician' => null,
                 'checklist' => null,
+                'view_count' => 0,
+                'views' => [],
             ];
+
+            // Add view count and view details
+            $views = ServiceView::where('service_id', $service->id)
+                ->orderBy('viewed_at', 'desc')
+                ->get();
+            
+            $serviceData['view_count'] = $views->count();
+            $serviceData['views'] = $views->map(function ($view) {
+                return [
+                    'id' => $view->id,
+                    'ip_address' => $view->ip_address,
+                    'device_type' => $view->device_type,
+                    'browser' => $view->browser,
+                    'platform' => $view->platform,
+                    'viewed_at' => $view->viewed_at ? Jalalian::forge($view->viewed_at)->format('Y/m/d H:i:s') : null,
+                ];
+            })->toArray();
 
             // Add technician info
             if ($service->technician) {

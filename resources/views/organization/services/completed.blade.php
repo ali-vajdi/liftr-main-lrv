@@ -120,6 +120,14 @@
                                 html += \'<button type="button" class="btn btn-sm btn-info show-details-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="مشاهده جزئیات">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>\';
                                 html += \'</button>\';
+                                
+                                // Manager page link (for completed services)
+                                if (item.slug && item.status === "completed") {
+                                    const managerUrl = `/d/${item.slug}`;
+                                    html += \'<a href="\' + managerUrl + \'" target="_blank" class="btn btn-sm btn-secondary manager-page-btn mr-1 bs-tooltip" title="صفحه مدیر ساختمان">\';
+                                    html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>\';
+                                    html += \'</a>\';
+                                }
                             ',
                             'actionHandlers' => '
                                 // Handle show details button click

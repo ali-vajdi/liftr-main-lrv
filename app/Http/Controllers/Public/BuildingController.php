@@ -144,7 +144,7 @@ class BuildingController extends Controller
         $building = $service->building;
 
         // Allow only assigned or completed services
-        if (!in_array($service->status, [Service::STATUS_ASSIGNED])) {
+        if (!in_array($service->status, [Service::STATUS_ASSIGNED, Service::STATUS_COMPLETED])) {
             abort(404, 'این سرویس در دسترس نیست.');
         }
 
