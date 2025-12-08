@@ -9,7 +9,7 @@ return [
 	'creator' => 'Laravel Pdf',
 	'display_mode' => 'fullpage',
 	'tempDir' => base_path('storage/temp'),
-	'font_path' => base_path('storage/fonts/'),
+	'font_path' => base_path('public/fonts/'),
 	'font_data' => [
 		'vazir' => [
 			'R' => 'Vazir.ttf', // regular font
