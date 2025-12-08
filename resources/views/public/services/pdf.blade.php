@@ -4,90 +4,120 @@
     <meta charset="utf-8">
     <title>چک لیست سرویس و نگهداری</title>
     <style>
-        body {
-            font-family: 'vazir', 'Tahoma', Arial, sans-serif;
-            direction: rtl;
-            text-align: right;
-            font-size: 11px;
-            line-height: 1.4;
-            color: #000;
+        @page {
             margin: 0;
             padding: 0;
         }
 
+        body {
+            font-family: 'vazir', 'Tahoma', Arial, sans-serif;
+            direction: rtl;
+            text-align: right;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #000;
+            margin: 0;
+            padding: 0;
+            height: auto;
+        }
+        
+        html {
+            margin: 0;
+            padding: 0;
+            height: auto;
+        }
+
         .page {
             width: 210mm;
-            min-height: 297mm;
-            padding: 15mm 20mm;
+            padding: 0 12mm 12mm 12mm;
+            margin: 0;
             position: relative;
-            page-break-after: always;
-            page-break-inside: avoid;
             overflow: hidden;
+            box-sizing: border-box;
+            background: #fff;
+        }
+
+        .page:not(:last-child) {
+            page-break-after: always;
         }
 
         .page:last-child {
-            page-break-after: auto;
+            page-break-after: avoid !important;
+        }
+
+
+        /* Page Content Wrapper */
+        .page-content {
+            min-height: calc(297mm - 24mm - 110px);
+            padding-bottom: 0;
         }
 
         /* Header Section */
         .page-header {
-            padding-bottom: 6px;
-            margin-bottom: 8px;
+            padding: 12mm 0 8px 0;
+            margin-bottom: 12px;
+            margin-top: 0;
         }
 
         .header-label {
             font-weight: bold;
-            margin-bottom: 1px;
-            font-size: 9px;
+            margin-bottom: 2px;
+            font-size: 11px;
         }
 
         .header-value {
-            font-size: 10px;
+            font-size: 12px;
         }
 
         .header-title {
-            font-size: 14px;
+            font-size: 18px;
             font-weight: bold;
             margin: 0;
         }
 
         .separator {
             border-top: 1px solid #000;
-            margin: 6px 0;
+            margin: 10px 0;
         }
 
         /* Info Section */
+        .info-section {
+            padding: 8px 0;
+            margin-bottom: 12px;
+        }
+
         .info-label {
             font-weight: bold;
             display: inline-block;
-            min-width: 80px;
-            margin-left: 5px;
-            font-size: 9px;
+            min-width: 90px;
+            margin-left: 8px;
+            font-size: 11px;
         }
 
         .info-value {
-            font-size: 10px;
+            font-size: 12px;
         }
 
         /* Checklist Section */
         .checklist-title {
             text-align: center;
-            font-size: 12px;
+            font-size: 16px;
             font-weight: bold;
-            margin: 8px 0 5px 0;
+            margin: 12px 0 10px 0;
+            padding: 6px 0;
         }
 
         .checklist-items {
             list-style: none;
             padding: 0;
-            margin: 0 0 6px 0;
+            margin: 0 0 12px 0;
         }
 
         .checklist-item {
-            padding: 3px 0;
-            border-bottom: 1px dotted #666;
-            font-size: 9px;
-            line-height: 1.3;
+            padding: 5px 0;
+            border-bottom: 1px solid #000;
+            font-size: 11px;
+            line-height: 1.5;
         }
 
         .checklist-item:last-child {
@@ -96,69 +126,73 @@
 
         .checklist-number {
             display: inline-block;
-            width: 20px;
+            width: 25px;
             font-weight: bold;
-            margin-left: 5px;
+            margin-left: 8px;
         }
 
         /* Descriptions Section */
         .descriptions-title {
             text-align: center;
-            font-size: 12px;
+            font-size: 16px;
             font-weight: bold;
-            margin: 8px 0 5px 0;
+            margin: 12px 0 10px 0;
+            padding: 6px 0;
         }
 
         .descriptions-container {
-            margin-bottom: 35px;
-            max-height: 180px;
-            overflow: hidden;
+            margin-bottom: 20px;
+            page-break-inside: auto;
         }
 
         .description-item {
-            margin-bottom: 4px;
-            padding: 3px 5px;
-            border: 1px solid #ddd;
-            background: #f9f9f9;
-            font-size: 8px;
+            margin-bottom: 3px;
+            padding: 3px 0;
+            border-bottom: 1px solid #000;
+            font-size: 10px;
             line-height: 1.3;
+            page-break-inside: avoid;
+        }
+
+        /* Reset top margin/padding for items that break to new page */
+        .description-item:first-child {
+            margin-top: 0;
+            padding-top: 0;
         }
 
         .description-number {
             display: inline-block;
-            width: 18px;
+            width: 22px;
             font-weight: bold;
-            margin-left: 4px;
+            margin-left: 6px;
         }
 
         .description-title {
             font-weight: bold;
-            margin-bottom: 2px;
-            color: #333;
-            font-size: 9px;
+            margin-bottom: 1px;
+            font-size: 11px;
         }
 
         .description-text {
-            color: #666;
             line-height: 1.3;
-            font-size: 8px;
+            font-size: 10px;
+            word-wrap: break-word;
         }
 
         .no-description {
             text-align: center;
-            color: #999;
-            font-size: 9px;
-            margin: 10px 0 35px 0;
+            font-size: 11px;
+            margin: 12px 0 20px 0;
             font-style: italic;
+            padding: 12px 0;
         }
 
         /* Footer Section */
         .page-footer {
-            position: absolute;
-            bottom: 15mm;
-            right: 20mm;
-            left: 20mm;
-            height: 70px;
+            position: relative;
+            margin-top: 20px;
+            padding-top: 10px;
+            width: 100%;
         }
 
         .footer-row {
@@ -171,37 +205,43 @@
             display: table-cell;
             width: 50%;
             vertical-align: top;
+            padding: 0 10px;
         }
 
         .signature-box {
             text-align: center;
+            padding: 5px 0;
+            border: none;
+            border-bottom: none;
         }
 
         .signature-label {
             font-weight: bold;
-            margin-bottom: 3px;
-            font-size: 10px;
+            margin-bottom: 5px;
+            font-size: 20px;
+            text-decoration: none;
+            border-bottom: none;
         }
 
         .signature-image {
-            height: 40px;
-            margin-bottom: 3px;
-            padding: 2px;
+            height: 50px;
+            margin-bottom: 5px;
+            padding: 4px 0;
             text-align: center;
-            background: white;
             overflow: hidden;
+            border: none;
         }
 
         .signature-image img {
             max-width: 100%;
-            max-height: 38px;
+            max-height: 48px;
             display: block;
             margin: 0 auto;
         }
 
         .signature-name {
-            font-size: 9px;
-            margin-top: 1px;
+            font-size: 18px;
+            margin-top: 3px;
         }
     </style>
 </head>
@@ -234,52 +274,54 @@
         <div class="separator"></div>
 
         <!-- Building and Elevator Info -->
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 4px;">
-            <tr>
-                <td style="width: 50%; text-align: right; vertical-align: top; padding-left: 8px;">
-                    <div>
-                        <span class="info-label">نام پروژه:</span>
-                        <span class="info-value">{{ $service->building->name }}</span>
-                    </div>
-                </td>
-                <td style="width: 50%; text-align: left; vertical-align: top; padding-right: 8px;">
-                    <div>
-                        <span class="info-label">نام آسانسور:</span>
-                        <span class="info-value">{{ $elevatorChecklist->elevator->name }}</span>
-                    </div>
-                </td>
-            </tr>
-        </table>
+        <div class="info-section">
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
+                <tr>
+                    <td style="width: 50%; text-align: right; vertical-align: top; padding-left: 8px;">
+                        <div>
+                            <span class="info-label">نام پروژه:</span>
+                            <span class="info-value">{{ $service->building->name }}</span>
+                        </div>
+                    </td>
+                    <td style="width: 50%; text-align: left; vertical-align: top; padding-right: 8px;">
+                        <div>
+                            <span class="info-label">نام آسانسور:</span>
+                            <span class="info-value">{{ $elevatorChecklist->elevator->name }}</span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
 
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 4px;">
-            <tr>
-                <td style="width: 50%; text-align: right; vertical-align: top; padding-left: 8px;">
-                    <div>
-                        <span class="info-label">تعداد توقف:</span>
-                        <span class="info-value">{{ $elevatorChecklist->elevator->stops_count }}</span>
-                        <span class="info-label" style="margin-right: 6px;">ظرفیت:</span>
-                        <span class="info-value">{{ $elevatorChecklist->elevator->capacity }}</span>
-                    </div>
-                </td>
-                <td style="width: 50%; text-align: left; vertical-align: top; padding-right: 8px;">
-                    <div>
-                        <span class="info-label">سرویس ماه:</span>
-                        <span class="info-value">{{ $monthNames[$service->service_month] }} {{ $service->service_year }}</span>
-                    </div>
-                </td>
-            </tr>
-        </table>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
+                <tr>
+                    <td style="width: 50%; text-align: right; vertical-align: top; padding-left: 8px;">
+                        <div>
+                            <span class="info-label">تعداد توقف:</span>
+                            <span class="info-value">{{ $elevatorChecklist->elevator->stops_count }}</span>
+                            <span class="info-label" style="margin-right: 8px;">ظرفیت:</span>
+                            <span class="info-value">{{ $elevatorChecklist->elevator->capacity }}</span>
+                        </div>
+                    </td>
+                    <td style="width: 50%; text-align: left; vertical-align: top; padding-right: 8px;">
+                        <div>
+                            <span class="info-label">سرویس ماه:</span>
+                            <span class="info-value">{{ $monthNames[$service->service_month] }} {{ $service->service_year }}</span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
 
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 4px;">
-            <tr>
-                <td style="width: 50%; text-align: right; vertical-align: top; padding-left: 8px;">
-                    <div>
-                        <span class="info-value">آدرس: {{ $service->building->address ?? '' }}</span>
-                    </div>
-                </td>
-                <td style="width: 50%;"></td>
-            </tr>
-        </table>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="width: 100%; text-align: right; vertical-align: top; padding-left: 8px;">
+                        <div>
+                            <span class="info-label">آدرس:</span>
+                            <span class="info-value">{{ $service->building->address ?? '' }}</span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
 
         <div class="separator"></div>
 
@@ -305,7 +347,7 @@
                 <span class="description-title">{{ $description->title }}</span>
                 @endif
                 @if($description->description)
-                <div class="description-text" style="margin-top: 2px; margin-right: 22px;">{{ $description->description }}</div>
+                <div class="description-text" style="margin-top: 1px; margin-right: 22px;">{{ $description->description }}</div>
                 @endif
             </div>
             @endforeach
@@ -316,16 +358,16 @@
 
         <!-- Footer with Signatures -->
         <div class="page-footer">
-            <table style="width: 100%; border-collapse: collapse;">
+            <table style="width: 100%; border-collapse: collapse; border: none;">
                 <tr>
-                    <td style="width: 50%; text-align: center; vertical-align: top;">
+                    <td style="width: 50%; text-align: center; vertical-align: top; border: none;">
                         <div class="signature-box">
-                            <div class="signature-label">امضا مدیر/نماینده ساختمان</div>
+                            <div class="signature-label" style="text-decoration: none; border-bottom: none; border: none;">امضا مدیر/نماینده ساختمان</div>
                             <div class="signature-image">
                                 @if($managerSig && !empty($managerSig->signature))
                                     <img src="{{ trim($managerSig->signature) }}" alt="امضای مدیر">
                                 @else
-                                    <span style="color: #999; font-size: 7px;">امضا نشده</span>
+                                    <span style="font-size: 9px;">امضا نشده</span>
                                 @endif
                             </div>
                             <div class="signature-name">
@@ -333,14 +375,14 @@
                             </div>
                         </div>
                     </td>
-                    <td style="width: 50%; text-align: center; vertical-align: top;">
+                    <td style="width: 50%; text-align: center; vertical-align: top; border: none;">
                         <div class="signature-box">
-                            <div class="signature-label">امضا سرویس کار</div>
+                            <div class="signature-label" style="text-decoration: none; border-bottom: none; border: none;">امضا سرویس کار</div>
                             <div class="signature-image">
                                 @if($technicianSig && !empty($technicianSig->signature))
                                     <img src="{{ trim($technicianSig->signature) }}" alt="امضای تکنسین">
                                 @else
-                                    <span style="color: #999; font-size: 7px;">امضا نشده</span>
+                                    <span style="font-size: 9px;">امضا نشده</span>
                                 @endif
                             </div>
                             <div class="signature-name">
