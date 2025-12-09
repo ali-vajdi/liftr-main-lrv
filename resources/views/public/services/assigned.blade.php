@@ -95,6 +95,16 @@
         </div>
     </div>
 
+    <!-- Print PDF Button -->
+    @if($service->checklist && $service->checklist->elevatorChecklists->count() > 0)
+        <div class="building-info" style="text-align: center;">
+            <button type="button" onclick="openPdfVerificationModal()" class="btn-print-pdf">
+                <i class="fas fa-print"></i>
+                دریافت PDF سرویس
+            </button>
+        </div>
+    @endif
+
     <!-- Technician Information -->
     @if($service->technician)
     <div class="building-info">
@@ -230,16 +240,6 @@
                     @endforeach
                 </div>
             </div>
-        @endif
-
-        <!-- Print PDF Button (Only for completed services) -->
-        @if($service->checklist && $service->checklist->elevatorChecklists->count() > 0)
-        <div class="building-info" style="text-align: center;">
-            <button type="button" onclick="openPdfVerificationModal()" class="btn-print-pdf">
-                <i class="fas fa-print"></i>
-                چاپ چک لیست
-            </button>
-        </div>
         @endif
     @endif
 
