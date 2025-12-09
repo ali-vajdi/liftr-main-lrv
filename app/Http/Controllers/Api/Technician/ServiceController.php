@@ -12,9 +12,12 @@ use App\Models\ServiceChecklistDescription;
 use App\Models\ServiceSignature;
 use App\Models\ServiceChecklistHistory;
 use App\Rules\ChecklistIdRule;
+use App\Services\SmsService;
+use App\Services\SmsPattern;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Morilog\Jalali\Jalalian;
 
 class ServiceController extends Controller
@@ -518,6 +521,88 @@ class ServiceController extends Controller
                 'completed_at' => now(),
                 'technician_note' => $request->technician_note ?? null,
             ]);
+
+            // Send SMS to building manager
+            $service->load('building.organization');
+            if ($service->building && $service->building->manager_phone && $service->building->organization) {
+                $organization = $service->building->organization;
+                
+                // Format date_value as Jalali date (e.g., "آبان 1404")
+                $dateValue = '';
+                if ($service->visit_date) {
+                    try {
+                        $jalaliDate = Jalalian::forge($service->visit_date);
+                        $monthNames = [
+                            1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
+                            5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
+                            9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
+                        ];
+                        $monthName = $monthNames[$jalaliDate->getMonth()] ?? $jalaliDate->getMonth();
+                        $year = $jalaliDate->getYear();
+                        $dateValue = $monthName . ' ' . $year;
+                    } catch (\Exception $e) {
+                        // Fallback to service date if visit_date parsing fails
+                        $monthNames = [
+                            1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
+                            5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
+                            9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
+                        ];
+                        $monthName = $monthNames[$service->service_month] ?? $service->service_month;
+                        $dateValue = $monthName . ' ' . $service->service_year;
+                        Log::warning('Failed to format visit_date for SMS, using service_date', [
+                            'service_id' => $service->id,
+                            'visit_date' => $service->visit_date,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                } else {
+                    // Use service date if visit_date is not set
+                    $monthNames = [
+                        1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
+                        5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
+                        9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
+                    ];
+                    $monthName = $monthNames[$service->service_month] ?? $service->service_month;
+                    $dateValue = $monthName . ' ' . $service->service_year;
+                }
+                
+                // Format URL value as "d/{service_slug}"
+                $urlValue = 'd/' . $service->slug;
+                
+                // Get pattern code
+                $patternCode = SmsPattern::getPatternCode('building_manager_checklist_submitted');
+                
+                if ($patternCode) {
+                    $smsService = new SmsService();
+                    $fillData = [
+                        'building_name' => $service->building->name,
+                        'date_value' => $dateValue,
+                        'organization_name' => $organization->name,
+                        'url_value' => $urlValue,
+                    ];
+                    
+                    $smsResult = $smsService->sendPatternSms(
+                        $organization,
+                        $patternCode,
+                        $fillData,
+                        $service->building->manager_phone,
+                        true // Use queue
+                    );
+                    
+                    if (!$smsResult['success']) {
+                        Log::error('Building manager checklist submitted SMS failed', [
+                            'service_id' => $service->id,
+                            'building_id' => $service->building->id,
+                            'phone_number' => $service->building->manager_phone,
+                            'error' => $smsResult['error'] ?? 'Unknown error',
+                        ]);
+                    }
+                } else {
+                    Log::warning('SMS pattern code not found for building_manager_checklist_submitted', [
+                        'service_id' => $service->id,
+                    ]);
+                }
+            }
 
             // Generate next month's service if it doesn't exist
             $nextMonth = $service->service_month + 1;

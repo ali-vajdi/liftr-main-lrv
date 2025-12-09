@@ -142,6 +142,13 @@ class SmsPattern
             'description' => 'کد دریافت PDF سرویس',
             'required_fields' => ['code'],
         ],
+        'building_manager_checklist_submitted' => [
+            'code' => 'peipwnru7u4unrv',
+            'farazsms_code' => 'peipwnru7u4unrv',
+            'text' => 'مدير محترم ساختمان {building_name}' . "\n\n" . 'برگه سرویس آسانسور مربوط به {date_value}' . "\n\n" . 'آسانسور {organization_name}' . "\n\n\n\n" . 'app.liftr.ir/{url_value}',
+            'description' => 'اعلام تکمیل چک لیست سرویس به مدیر ساختمان',
+            'required_fields' => ['building_name', 'date_value', 'organization_name', 'url_value'],
+        ],
     ];
 
     /**
