@@ -64,6 +64,11 @@ class Service extends Model
         return $this->hasMany(ServiceView::class);
     }
 
+    public function pdfVerificationCodes()
+    {
+        return $this->hasMany(PdfVerificationCode::class);
+    }
+
     // Accessors
     public function getStatusTextAttribute()
     {

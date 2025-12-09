@@ -237,4 +237,6 @@ Route::prefix('technician')->name('technician.')->group(function () {
 // Public API Routes (No authentication required)
 Route::prefix('public')->name('public.')->group(function () {
     Route::post('services/{service}/user-note', [\App\Http\Controllers\Api\Public\ServiceController::class, 'updateUserNote']);
+    Route::post('services/{service}/pdf/send-code', [\App\Http\Controllers\Api\Public\ServiceController::class, 'sendPdfVerificationCode']);
+    Route::post('services/{service}/pdf/verify-code', [\App\Http\Controllers\Api\Public\ServiceController::class, 'verifyPdfCode']);
 });

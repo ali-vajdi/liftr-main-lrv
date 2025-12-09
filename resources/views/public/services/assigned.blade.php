@@ -235,13 +235,72 @@
         <!-- Print PDF Button (Only for completed services) -->
         @if($service->checklist && $service->checklist->elevatorChecklists->count() > 0)
         <div class="building-info" style="text-align: center;">
-            <a href="{{ route('public.services.print', ['building' => $building->slug, 'service' => $service->slug]) }}" target="_blank" class="btn-print-pdf">
+            <button type="button" onclick="openPdfVerificationModal()" class="btn-print-pdf">
                 <i class="fas fa-print"></i>
                 چاپ چک لیست
-            </a>
+            </button>
         </div>
         @endif
     @endif
+
+    <!-- PDF Verification Modal -->
+    <div id="pdfVerificationModal" class="pdf-modal" style="display: none;">
+        <div class="pdf-modal-overlay" onclick="closePdfVerificationModal()"></div>
+        <div class="pdf-modal-content">
+            <div class="pdf-modal-header">
+                <h3>تایید هویت برای دریافت PDF</h3>
+                <button type="button" class="pdf-modal-close" onclick="closePdfVerificationModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="pdf-modal-body">
+                <div id="pdfModalMessage" class="pdf-modal-message" style="display: none;"></div>
+                
+                <div id="pdfModalStep1">
+                    <p style="margin-bottom: 1rem; color: var(--gray-700);">
+                        برای دریافت فایل PDF چک لیست، کد تایید به شماره مدیر ساختمان ارسال خواهد شد.
+                    </p>
+                    @if($service->building->manager_phone)
+                    <div style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; text-align: center;">
+                        <div style="font-size: 0.875rem; color: var(--gray-600); margin-bottom: 0.5rem;">شماره تماس مدیر ساختمان:</div>
+                        <div style="font-size: 1.125rem; font-weight: 600; color: var(--primary); direction: ltr; display: inline-block;">
+                            {{ $service->building->manager_phone }}
+                        </div>
+                    </div>
+                    @endif
+                    <button type="button" onclick="sendPdfVerificationCode()" class="btn-send-code" id="btnSendCode">
+                        <i class="fas fa-paper-plane"></i>
+                        ارسال کد تایید
+                    </button>
+                </div>
+
+                <div id="pdfModalStep2" style="display: none;">
+                    <p style="margin-bottom: 1rem; color: var(--gray-700);">
+                        کد تایید به شماره مدیر ساختمان ارسال شد. لطفا کد 6 رقمی را وارد کنید:
+                    </p>
+                    <div class="form-group">
+                        <input type="text" 
+                               id="pdfVerificationCode" 
+                               class="form-control" 
+                               placeholder="کد 6 رقمی"
+                               maxlength="6"
+                               pattern="[0-9]{6}"
+                               style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem; font-weight: 600;">
+                    </div>
+                    <div class="form-actions" style="justify-content: center; margin-top: 1.5rem;">
+                        <button type="button" onclick="verifyPdfCode()" class="btn-verify-code" id="btnVerifyCode">
+                            <i class="fas fa-check"></i>
+                            تایید و دانلود
+                        </button>
+                        <button type="button" onclick="resendPdfCode()" class="btn-resend-code" id="btnResendCode">
+                            <i class="fas fa-redo"></i>
+                            ارسال مجدد
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     @if($service->status === 'assigned')
     <!-- User Note Section for assigned services -->
@@ -645,6 +704,8 @@
             border-radius: var(--radius-md);
             transition: all 0.3s ease;
             box-shadow: var(--shadow-md);
+            border: none;
+            cursor: pointer;
         }
 
         .btn-print-pdf:hover {
@@ -702,6 +763,157 @@
             .elevator-specs {
                 grid-template-columns: 1fr;
             }
+        }
+
+        /* PDF Verification Modal Styles */
+        .pdf-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pdf-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .pdf-modal-content {
+            position: relative;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 10001;
+        }
+
+        .pdf-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .pdf-modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .pdf-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--gray-500);
+            cursor: pointer;
+            padding: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .pdf-modal-close:hover {
+            color: var(--gray-900);
+        }
+
+        .pdf-modal-body {
+            padding: 1.5rem;
+        }
+
+        .pdf-modal-message {
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+            font-size: 0.9375rem;
+        }
+
+        .pdf-modal-message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+
+        .pdf-modal-message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .btn-send-code,
+        .btn-verify-code,
+        .btn-resend-code {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-send-code {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-send-code:hover {
+            background: var(--primary-dark);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-send-code:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-verify-code {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-verify-code:hover {
+            background: var(--success-dark);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-verify-code:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-resend-code {
+            background: var(--gray-400);
+            color: white;
+        }
+
+        .btn-resend-code:hover {
+            background: var(--gray-500);
+        }
+
+        .btn-resend-code:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
     </style>
 @endsection
@@ -838,6 +1050,175 @@
                 saveButton.innerHTML = originalText;
             });
         }
+    </script>
+    @endif
+
+    @if($service->status === 'completed' && $service->checklist && $service->checklist->elevatorChecklists->count() > 0)
+    <script>
+        function openPdfVerificationModal() {
+            document.getElementById('pdfVerificationModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            // Reset modal state
+            document.getElementById('pdfModalStep1').style.display = 'block';
+            document.getElementById('pdfModalStep2').style.display = 'none';
+            document.getElementById('pdfVerificationCode').value = '';
+            document.getElementById('pdfModalMessage').style.display = 'none';
+            
+            // Reset all buttons
+            const btnSendCode = document.getElementById('btnSendCode');
+            const btnVerifyCode = document.getElementById('btnVerifyCode');
+            const btnResendCode = document.getElementById('btnResendCode');
+            
+            // Reset send code button
+            btnSendCode.disabled = false;
+            btnSendCode.innerHTML = '<i class="fas fa-paper-plane"></i> ارسال کد تایید';
+            
+            // Reset verify code button
+            btnVerifyCode.disabled = false;
+            btnVerifyCode.innerHTML = '<i class="fas fa-check"></i> تایید و دانلود';
+            
+            // Reset resend code button
+            btnResendCode.disabled = false;
+            btnResendCode.innerHTML = '<i class="fas fa-redo"></i> ارسال مجدد';
+        }
+
+        function closePdfVerificationModal() {
+            document.getElementById('pdfVerificationModal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        function showPdfModalMessage(message, type) {
+            const messageDiv = document.getElementById('pdfModalMessage');
+            messageDiv.textContent = message;
+            messageDiv.className = 'pdf-modal-message ' + type;
+            messageDiv.style.display = 'block';
+        }
+
+        function hidePdfModalMessage() {
+            document.getElementById('pdfModalMessage').style.display = 'none';
+        }
+
+        function sendPdfVerificationCode() {
+            const btn = document.getElementById('btnSendCode');
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال ارسال...';
+            hidePdfModalMessage();
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            fetch('/api/public/services/{{ $service->slug }}/pdf/send-code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showPdfModalMessage(data.message || 'کد تایید با موفقیت ارسال شد.', 'success');
+                    document.getElementById('pdfModalStep1').style.display = 'none';
+                    document.getElementById('pdfModalStep2').style.display = 'block';
+                    document.getElementById('pdfVerificationCode').focus();
+                } else {
+                    showPdfModalMessage(data.message || 'خطا در ارسال کد تایید. لطفا دوباره تلاش کنید.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showPdfModalMessage('خطا در ارتباط با سرور. لطفا دوباره تلاش کنید.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        }
+
+        function verifyPdfCode() {
+            const code = document.getElementById('pdfVerificationCode').value.trim();
+            
+            if (!code || code.length !== 6) {
+                showPdfModalMessage('لطفا کد 6 رقمی را وارد کنید.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btnVerifyCode');
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال تایید...';
+            hidePdfModalMessage();
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            fetch('/api/public/services/{{ $service->slug }}/pdf/verify-code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    code: code
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data && data.data.token) {
+                    // Download PDF with token
+                    const downloadUrl = '{{ route("public.services.print", ["building" => $building->slug, "service" => $service->slug]) }}?token=' + data.data.token;
+                    window.open(downloadUrl, '_blank');
+                    closePdfVerificationModal();
+                } else {
+                    showPdfModalMessage(data.message || 'کد تایید نامعتبر است.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showPdfModalMessage('خطا در ارتباط با سرور. لطفا دوباره تلاش کنید.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        }
+
+        function resendPdfCode() {
+            const btn = document.getElementById('btnResendCode');
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال ارسال...';
+            hidePdfModalMessage();
+
+            sendPdfVerificationCode();
+            
+            // Re-enable resend button after a delay
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }, 2000);
+        }
+
+        // Allow Enter key to submit code
+        document.addEventListener('DOMContentLoaded', function() {
+            const codeInput = document.getElementById('pdfVerificationCode');
+            if (codeInput) {
+                codeInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        verifyPdfCode();
+                    }
+                });
+                
+                // Only allow numbers
+                codeInput.addEventListener('input', function(e) {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                });
+            }
+        });
     </script>
     @endif
 @endsection

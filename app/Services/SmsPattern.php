@@ -135,6 +135,13 @@ class SmsPattern
             'description' => 'بازنشانی رمز عبور کاربر سازمان',
             'required_fields' => ['user_name', 'url_value'],
         ],
+        'pdf_download_code' => [
+            'code' => 'k0drq5w3gs5pc9l',
+            'farazsms_code' => 'k0drq5w3gs5pc9l',
+            'text' => 'کد جهت دریافت سرویس: {code}',
+            'description' => 'کد دریافت PDF سرویس',
+            'required_fields' => ['code'],
+        ],
     ];
 
     /**

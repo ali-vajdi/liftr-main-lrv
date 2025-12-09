@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Building;
+use App\Models\PdfVerificationCode;
 use App\Models\Service;
 use App\Models\ServiceView;
 use App\Models\UnitChecklist;
@@ -302,9 +303,10 @@ class BuildingController extends Controller
      *
      * @param Building $building
      * @param Service $service
+     * @param Request $request
      * @return \Illuminate\Http\Response
      */
-    public function printService(Building $building, Service $service)
+    public function printService(Building $building, Service $service, Request $request)
     {
         // Ensure service belongs to building
         if ($service->building_id !== $building->id) {
@@ -315,6 +317,29 @@ class BuildingController extends Controller
         if ($service->status !== Service::STATUS_COMPLETED) {
             abort(404, 'فقط سرویس‌های تکمیل شده قابل چاپ هستند.');
         }
+
+        // Check for download token
+        $token = $request->query('token');
+        if (!$token) {
+            abort(403, 'دسترسی غیرمجاز. لطفا از طریق صفحه سرویس اقدام به دانلود کنید.');
+        }
+
+        // Verify token in database
+        $verificationCode = PdfVerificationCode::where('service_id', $service->id)
+            ->where('download_token', $token)
+            ->where('used', false)
+            ->where('verified', true)
+            ->where('expires_at', '>', now())
+            ->first();
+
+        if (!$verificationCode) {
+            abort(403, 'کد تایید منقضی شده است یا قبلا استفاده شده است. لطفا دوباره تلاش کنید.');
+        }
+
+        // Mark token as used (one-time use)
+        $verificationCode->update([
+            'used' => true,
+        ]);
 
         // Load all necessary relationships
         $service->load([
