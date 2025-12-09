@@ -625,12 +625,18 @@ $(document).ready(function() {
                 pkg.remaining_days + ' روز باقی‌مانده' +
                 '</span>' +
                 '</div>' +
-                '<div style="background: #f1f2f3; padding: 15px; border-radius: 8px; margin-top: 20px;">' +
+                '<div style="background: #f1f2f3; padding: 15px; border-radius: 8px; margin-top: 20px; margin-bottom: 20px;">' +
                 '<p class="text-muted mb-0" style="font-size: 13px; margin-bottom: 5px;">تاریخ انقضا</p>' +
                 '<p class="mb-0" style="color: #3b3f5c; font-weight: 600; font-size: 15px;">' +
                 expiresDate.toLocaleDateString('fa-IR') +
                 '</p>' +
                 '</div>' +
+                '<a href="{{ route('organization.payment') }}" class="btn btn-primary btn-block" style="border-radius: 50px; padding: 10px 20px; font-weight: 600; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">' +
+                '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 5px;">' +
+                '<path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>' +
+                '</svg>' +
+                'مدیریت اشتراک ها' +
+                '</a>' +
                 '</div>';
         } else {
             packageHtml = '<div class="text-center" style="padding: 40px 20px;">' +
@@ -638,7 +644,12 @@ $(document).ready(function() {
                 '<path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>' +
                 '</svg>' +
                 '<p class="text-muted mb-3" style="font-size: 14px;">هیچ اشتراک فعالی ندارید</p>' +
-                '<a href="{{ route('organization.packages.view') }}" class="btn btn-sm btn-primary" style="border-radius: 50px; padding: 8px 20px;">مشاهده اشتراک‌ها</a>' +
+                '<a href="{{ route('organization.payment') }}" class="btn btn-primary btn-block" style="border-radius: 50px; padding: 10px 20px; font-weight: 600; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">' +
+                '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 5px;">' +
+                '<path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>' +
+                '</svg>' +
+                'مدیریت اشتراک ها' +
+                '</a>' +
                 '</div>';
         }
         $('#package-content').html(packageHtml);

@@ -239,6 +239,12 @@
             font-weight: bold;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-payment:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
         }
         
         /* Public Packages */
@@ -405,13 +411,30 @@
                             } else {
                                 // All valid packages are paid - show success message and public packages
                                 html = `
-                                    <div class="alert alert-success text-center mb-4 fade-in" style="border-radius: 15px; padding: 2rem;">
-                                        <i class="fa fa-check-circle fa-3x mb-3 text-success"></i>
-                                        <h4 class="mb-3 text-white">همه اشتراک‌های شما پرداخت شده است!</h4>
-                                        <p class="mb-4 text-white">می‌توانید به پنل خود دسترسی داشته باشید.</p>
-                                        <a href="/" class="btn btn-primary btn-lg btn-payment">
-                                            <i class="fa fa-home"></i> بازگشت به پنل
-                                        </a>
+                                    <div class="fade-in">
+                                        <div class="card payment-card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border: none;">
+                                            <div class="card-body text-center" style="padding: 4rem 2rem;">
+                                                <div style="margin-bottom: 2rem;">
+                                                    <div style="width: 100px; height: 100px; margin: 0 auto; background: rgba(255, 255, 255, 0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
+                                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                                <h2 class="mb-3 text-white" style="font-weight: 700; font-size: 2rem; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                                                    <i class="fa fa-check-circle"></i> همه اشتراک‌های شما پرداخت شده است!
+                                                </h2>
+                                                <p class="mb-4 text-white" style="font-size: 1.2rem; opacity: 0.95; font-weight: 500;">
+                                                    می‌توانید به پنل خود دسترسی داشته باشید.
+                                                </p>
+                                                <div style="margin-top: 2.5rem;">
+                                                    <a href="/" class="btn btn-light btn-lg btn-payment" style="background: white; color: #11998e; font-weight: 700; padding: 1rem 3rem; border-radius: 50px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2); transition: all 0.3s ease;">
+                                                        <i class="fa fa-home"></i> بازگشت به پنل
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 `;
                                 
@@ -421,8 +444,8 @@
                                 }
                             }
                             
-                            // Always show public packages section if available and user has active packages
-                            if (response.has_active_packages && response.public_packages && response.public_packages.length > 0) {
+                            // Always show public packages section if available and user has active packages (but not if already shown above)
+                            if (response.has_active_packages && response.public_packages && response.public_packages.length > 0 && response.data && response.data.length > 0) {
                                 html += '<div class="mt-5"><hr class="my-5"></div>';
                                 html += renderPublicPackages(response.public_packages, response.organization, false, false);
                             }
@@ -478,9 +501,9 @@
                     html += `
                         <div class="mb-4 fade-in">
                             <h5 class="mb-3">
-                                <i class="fa fa-box"></i> فعال‌سازی اشتراک جدید
+                                <i class="fa fa-box"></i> اشتراک‌های قابل خرید
                             </h5>
-                            <p class="text-muted">می‌توانید اشتراک جدیدی را فعال کنید حتی در صورت داشتن اشتراک فعال:</p>
+                            <p class="text-muted">می‌توانید اشتراک جدیدی را خریداری و فعال کنید:</p>
                         </div>
                     `;
                 }
