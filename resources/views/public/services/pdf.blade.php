@@ -38,26 +38,159 @@
         /** Content area - accounts for footer space **/
         .page-content {
             padding: 10mm 12mm;
-            padding-bottom: 95px;
+            padding-bottom: 125px;
             box-sizing: border-box;
             overflow: visible;
         }
 
+        /** Section containers **/
+        .section {
+            margin-bottom: 12px;
+            border: 1px solid #000;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: #f8f9fa;
+            border-bottom: 1px solid #000;
+            padding: 6px 10px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .section-content {
+            padding: 8px 10px;
+        }
+
+        /** Info boxes **/
+        .info-box {
+            border: 1px solid #ddd;
+            padding: 6px 8px;
+            margin-bottom: 6px;
+            border-radius: 2px;
+        }
+
+        .info-row {
+            display: table;
+            width: 100%;
+            margin-bottom: 4px;
+        }
+
+        .info-label {
+            display: table-cell;
+            font-weight: bold;
+            min-width: 100px;
+            padding-left: 8px;
+            vertical-align: top;
+        }
+
+        .info-value {
+            display: table-cell;
+            vertical-align: top;
+        }
+
+        /** Table styles **/
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 6px 0;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            border: 1px solid #000;
+            padding: 6px 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .data-table td {
+            border: 1px solid #ddd;
+            padding: 6px 8px;
+            text-align: right;
+            font-size: 11px;
+        }
+
+        .data-table tr:not(:last-child) td {
+            border-bottom: 1px solid #ddd;
+        }
+
+        /** List styles **/
+        .checklist-items {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .checklist-item {
+            border: 1px solid #ddd;
+            border-bottom: none;
+            padding: 6px 8px;
+            display: table;
+            width: 100%;
+        }
+
+        .checklist-item:last-child {
+            border-bottom: 1px solid #ddd;
+        }
+
+        .checklist-number {
+            display: table-cell;
+            width: 30px;
+            font-weight: bold;
+            vertical-align: top;
+        }
+
+        .checklist-text {
+            display: table-cell;
+            vertical-align: top;
+        }
+
+        /** Description items **/
+        .description-item {
+            border: 1px solid #ddd;
+            border-bottom: none;
+            padding: 6px 8px;
+            margin-bottom: 0;
+        }
+
+        .description-item:last-child {
+            border-bottom: 1px solid #ddd;
+        }
+
+        .description-title {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .description-text {
+            margin-right: 25px;
+            line-height: 1.3;
+        }
+
         /** Footer inside each page - fixed at bottom **/
         .page-footer {
-            /* position: absolute; */
+            position: absolute;
             bottom: 0;
             left: 4mm;
             right: 4mm;
-            margin-left: 1rem;
             width: calc(100% - 8mm);
-            height: 90px;
+            height: 120px;
             background: #fff;
             border: none;
             padding: 8px 8mm;
             box-sizing: border-box;
             page-break-inside: avoid;
             z-index: 10;
+        }
+
+        .signature-box {
+            border: 1px solid #ddd;
+            padding: 6px;
+            height: 100%;
+            box-sizing: border-box;
         }
     </style>
 </head>
@@ -83,151 +216,161 @@
             <div class="page-content">
                 @if($pageIndex == 0)
                 <!-- Header - Only on first page -->
-                <div style="margin-bottom: 6px;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td style="width: 33.33%; text-align: right; vertical-align: top;">
-                                <div>
-                                    <span style="font-weight: bold; margin-bottom: 2px; font-size: 11px; display: block;">نام شرکت:</span>
-                                    <span style="font-size: 12px;">{{ $service->building->organization->name ?? 'نامشخص' }}</span>
-                                </div>
-                            </td>
-                            <td style="width: 33.34%; text-align: center; vertical-align: top;">
-                                <div style="font-size: 18px; font-weight: bold; margin: 0;">چک لیست سرویس و نگهداری</div>
-                            </td>
-                            <td style="width: 33.33%; text-align: left; vertical-align: top;">
-                                <div>
-                                    <span style="font-weight: bold; margin-bottom: 2px; font-size: 11px; display: block;">تاریخ بازدید:</span>
-                                    <span style="font-size: 12px;">{{ $completedDate ?? 'نامشخص' }}</span>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+                <div class="section" style="margin-bottom: 10px;">
+                    <div class="section-header" style="text-align: center; font-size: 18px;">چک لیست سرویس و نگهداری</div>
+                    <div class="section-content">
+                        <table class="data-table">
+                            <tr>
+                                <td style="width: 33.33%; text-align: right; border: none; padding: 4px 8px;">
+                                    <div class="info-row">
+                                        <span class="info-label">نام شرکت:</span>
+                                        <span class="info-value">{{ $service->building->organization->name ?? 'نامشخص' }}</span>
+                                    </div>
+                                </td>
+                                <td style="width: 33.34%; text-align: center; border: none; padding: 4px 8px;">
+                                    <div style="font-size: 18px; font-weight: bold;">چک لیست سرویس و نگهداری</div>
+                                </td>
+                                <td style="width: 33.33%; text-align: left; border: none; padding: 4px 8px;">
+                                    <div class="info-row">
+                                        <span class="info-label">تاریخ بازدید:</span>
+                                        <span class="info-value">{{ $completedDate ?? 'نامشخص' }}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
-
-                <div style="border-top: 1px solid #000; margin: 4px 0;"></div>
 
                 <!-- Building and Elevator Info - Only on first page -->
-                <div style="padding: 4px 0; margin-bottom: 6px;">
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 4px;">
-                        <tr>
-                            <td style="width: 50%; text-align: right; vertical-align: top; padding-left: 8px;">
-                                <div>
-                                    <span style="font-weight: bold; display: inline-block; min-width: 90px; margin-left: 8px; font-size: 11px;">نام پروژه:</span>
-                                    <span style="font-size: 12px;">{{ $service->building->name ?? 'نامشخص' }}</span>
-                                </div>
-                            </td>
-                            <td style="width: 50%; text-align: left; vertical-align: top; padding-right: 8px;">
-                                <div>
-                                    <span style="font-weight: bold; display: inline-block; min-width: 90px; margin-left: 8px; font-size: 11px;">نام آسانسور:</span>
-                                    <span style="font-size: 12px;">{{ ($elevatorChecklist->elevator && $elevatorChecklist->elevator->name) ? $elevatorChecklist->elevator->name : 'نامشخص' }}</span>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 4px;">
-                        <tr>
-                            <td style="width: 50%; text-align: right; vertical-align: top; padding-left: 8px;">
-                                <div>
-                                    <span style="font-weight: bold; display: inline-block; min-width: 90px; margin-left: 8px; font-size: 11px;">تعداد توقف:</span>
-                                    <span style="font-size: 12px;">{{ ($elevatorChecklist->elevator && isset($elevatorChecklist->elevator->stops_count)) ? $elevatorChecklist->elevator->stops_count : 'نامشخص' }}</span>
-                                    <span style="font-weight: bold; display: inline-block; min-width: 90px; margin-left: 8px; margin-right: 8px; font-size: 11px;">ظرفیت:</span>
-                                    <span style="font-size: 12px;">{{ ($elevatorChecklist->elevator && isset($elevatorChecklist->elevator->capacity)) ? $elevatorChecklist->elevator->capacity : 'نامشخص' }}</span>
-                                </div>
-                            </td>
-                            <td style="width: 50%; text-align: left; vertical-align: top; padding-right: 8px;">
-                                <div>
-                                    <span style="font-weight: bold; display: inline-block; min-width: 90px; margin-left: 8px; font-size: 11px;">سرویس ماه:</span>
-                                    <span style="font-size: 12px;">{{ ($service->service_month && isset($monthNames[$service->service_month])) ? $monthNames[$service->service_month] : 'نامشخص' }} {{ $service->service_year ?? '' }}</span>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td style="width: 100%; text-align: right; vertical-align: top; padding-left: 8px;">
-                                <div>
-                                    <span style="font-weight: bold; display: inline-block; min-width: 90px; margin-left: 8px; font-size: 11px;">آدرس:</span>
-                                    <span style="font-size: 12px;">{{ $service->building->address ?? '' }}</span>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+                <div class="section" style="margin-bottom: 10px;">
+                    <div class="section-header">اطلاعات پروژه و آسانسور</div>
+                    <div class="section-content">
+                        <table class="data-table">
+                            <tr>
+                                <td style="width: 50%; text-align: right; border: none; padding: 4px 8px;">
+                                    <div class="info-row">
+                                        <span class="info-label">نام پروژه:</span>
+                                        <span class="info-value">{{ $service->building->name ?? 'نامشخص' }}</span>
+                                    </div>
+                                </td>
+                                <td style="width: 50%; text-align: left; border: none; padding: 4px 8px;">
+                                    <div class="info-row">
+                                        <span class="info-label">نام آسانسور:</span>
+                                        <span class="info-value">{{ ($elevatorChecklist->elevator && $elevatorChecklist->elevator->name) ? $elevatorChecklist->elevator->name : 'نامشخص' }}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width: 50%; text-align: right; border: none; padding: 4px 8px;">
+                                    <div class="info-row">
+                                        <span class="info-label">تعداد توقف:</span>
+                                        <span class="info-value">{{ ($elevatorChecklist->elevator && isset($elevatorChecklist->elevator->stops_count)) ? $elevatorChecklist->elevator->stops_count : 'نامشخص' }}</span>
+                                    </div>
+                                    <div class="info-row" style="margin-top: 4px;">
+                                        <span class="info-label">ظرفیت:</span>
+                                        <span class="info-value">{{ ($elevatorChecklist->elevator && isset($elevatorChecklist->elevator->capacity)) ? $elevatorChecklist->elevator->capacity : 'نامشخص' }}</span>
+                                    </div>
+                                </td>
+                                <td style="width: 50%; text-align: left; border: none; padding: 4px 8px;">
+                                    <div class="info-row">
+                                        <span class="info-label">سرویس ماه:</span>
+                                        <span class="info-value">{{ ($service->service_month && isset($monthNames[$service->service_month])) ? $monthNames[$service->service_month] : 'نامشخص' }} {{ $service->service_year ?? '' }}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" style="text-align: right; border: none; padding: 4px 8px;">
+                                    <div class="info-row">
+                                        <span class="info-label">آدرس:</span>
+                                        <span class="info-value">{{ $service->building->address ?? '' }}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
 
-                <div style="border-top: 1px solid #000; margin: 4px 0;"></div>
-
                 <!-- Unit Checklists - Only on first page -->
-                <div style="text-align: center; font-size: 16px; font-weight: bold; margin: 6px 0 4px 0; padding: 3px 0;">موارد زیر مورد بررسی قرار گرفت</div>
-                <ul style="list-style: none; padding: 0; margin: 0 0 6px 0;">
-                    @foreach($unitChecklists as $index => $unitChecklist)
-                    <li style="padding: 3px 0; border-bottom: 1px solid #000; font-size: 11px; line-height: 1.3; @if($loop->last) border-bottom: none; @endif">
-                        <span style="display: inline-block; width: 25px; font-weight: bold; margin-left: 8px;">{{ $index + 1 }}.</span>
-                        {{ $unitChecklist->title }}
-                    </li>
-                    @endforeach
-                </ul>
+                <div class="section" style="margin-bottom: 10px;">
+                    <div class="section-header">موارد زیر مورد بررسی قرار گرفت</div>
+                    <div class="section-content">
+                        <ul class="checklist-items">
+                            @foreach($unitChecklists as $index => $unitChecklist)
+                            <li class="checklist-item">
+                                <span class="checklist-number">{{ $index + 1 }}.</span>
+                                <span class="checklist-text">{{ $unitChecklist->title }}</span>
+                            </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
                 @else
                 <!-- Continuation page - start from top -->
                 <div style="padding: 0; margin: 0;"></div>
                 @endif
 
                 <!-- Descriptions -->
-                <div style="text-align: center; font-size: 16px; font-weight: bold; margin: @if($pageIndex == 0) 6px 0 4px 0; @else 0 0 4px 0; @endif padding: 3px 0;">توضیحات</div>
-                @if($descriptions->count() > 0)
-                <div style="margin-bottom: 5px; page-break-inside: auto;">
-                    @foreach($descriptionChunk as $chunkIndex => $description)
-                    @php
-                        $globalIndex = ($pageIndex * $descriptionsPerPage) + $chunkIndex;
-                    @endphp
-                    <div style="margin-bottom: 1px; padding: 2px 0; border-bottom: 1px solid #000; font-size: 10px; line-height: 1.2; page-break-inside: avoid; @if($chunkIndex == 0 && $pageIndex > 0) margin-top: 0; padding-top: 0; @endif">
-                        <span style="display: inline-block; width: 22px; font-weight: bold; margin-left: 6px;">{{ $globalIndex + 1 }}.</span>
-                        @if($description->title)
-                        <span style="font-weight: bold; margin-bottom: 1px; font-size: 11px;">{{ $description->title }}</span>
-                        @endif
-                        @if($description->description)
-                        <div style="line-height: 1.2; font-size: 10px; word-wrap: break-word; margin-top: 1px; margin-right: 22px;">{{ $description->description }}</div>
+                <div class="section" style="margin-bottom: 10px;">
+                    <div class="section-header">توضیحات</div>
+                    <div class="section-content">
+                        @if($descriptions->count() > 0)
+                        <div style="page-break-inside: auto;">
+                            @foreach($descriptionChunk as $chunkIndex => $description)
+                            @php
+                                $globalIndex = ($pageIndex * $descriptionsPerPage) + $chunkIndex;
+                            @endphp
+                            <div class="description-item" style="page-break-inside: avoid; @if($chunkIndex == 0 && $pageIndex > 0) margin-top: 0; padding-top: 0; @endif">
+                                <div style="display: table; width: 100%;">
+                                    <span style="display: table-cell; width: 25px; font-weight: bold; vertical-align: top; padding-left: 6px;">{{ $globalIndex + 1 }}.</span>
+                                    <div style="display: table-cell; vertical-align: top;">
+                                        @if($description->title)
+                                        <div class="description-title">{{ $description->title }}</div>
+                                        @endif
+                                        @if($description->description)
+                                        <div class="description-text">{{ $description->description }}</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                        @elseif($pageIndex == 0)
+                        <div style="text-align: center; font-size: 11px; margin: 12px 0; font-style: italic; padding: 12px 0; border: 1px solid #ddd; border-radius: 2px;">هیچ توضیحی وجود ندارد</div>
                         @endif
                     </div>
-                    @endforeach
                 </div>
-                @elseif($pageIndex == 0)
-                <div style="text-align: center; font-size: 11px; margin: 12px 0 15px 0; font-style: italic; padding: 12px 0;">هیچ توضیحی وجود ندارد</div>
-                @endif
             </div>
 
             <!-- Footer with Signatures - At bottom of each page -->
             <div class="page-footer">
-                <table style="width: 100%; border-collapse: collapse; border: 0; border-style: none; border-width: 0;">
-                    <tr style="width: 100%; border: 0; border-style: none;">
-                        <td style="width: 50%; text-align: center; vertical-align: top; border: 0; border-style: none; border-width: 0; padding: 0 10px;">
-                            <div style="text-align: center; padding: 3px 0; border: 0; border-style: none;">
-                                <div style="font-weight: bold; margin-bottom: 3px; font-size: 16px; text-decoration: none; border: 0; @if($descriptions->count() == 0) font-size: 14px; @endif">امضا مدیر/نماینده ساختمان</div>
-                                <div style="height: @if($descriptions->count() == 0) 32px; @else 36px; @endif margin-bottom: 3px; padding: 2px 0; text-align: center; overflow: hidden; border: 0; border-style: none;">
+                <table class="data-table" style="border: none;">
+                    <tr style="border: none;">
+                        <td style="width: 50%; text-align: center; vertical-align: top; border: none; padding: 0 8px;">
+                            <div class="signature-box">
+                                <div style="font-weight: bold; margin-bottom: 6px; font-size: 16px; text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 4px;">امضا مدیر/نماینده ساختمان</div>
+                                <div style="height: 75px; margin-bottom: 6px; padding: 4px 0; text-align: center; overflow: visible; border-bottom: 1px solid #ddd; vertical-align: middle;">
                                     @if($managerSig && !empty($managerSig->signature))
-                                        <img src="{{ trim($managerSig->signature) }}" alt="امضای مدیر" style="max-width: 100%; max-height: @if($descriptions->count() == 0) 30px; @else 34px; @endif display: block; margin: 0 auto; border: 0;">
+                                        <img src="{{ trim($managerSig->signature) }}" alt="امضای مدیر" style="max-width: 100%; height: 70px; width: auto; display: block; margin: 0 auto; object-fit: contain;">
                                     @else
-                                        <span style="font-size: 9px;">امضا نشده</span>
+                                        <span style="font-size: 9px; color: #999; line-height: 75px;">امضا نشده</span>
                                     @endif
                                 </div>
-                                <div style="font-size: @if($descriptions->count() == 0) 12px; @else 14px; @endif margin-top: 1px;">
+                                <div style="font-size: 14px; text-align: center; padding-top: 4px;">
                                     {{ $managerSig->name ?? 'نامشخص' }}
                                 </div>
                             </div>
                         </td>
-                        <td style="width: 50%; text-align: center; vertical-align: top; border: 0; border-style: none; border-width: 0; padding: 0 10px;">
-                            <div style="text-align: center; padding: 3px 0; border: 0; border-style: none;">
-                                <div style="font-weight: bold; margin-bottom: 3px; font-size: 16px; text-decoration: none; border: 0; @if($descriptions->count() == 0) font-size: 14px; @endif">امضا سرویس کار</div>
-                                <div style="height: @if($descriptions->count() == 0) 32px; @else 36px; @endif margin-bottom: 3px; padding: 2px 0; text-align: center; overflow: hidden; border: 0; border-style: none;">
+                        <td style="width: 50%; text-align: center; vertical-align: top; border: none; padding: 0 8px;">
+                            <div class="signature-box">
+                                <div style="font-weight: bold; margin-bottom: 6px; font-size: 16px; text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 4px;">امضا سرویس کار</div>
+                                <div style="height: 75px; margin-bottom: 6px; padding: 4px 0; text-align: center; overflow: visible; border-bottom: 1px solid #ddd; vertical-align: middle;">
                                     @if($technicianSig && !empty($technicianSig->signature))
-                                        <img src="{{ trim($technicianSig->signature) }}" alt="امضای تکنسین" style="max-width: 100%; max-height: @if($descriptions->count() == 0) 30px; @else 34px; @endif display: block; margin: 0 auto; border: 0;">
+                                        <img src="{{ trim($technicianSig->signature) }}" alt="امضای تکنسین" style="max-width: 100%; height: 70px; width: auto; display: block; margin: 0 auto; object-fit: contain;">
                                     @else
-                                        <span style="font-size: 9px;">امضا نشده</span>
+                                        <span style="font-size: 9px; color: #999; line-height: 75px;">امضا نشده</span>
                                     @endif
                                 </div>
-                                <div style="font-size: @if($descriptions->count() == 0) 12px; @else 14px; @endif margin-top: 1px;">
+                                <div style="font-size: 14px; text-align: center; padding-top: 4px;">
                                     {{ $technicianSig->name ?? 'نامشخص' }}
                                 </div>
                             </div>
