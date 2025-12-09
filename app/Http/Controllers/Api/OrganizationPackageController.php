@@ -92,8 +92,38 @@ class OrganizationPackageController extends Controller
             ], 403);
         }
 
-        // Calculate start and end dates
-        $startedAt = $request->started_at ? Carbon::parse($request->started_at) : Carbon::now();
+        // Calculate start date: if user provided started_at, use it; otherwise calculate based on active packages
+        if ($request->started_at) {
+            $startedAt = Carbon::parse($request->started_at);
+        } else {
+            // If user has active packages, start new package when earliest expiring one ends
+            $startedAt = Carbon::now();
+            $activePackages = $organization->activePackages();
+            
+            if ($activePackages->isNotEmpty()) {
+                // Find the package that expires soonest (earliest expiry date)
+                $earliestExpiringPackage = null;
+                $earliestExpiryDate = null;
+                
+                foreach ($activePackages as $activePackage) {
+                    // Only consider non-expired packages
+                    if ($activePackage->remaining_days > 0 && !$activePackage->is_expired) {
+                        $expiryDate = $activePackage->expires_at;
+                        
+                        if ($earliestExpiryDate === null || $expiryDate->lt($earliestExpiryDate)) {
+                            $earliestExpiryDate = $expiryDate;
+                            $earliestExpiringPackage = $activePackage;
+                        }
+                    }
+                }
+                
+                // If we found an active non-expired package, start new package when it ends
+                if ($earliestExpiringPackage && $earliestExpiryDate) {
+                    $startedAt = $earliestExpiryDate->copy();
+                }
+                // If all active packages are expired, start immediately (Carbon::now() already set)
+            }
+        }
         
         // Use database transaction to ensure data consistency
         DB::beginTransaction();

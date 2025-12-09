@@ -47,25 +47,27 @@ class PaymentController extends Controller
         $organization = $user->organization;
         $activePackages = $organization->activePackages();
         $paymentInfo = [];
-        $publicPackages = [];
         $allPackagesExpired = false;
 
-        // If no active packages, get public packages
+        // Always get public packages - users can activate new packages even with active ones
+        $publicPackages = Package::where('is_public', true)
+            ->orderBy('duration_days', 'asc')
+            ->orderBy('price', 'asc')
+            ->get()
+            ->map(function ($package) {
+                return [
+                    'id' => $package->id,
+                    'name' => $package->name,
+                    'duration_days' => $package->duration_days,
+                    'duration_label' => $package->duration_label,
+                    'price' => $package->price,
+                    'formatted_price' => $package->formatted_price,
+                ];
+            });
+
+        // If no active packages, just return public packages
         if ($activePackages->isEmpty()) {
-            $publicPackages = Package::where('is_public', true)
-                ->orderBy('duration_days', 'asc')
-                ->orderBy('price', 'asc')
-                ->get()
-                ->map(function ($package) {
-                    return [
-                        'id' => $package->id,
-                        'name' => $package->name,
-                        'duration_days' => $package->duration_days,
-                        'duration_label' => $package->duration_label,
-                        'price' => $package->price,
-                        'formatted_price' => $package->formatted_price,
-                    ];
-                });
+            // Public packages already loaded above
         } else {
             // Filter out expired packages - only check non-expired packages
             $validPackages = $activePackages->filter(function ($package) {
@@ -73,23 +75,9 @@ class PaymentController extends Controller
                 return $package->remaining_days > 0 && !$package->is_expired;
             });
 
-            // If all packages are expired, set flag and get public packages
+            // If all packages are expired, set flag
             if ($validPackages->isEmpty()) {
                 $allPackagesExpired = true;
-                $publicPackages = Package::where('is_public', true)
-                    ->orderBy('duration_days', 'asc')
-                    ->orderBy('price', 'asc')
-                    ->get()
-                    ->map(function ($package) {
-                        return [
-                            'id' => $package->id,
-                            'name' => $package->name,
-                            'duration_days' => $package->duration_days,
-                            'duration_label' => $package->duration_label,
-                            'price' => $package->price,
-                            'formatted_price' => $package->formatted_price,
-                        ];
-                    });
             } else {
                 // Check existing valid (non-expired) packages for payment requirements
                 foreach ($validPackages as $package) {
@@ -384,6 +372,34 @@ class PaymentController extends Controller
             ], 422);
         }
 
+        // Calculate start date: if user has active packages, start new package when earliest expiring one ends
+        $startedAt = Carbon::now();
+        $activePackages = $organization->activePackages();
+        
+        if ($activePackages->isNotEmpty()) {
+            // Find the package that expires soonest (earliest expiry date)
+            $earliestExpiringPackage = null;
+            $earliestExpiryDate = null;
+            
+            foreach ($activePackages as $activePackage) {
+                // Only consider non-expired packages
+                if ($activePackage->remaining_days > 0 && !$activePackage->is_expired) {
+                    $expiryDate = $activePackage->expires_at;
+                    
+                    if ($earliestExpiryDate === null || $expiryDate->lt($earliestExpiryDate)) {
+                        $earliestExpiryDate = $expiryDate;
+                        $earliestExpiringPackage = $activePackage;
+                    }
+                }
+            }
+            
+            // If we found an active non-expired package, start new package when it ends
+            if ($earliestExpiringPackage && $earliestExpiryDate) {
+                $startedAt = $earliestExpiryDate->copy();
+            }
+            // If all active packages are expired, start immediately (Carbon::now() already set)
+        }
+
         DB::beginTransaction();
         try {
             // Create organization package
@@ -397,7 +413,7 @@ class PaymentController extends Controller
                 'use_periods' => $package->use_periods ?? false,
                 'period_days' => $package->period_days,
                 'payment_status' => OrganizationPackage::PAYMENT_STATUS_UNPAID,
-                'started_at' => Carbon::now(),
+                'started_at' => $startedAt,
                 'is_active' => true,
                 'moderator_id' => null, // System activation
             ]);

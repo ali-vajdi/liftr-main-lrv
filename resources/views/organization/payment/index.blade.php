@@ -367,34 +367,76 @@
                         'Authorization': 'Bearer ' + token
                     },
                     success: function(response) {
-                        // If all packages are expired, show expired message and public packages
+                        let html = '';
+                        
+                        // If all packages are expired, show expired message
                         if (response.all_packages_expired && response.public_packages && response.public_packages.length > 0) {
-                            renderPublicPackages(response.public_packages, response.organization, true);
+                            html = renderPublicPackages(response.public_packages, response.organization, true, true);
                         } else if (!response.has_active_packages && response.public_packages && response.public_packages.length > 0) {
-                            renderPublicPackages(response.public_packages, response.organization);
-                        } else if (response.data && response.data.length > 0) {
-                            renderPaymentForm(response.data, response.organization);
-                        } else if (response.all_packages_expired) {
-                            // All packages expired but no public packages available
-                            $('#payment-container').html(`
-                                <div class="alert alert-danger text-center fade-in" style="border-radius: 15px; padding: 3rem;">
-                                    <i class="fa fa-exclamation-triangle fa-3x mb-3 text-danger"></i>
-                                    <h4 class="mb-3 text-white">اشتراک شما منقضی شده است!</h4>
-                                    <p class="mb-4 text-white">لطفا با مدیر سیستم تماس بگیرید تا اشتراک جدیدی برای شما فعال شود.</p>
-                                </div>
-                            `);
+                            html = renderPublicPackages(response.public_packages, response.organization, false, true);
                         } else {
-                            // All valid packages are paid
-                            $('#payment-container').html(`
-                                <div class="alert alert-success text-center fade-in" style="border-radius: 15px; padding: 3rem;">
-                                    <i class="fa fa-check-circle fa-3x mb-3 text-success"></i>
-                                    <h4 class="mb-3 text-white">همه اشتراک‌های شما پرداخت شده است!</h4>
-                                    <p class="mb-4 text-white">می‌توانید به پنل خود دسترسی داشته باشید.</p>
-                                    <a href="/" class="btn btn-primary btn-lg btn-payment">
-                                        <i class="fa fa-home"></i> بازگشت به پنل
-                                    </a>
-                                </div>
-                            `);
+                            // User has active packages - show payment forms if needed, and always show public packages
+                            if (response.data && response.data.length > 0) {
+                                html = renderPaymentForm(response.data, response.organization, true);
+                            } else if (response.all_packages_expired) {
+                                // All packages expired - show message and public packages if available
+                                if (response.public_packages && response.public_packages.length > 0) {
+                                    html = `
+                                        <div class="alert alert-warning text-center mb-4 fade-in" style="border-radius: 15px; padding: 2rem;">
+                                            <i class="fa fa-exclamation-triangle fa-2x mb-3 text-warning"></i>
+                                            <h4 class="mb-3">اشتراک شما منقضی شده است!</h4>
+                                            <p class="mb-0">لطفا یکی از اشتراک‌های زیر را انتخاب و فعال کنید:</p>
+                                        </div>
+                                    `;
+                                    html += renderPublicPackages(response.public_packages, response.organization, true, false);
+                                } else {
+                                    // No public packages available - show message but allow refresh
+                                    html = `
+                                        <div class="alert alert-info text-center fade-in" style="border-radius: 15px; padding: 3rem;">
+                                            <i class="fa fa-info-circle fa-3x mb-3 text-info"></i>
+                                            <h4 class="mb-3">اشتراک شما منقضی شده است!</h4>
+                                            <p class="mb-4">در حال حاضر اشتراکی برای خرید در دسترس نیست. لطفا بعدا تلاش کنید.</p>
+                                            <button class="btn btn-primary btn-lg btn-payment" onclick="location.reload()">
+                                                <i class="fa fa-refresh"></i> بروزرسانی صفحه
+                                            </button>
+                                        </div>
+                                    `;
+                                }
+                            } else {
+                                // All valid packages are paid - show success message and public packages
+                                html = `
+                                    <div class="alert alert-success text-center mb-4 fade-in" style="border-radius: 15px; padding: 2rem;">
+                                        <i class="fa fa-check-circle fa-3x mb-3 text-success"></i>
+                                        <h4 class="mb-3 text-white">همه اشتراک‌های شما پرداخت شده است!</h4>
+                                        <p class="mb-4 text-white">می‌توانید به پنل خود دسترسی داشته باشید.</p>
+                                        <a href="/" class="btn btn-primary btn-lg btn-payment">
+                                            <i class="fa fa-home"></i> بازگشت به پنل
+                                        </a>
+                                    </div>
+                                `;
+                                
+                                // Also show public packages if available
+                                if (response.public_packages && response.public_packages.length > 0) {
+                                    html += renderPublicPackages(response.public_packages, response.organization, false, false);
+                                }
+                            }
+                            
+                            // Always show public packages section if available and user has active packages
+                            if (response.has_active_packages && response.public_packages && response.public_packages.length > 0) {
+                                html += '<div class="mt-5"><hr class="my-5"></div>';
+                                html += renderPublicPackages(response.public_packages, response.organization, false, false);
+                            }
+                        }
+                        
+                        $('#payment-container').html(html);
+                        
+                        // Bind event handlers after HTML is inserted
+                        if (response.public_packages && response.public_packages.length > 0) {
+                            bindPackageActivationHandlers(response.public_packages);
+                        }
+                        if (response.data && response.data.length > 0) {
+                            bindPaymentFormHandlers();
+                            bindFullPaymentCheckbox();
                         }
                     },
                     error: function(xhr) {
@@ -416,20 +458,34 @@
                 });
             }
 
-            function renderPublicPackages(publicPackages, organization, isExpired = false) {
-                let alertClass = isExpired ? 'alert-danger' : 'alert-info';
-                let alertIcon = isExpired ? 'fa-exclamation-triangle' : 'fa-info-circle';
-                let title = isExpired ? 'اشتراک شما منقضی شده است' : 'شما اشتراک فعالی ندارید';
-                let message = isExpired ? 'لطفا یکی از اشتراک‌های زیر را انتخاب و فعال کنید:' : 'لطفا یکی از اشتراک‌های زیر را انتخاب و فعال کنید:';
+            function renderPublicPackages(publicPackages, organization, isExpired = false, showAlert = true) {
+                let html = '';
                 
-                let html = `
-                    <div class="alert ${alertClass} text-center mb-4 fade-in" style="border-radius: 15px; padding: 2rem;">
-                        <i class="fa ${alertIcon} fa-2x mb-3"></i>
-                        <h4>${title}</h4>
-                        <p class="mb-0">${message}</p>
-                    </div>
-                    <div class="row">
-                `;
+                if (showAlert) {
+                    let alertClass = isExpired ? 'alert-danger' : 'alert-info';
+                    let alertIcon = isExpired ? 'fa-exclamation-triangle' : 'fa-info-circle';
+                    let title = isExpired ? 'اشتراک شما منقضی شده است' : 'شما اشتراک فعالی ندارید';
+                    let message = isExpired ? 'لطفا یکی از اشتراک‌های زیر را انتخاب و فعال کنید:' : 'لطفا یکی از اشتراک‌های زیر را انتخاب و فعال کنید:';
+                    
+                    html += `
+                        <div class="alert ${alertClass} text-center mb-4 fade-in" style="border-radius: 15px; padding: 2rem;">
+                            <i class="fa ${alertIcon} fa-2x mb-3"></i>
+                            <h4>${title}</h4>
+                            <p class="mb-0">${message}</p>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="mb-4 fade-in">
+                            <h5 class="mb-3">
+                                <i class="fa fa-box"></i> فعال‌سازی اشتراک جدید
+                            </h5>
+                            <p class="text-muted">می‌توانید اشتراک جدیدی را فعال کنید حتی در صورت داشتن اشتراک فعال:</p>
+                        </div>
+                    `;
+                }
+                
+                html += '<div class="row">';
                 
                 publicPackages.forEach(function(pkg) {
                     html += `
@@ -460,9 +516,11 @@
                 });
                 
                 html += '</div>';
-                $('#payment-container').html(html);
-
-                $('.activate-package-btn').on('click', function() {
+                return html;
+            }
+            
+            function bindPackageActivationHandlers(publicPackages) {
+                $('.activate-package-btn').off('click').on('click', function() {
                     const packageId = $(this).data('package-id');
                     const package = publicPackages.find(p => p.id === packageId);
                     
@@ -541,7 +599,7 @@
                 });
             }
 
-            function renderPaymentForm(paymentInfo, organization) {
+            function renderPaymentForm(paymentInfo, organization, returnHtml = false) {
                 let html = '<div class="row">';
                 
                 paymentInfo.forEach(function(info, index) {
@@ -785,8 +843,16 @@
                 });
                 
                 html += '</div>';
-                $('#payment-container').html(html);
                 
+                if (!returnHtml) {
+                    $('#payment-container').html(html);
+                    bindPaymentFormHandlers();
+                }
+                
+                return html;
+            }
+            
+            function bindPaymentFormHandlers() {
                 // Populate payment method selects
                 $('.payment-method-select').each(function() {
                     const select = $(this);
@@ -798,7 +864,7 @@
                 });
 
                 // Handle form submission
-                $('.payment-form').on('submit', function(e) {
+                $('.payment-form').off('submit').on('submit', function(e) {
                     e.preventDefault();
                     const form = $(this);
                     const packageId = form.data('package-id');
@@ -870,8 +936,11 @@
                     });
                 });
 
+            }
+            
+            function bindFullPaymentCheckbox() {
                 // Handle full payment checkbox
-                $(document).on('change', '.form-check-input', function() {
+                $(document).off('change', '.form-check-input').on('change', '.form-check-input', function() {
                     const form = $(this).closest('.card').find('.payment-form');
                     const cardBody = $(this).closest('.card-body');
                     const remainingAmountText = cardBody.find('.col-md-4').last().find('.summary-value').text().replace(/[^\d.]/g, '');
