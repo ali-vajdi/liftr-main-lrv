@@ -138,9 +138,9 @@ class SmsPattern
         'pdf_download_code' => [
             'code' => 'k0drq5w3gs5pc9l',
             'farazsms_code' => 'k0drq5w3gs5pc9l',
-            'text' => 'کد جهت دریافت سرویس: {code}',
+            'text' => 'کد جهت دریافت سرویس: {code}' . "\n" . 'آسانسور {organization_name}',
             'description' => 'کد دریافت PDF سرویس',
-            'required_fields' => ['code'],
+            'required_fields' => ['code', 'organization_name'],
         ],
         'building_manager_checklist_submitted' => [
             'code' => 'peipwnru7u4unrv',

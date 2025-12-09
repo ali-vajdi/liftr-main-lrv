@@ -133,7 +133,7 @@ class ServiceController extends Controller
         $smsResult = $smsService->sendPatternSms(
             $building->organization,
             $patternCode,
-            ['code' => $code],
+            ['code' => $code, 'organization_name' => $building->organization->name],
             $building->manager_phone,
             true // Queue the SMS
         );
