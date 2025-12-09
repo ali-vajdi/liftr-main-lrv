@@ -327,7 +327,31 @@
 @section('page-scripts')
     <script>
         $(document).ready(function() {
-            loadPaymentInfo();
+            let paymentMethods = [];
+            
+            // Load payment methods
+            function loadPaymentMethods() {
+                const token = localStorage.getItem('organization_token');
+                return $.ajax({
+                    url: '/api/organization/payment-methods',
+                    type: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    },
+                    success: function(response) {
+                        paymentMethods = response.data || [];
+                    },
+                    error: function(xhr) {
+                        console.error('Error loading payment methods:', xhr);
+                        paymentMethods = [];
+                    }
+                });
+            }
+            
+            // Load payment methods first, then payment info
+            loadPaymentMethods().then(function() {
+                loadPaymentInfo();
+            });
 
             function loadPaymentInfo() {
                 const token = localStorage.getItem('organization_token');
@@ -720,6 +744,21 @@
                                                     </div>
                                                 ` : ''}
                                             </div>
+                                            
+                                            <!-- Payment Method Selection -->
+                                            <div class="form-group mb-4">
+                                                <label class="font-weight-bold mb-3" style="font-size: 1.1rem;">
+                                                    <i class="fa fa-credit-card"></i> روش پرداخت
+                                                </label>
+                                                <select class="form-control form-control-lg payment-method-select" 
+                                                        name="payment_method_id" 
+                                                        required>
+                                                    <option value="">لطفا روش پرداخت را انتخاب کنید</option>
+                                                </select>
+                                                <small class="form-text text-muted mt-2">
+                                                    <i class="fa fa-info-circle"></i> روش پرداخت خود را انتخاب کنید
+                                                </small>
+                                            </div>
                                         
                                             ${!isPeriodPayment && info.use_periods ? `
                                                 <div class="form-check mb-4 p-3 bg-white rounded shadow-sm border" style="border-radius: 10px;">
@@ -747,6 +786,16 @@
                 
                 html += '</div>';
                 $('#payment-container').html(html);
+                
+                // Populate payment method selects
+                $('.payment-method-select').each(function() {
+                    const select = $(this);
+                    select.empty();
+                    select.append('<option value="">لطفا روش پرداخت را انتخاب کنید</option>');
+                    paymentMethods.forEach(function(method) {
+                        select.append(`<option value="${method.id}">${method.name}</option>`);
+                    });
+                });
 
                 // Handle form submission
                 $('.payment-form').on('submit', function(e) {
@@ -756,11 +805,22 @@
                     const paymentType = form.data('payment-type');
                     const amount = parseFloat(form.find('.payment-amount').val());
                     const period = form.find('input[name="period"]').val();
+                    const paymentMethodId = form.find('.payment-method-select').val();
 
                     if (amount <= 0) {
                         swal({
                             title: 'خطا',
                             text: 'مبلغ باید بیشتر از صفر باشد',
+                            type: 'error',
+                            padding: '2em'
+                        });
+                        return;
+                    }
+                    
+                    if (!paymentMethodId) {
+                        swal({
+                            title: 'خطا',
+                            text: 'لطفا روش پرداخت را انتخاب کنید',
                             type: 'error',
                             padding: '2em'
                         });
@@ -805,7 +865,7 @@
                         padding: '2em'
                     }).then((result) => {
                         if (result.value) {
-                            processPayment(packageId, amount, paymentType, period);
+                            processPayment(packageId, amount, paymentType, period, paymentMethodId);
                         }
                     });
                 });
@@ -824,7 +884,7 @@
                 });
             }
 
-            function processPayment(packageId, amount, paymentType, period) {
+            function processPayment(packageId, amount, paymentType, period, paymentMethodId) {
                 const token = localStorage.getItem('organization_token');
                 
                 swal({
@@ -850,20 +910,28 @@
                         package_id: packageId,
                         amount: amount,
                         payment_type: paymentType,
+                        payment_method_id: paymentMethodId,
                         period: period || null
                     },
                     success: function(response) {
-                        swal({
-                            title: 'موفق',
-                            text: response.message,
-                            type: 'success',
-                            padding: '2em'
-                        }).then(function() {
-                            loadPaymentInfo();
-                            setTimeout(function() {
-                                window.location.href = '/';
-                            }, 2000);
-                        });
+                        // Check if there's a redirect URL (for payment gateways)
+                        if (response.data && response.data.redirect_url) {
+                            // Redirect to payment gateway
+                            window.location.href = response.data.redirect_url;
+                        } else {
+                            // Regular success (for system payments)
+                            swal({
+                                title: 'موفق',
+                                text: response.message,
+                                type: 'success',
+                                padding: '2em'
+                            }).then(function() {
+                                loadPaymentInfo();
+                                setTimeout(function() {
+                                    window.location.href = '/';
+                                }, 2000);
+                            });
+                        }
                     },
                     error: function(xhr) {
                         let message = 'خطا در پردازش پرداخت';

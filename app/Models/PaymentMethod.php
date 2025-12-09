@@ -47,6 +47,11 @@ class PaymentMethod extends Model
         return $query->where('is_system', true);
     }
 
+    public function scopeNonSystem($query)
+    {
+        return $query->where('is_system', false);
+    }
+
     // Static method to get system payment method
     public static function getSystemMethod()
     {

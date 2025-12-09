@@ -130,6 +130,7 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::get('payment/info', [\App\Http\Controllers\Organization\PaymentController::class, 'getPaymentInfo']);
         Route::post('payment/process', [\App\Http\Controllers\Organization\PaymentController::class, 'processPayment']);
         Route::post('payment/activate-package', [\App\Http\Controllers\Organization\PaymentController::class, 'activatePackage']);
+        Route::get('payment-methods', [\App\Http\Controllers\Api\OrganizationPackageController::class, 'getPaymentMethods']);
         
         // All other routes require payment check
         Route::middleware('check.package.payment')->group(function () {
@@ -182,9 +183,6 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::post('sms/increase-balance', [\App\Http\Controllers\Api\Organization\DashboardController::class, 'increaseSmsBalance']);
         Route::get('sms/patterns', [\App\Http\Controllers\Api\Organization\SmsController::class, 'getPatterns']);
         Route::get('sms/patterns/{code}', [\App\Http\Controllers\Api\Organization\SmsController::class, 'getPattern']);
-        
-        // Payment Methods
-        Route::get('payment-methods', [\App\Http\Controllers\Api\OrganizationPackageController::class, 'getPaymentMethods']);
         
         // Messages Management (Organization)
         Route::get('messages/unread-count', [\App\Http\Controllers\Api\Organization\MessageController::class, 'unreadCount']);

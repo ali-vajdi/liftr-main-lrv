@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\PaymentMethod;
 use App\Models\Transaction;
+use App\Services\ZarinpalService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Morilog\Jalali\Jalalian;
 
 class DashboardController extends Controller
@@ -195,53 +197,208 @@ class DashboardController extends Controller
             'payment_method_id.exists' => 'روش پرداخت معتبر نیست',
         ]);
 
-        $amount = (float) $request->amount;
+        $amount = (int) round($request->amount, 0);
         $paymentMethodId = $request->payment_method_id;
         $description = $request->description ?? 'افزایش موجودی پیامک';
 
         // Get payment method
         $paymentMethod = PaymentMethod::findOrFail($paymentMethodId);
 
+        // Check if payment method is system (not allowed for organizations)
+        if ($paymentMethod->is_system) {
+            return response()->json([
+                'message' => 'این روش پرداخت برای سازمان‌ها در دسترس نیست'
+            ], 422);
+        }
+
+        // Check if it's a Zarinpal payment method
+        $isZarinpal = in_array($paymentMethod->code, ['zarinpal', 'zarinpal_sandbox']);
+        
+        if ($isZarinpal) {
+            // Handle Zarinpal payment gateway
+            $config = $paymentMethod->config ?? [];
+            $merchantId = $config['merchant_id'] ?? '12de1ed3-0c38-4d52-add9-7e631e430214';
+            $baseUrl = $config['base_url'] ?? ($paymentMethod->code === 'zarinpal_sandbox' ? 'https://sandbox.zarinpal.com' : 'https://payment.zarinpal.com');
+            
+            $zarinpalService = new ZarinpalService($merchantId, $baseUrl, $paymentMethod->code === 'zarinpal_sandbox');
+            
+            // Create callback URL
+            $callbackUrl = route('organization.sms.payment.callback');
+            
+            // Request payment from Zarinpal
+            $result = $zarinpalService->requestPayment(
+                $amount,
+                $callbackUrl,
+                $description,
+                null
+            );
+            
+            if (!$result['success']) {
+                return response()->json([
+                    'message' => $result['message'] ?? 'خطا در اتصال به درگاه پرداخت'
+                ], 500);
+            }
+            
+            // Create pending transaction
+            DB::beginTransaction();
+            try {
+                $transaction = Transaction::create([
+                    'transactionable_type' => Organization::class,
+                    'transactionable_id' => $organization->id,
+                    'payment_method_id' => $paymentMethod->id,
+                    'amount' => $amount,
+                    'type' => Transaction::TYPE_EXPENSE,
+                    'status' => Transaction::STATUS_PENDING,
+                    'reference_number' => $result['authority'],
+                    'description' => $description,
+                    'transaction_date' => Carbon::now(),
+                    'organization_id' => $organization->id,
+                    'moderator_id' => null,
+                ]);
+                
+                DB::commit();
+                
+                return response()->json([
+                    'message' => 'در حال انتقال به درگاه پرداخت...',
+                    'data' => [
+                        'redirect_url' => $result['redirect_url'],
+                        'authority' => $result['authority'],
+                        'transaction_id' => $transaction->id,
+                    ]
+                ]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'خطا در ثبت تراکنش: ' . $e->getMessage()
+                ], 500);
+            }
+        } else {
+            // Direct payment (should not happen for organizations, but handle it)
+            return response()->json([
+                'message' => 'روش پرداخت معتبر نیست'
+            ], 422);
+        }
+    }
+
+    /**
+     * Handle SMS balance payment callback
+     */
+    public function smsPaymentCallback(Request $request)
+    {
+        $authority = $request->query('Authority');
+        $status = $request->query('Status');
+
+        if (!$authority) {
+            return view('organization.payment.result', [
+                'success' => false,
+                'message' => 'کد مرجع پرداخت یافت نشد',
+                'trackingCode' => null,
+                'redirectTo' => 'dashboard'
+            ]);
+        }
+
+        if ($status !== 'OK') {
+            return view('organization.payment.result', [
+                'success' => false,
+                'message' => 'پرداخت ناموفق بود یا توسط شما لغو شد',
+                'trackingCode' => $authority,
+                'redirectTo' => 'dashboard'
+            ]);
+        }
+
+        // Find the pending transaction by authority
+        $transaction = Transaction::where('reference_number', $authority)
+            ->where('status', Transaction::STATUS_PENDING)
+            ->where('transactionable_type', Organization::class)
+            ->first();
+
+        if (!$transaction) {
+            return view('organization.payment.result', [
+                'success' => false,
+                'message' => 'تراکنش یافت نشد',
+                'trackingCode' => $authority,
+                'redirectTo' => 'dashboard'
+            ]);
+        }
+
+        $organization = Organization::find($transaction->transactionable_id);
+        if (!$organization) {
+            return view('organization.payment.result', [
+                'success' => false,
+                'message' => 'سازمان یافت نشد',
+                'trackingCode' => $authority,
+                'redirectTo' => 'dashboard'
+            ]);
+        }
+
+        $paymentMethod = $transaction->paymentMethod;
+        if (!in_array($paymentMethod->code, ['zarinpal', 'zarinpal_sandbox'])) {
+            return view('organization.payment.result', [
+                'success' => false,
+                'message' => 'روش پرداخت معتبر نیست',
+                'trackingCode' => $authority,
+                'redirectTo' => 'dashboard'
+            ]);
+        }
+
+        // Verify payment with Zarinpal
+        $config = $paymentMethod->config ?? [];
+        $merchantId = $config['merchant_id'] ?? '12de1ed3-0c38-4d52-add9-7e631e430214';
+        $baseUrl = $config['base_url'] ?? ($paymentMethod->code === 'zarinpal_sandbox' ? 'https://sandbox.zarinpal.com' : 'https://payment.zarinpal.com');
+        
+        $zarinpalService = new ZarinpalService($merchantId, $baseUrl, $paymentMethod->code === 'zarinpal_sandbox');
+        $verifyResult = $zarinpalService->verifyPayment((int) $transaction->amount, $authority);
+
+        if (!$verifyResult['success'] || !$verifyResult['verified']) {
+            // Update transaction status to failed
+            $transaction->update([
+                'status' => Transaction::STATUS_FAILED,
+                'description' => $transaction->description . ' - ' . ($verifyResult['message'] ?? 'تایید نشد'),
+            ]);
+
+            return view('organization.payment.result', [
+                'success' => false,
+                'message' => $verifyResult['message'] ?? 'پرداخت تایید نشد',
+                'trackingCode' => $authority,
+                'redirectTo' => 'dashboard'
+            ]);
+        }
+
+        // Payment verified successfully
         DB::beginTransaction();
         try {
+            // Update transaction
+            $transaction->update([
+                'status' => Transaction::STATUS_COMPLETED,
+                'reference_number' => $verifyResult['ref_id'] ?? $authority,
+            ]);
+
             // Update organization SMS balance
             $currentBalance = (float) ($organization->sms_balance ?? 0);
-            $newBalance = $currentBalance + $amount;
+            $newBalance = $currentBalance + $transaction->amount;
             $organization->update([
                 'sms_balance' => $newBalance,
             ]);
 
-            // Create transaction
-            $transaction = Transaction::create([
-                'transactionable_type' => Organization::class,
-                'transactionable_id' => $organization->id,
-                'payment_method_id' => $paymentMethodId,
-                'amount' => round($amount, 0),
-                'type' => Transaction::TYPE_EXPENSE,
-                'status' => Transaction::STATUS_COMPLETED,
-                'description' => $description,
-                'transaction_date' => now(),
-                'organization_id' => $organization->id,
-                'moderator_id' => null,
-            ]);
-
             DB::commit();
 
-            return response()->json([
-                'message' => 'موجودی پیامک با موفقیت افزایش یافت',
-                'data' => [
-                    'transaction' => $transaction,
-                    'old_balance' => $currentBalance,
-                    'new_balance' => $newBalance,
-                    'amount_added' => $amount,
-                ]
-            ], 201);
+            $trackingCode = $verifyResult['ref_id'] ?? $authority;
+            
+            return view('organization.payment.result', [
+                'success' => true,
+                'message' => 'موجودی پیامک با موفقیت افزایش یافت.',
+                'trackingCode' => $trackingCode,
+                'redirectTo' => 'dashboard'
+            ]);
+
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'message' => 'خطا در افزایش موجودی',
-                'error' => $e->getMessage()
-            ], 500);
+            return view('organization.payment.result', [
+                'success' => false,
+                'message' => 'خطا در افزایش موجودی: ' . $e->getMessage(),
+                'trackingCode' => $authority,
+                'redirectTo' => 'dashboard'
+            ]);
         }
     }
 }

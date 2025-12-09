@@ -551,20 +551,27 @@ $(document).ready(function() {
                 description: description || 'افزایش موجودی پیامک'
             }),
             success: function(response) {
-                swal({
-                    title: 'موفق',
-                    text: response.message || 'موجودی پیامک با موفقیت افزایش یافت',
-                    type: 'success',
-                    padding: '2em'
-                }).then(function() {
-                    $('#increaseSmsBalanceModal').modal('hide');
-                    // Reload dashboard data
-                    getDashboardData(function(data, error) {
-                        if (!error && data) {
-                            $('#sms-balance').text(parseFloat(data.organization.sms_balance).toLocaleString('fa-IR'));
-                        }
+                // Check if there's a redirect URL (for payment gateways)
+                if (response.data && response.data.redirect_url) {
+                    // Redirect to payment gateway
+                    window.location.href = response.data.redirect_url;
+                } else {
+                    // Regular success (for system payments)
+                    swal({
+                        title: 'موفق',
+                        text: response.message || 'موجودی پیامک با موفقیت افزایش یافت',
+                        type: 'success',
+                        padding: '2em'
+                    }).then(function() {
+                        $('#increaseSmsBalanceModal').modal('hide');
+                        // Reload dashboard data
+                        getDashboardData(function(data, error) {
+                            if (!error && data) {
+                                $('#sms-balance').text(parseFloat(data.organization.sms_balance).toLocaleString('fa-IR'));
+                            }
+                        });
                     });
-                });
+                }
             },
             error: function(xhr) {
                 var errorMessage = 'خطا در افزایش موجودی';

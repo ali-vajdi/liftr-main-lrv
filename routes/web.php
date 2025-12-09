@@ -43,6 +43,9 @@ Route::get('/services/assigned', [OrganizationViewController::class, 'showAssign
 Route::get('/services/completed', [OrganizationViewController::class, 'showCompletedServices'])->name('organization.services.completed');
 Route::get('/services/all', [OrganizationViewController::class, 'showAllServices'])->name('organization.services.all');
 Route::get('/packages/payment', [OrganizationViewController::class, 'showPayment'])->name('organization.payment');
+Route::get('/packages/payment/page', [OrganizationViewController::class, 'showPayment'])->name('organization.payment.page');
+Route::get('/payment/callback/{packageId}', [\App\Http\Controllers\Organization\PaymentController::class, 'paymentCallback'])->name('organization.payment.callback');
+Route::get('/sms/payment/callback', [\App\Http\Controllers\Api\Organization\DashboardController::class, 'smsPaymentCallback'])->name('organization.sms.payment.callback');
 Route::get('/messages', [OrganizationViewController::class, 'showMessages'])->name('organization.messages.view');
 Route::get('/messages/sent', [OrganizationViewController::class, 'showSentMessages'])->name('organization.messages.sent');
 Route::get('/transactions', [OrganizationViewController::class, 'showTransactions'])->name('organization.transactions.view');

@@ -21,5 +21,37 @@ class PaymentMethodSeeder extends Seeder
                 'is_system' => true,
             ]
         );
+
+        // Zarinpal Main Payment Gateway
+        PaymentMethod::firstOrCreate(
+            ['code' => 'zarinpal'],
+            [
+                'name' => 'زرین‌پال',
+                'description' => 'درگاه پرداخت زرین‌پال',
+                'is_active' => true,
+                'is_system' => false,
+                'config' => [
+                    'merchant_id' => '12de1ed3-0c38-4d52-add9-7e631e430214',
+                    'base_url' => 'https://payment.zarinpal.com',
+                    'is_sandbox' => false,
+                ],
+            ]
+        );
+
+        // Zarinpal Sandbox Payment Gateway
+        PaymentMethod::firstOrCreate(
+            ['code' => 'zarinpal_sandbox'],
+            [
+                'name' => 'سندباکس زرین‌پال',
+                'description' => 'درگاه پرداخت سندباکس زرین‌پال (تست)',
+                'is_active' => true,
+                'is_system' => false,
+                'config' => [
+                    'merchant_id' => '12de1ed3-0c38-4d52-add9-7e631e430214',
+                    'base_url' => 'https://sandbox.zarinpal.com',
+                    'is_sandbox' => true,
+                ],
+            ]
+        );
     }
 }

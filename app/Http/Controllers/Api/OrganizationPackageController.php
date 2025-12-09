@@ -502,7 +502,11 @@ class OrganizationPackageController extends Controller
      */
     public function getPaymentMethods()
     {
-        $paymentMethods = PaymentMethod::active()->orderBy('is_system', 'desc')->orderBy('name')->get();
+        // For organizations, exclude system payment methods
+        $paymentMethods = PaymentMethod::active()
+            ->nonSystem()
+            ->orderBy('name')
+            ->get();
         
         return response()->json([
             'data' => $paymentMethods
