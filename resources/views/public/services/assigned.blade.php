@@ -8,8 +8,12 @@
     <!-- Visit Information (Only for assigned services) -->
     @if($service->status === 'assigned' && ($service->visit_date || $service->visit_time_range))
     <div class="building-info">
-        <h3>اطلاعات بازدید</h3>
+        <h3>اطلاعات سرویس</h3>
         <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">دوره سرویس</span>
+                <span class="info-value">{{ $monthNames[$service->service_month] }} {{ $service->service_year }}</span>
+            </div>
             @if($service->visit_date)
             <div class="info-item">
                 <span class="info-label">تاریخ بازدید</span>
@@ -48,6 +52,8 @@
         </div>
     </div>
     @endif
+
+    @if($service->status === 'completed')
 
     <!-- Service Information -->
     <div class="building-info">
@@ -94,6 +100,8 @@
             @endif
         </div>
     </div>
+
+    @endif
 
     <!-- Print PDF Button -->
     @if($service->checklist && $service->checklist->elevatorChecklists->count() > 0)
