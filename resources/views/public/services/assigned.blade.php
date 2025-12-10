@@ -100,7 +100,7 @@
         <div class="building-info" style="text-align: center;">
             <button type="button" onclick="openPdfVerificationModal()" class="btn-print-pdf">
                 <i class="fas fa-print"></i>
-                دریافت PDF سرویس
+                دریافت PDF برگه سرویس
             </button>
         </div>
     @endif
