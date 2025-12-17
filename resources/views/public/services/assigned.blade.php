@@ -287,12 +287,16 @@
                         کد تایید به شماره مدیر ساختمان ارسال شد. لطفا کد 6 رقمی را وارد کنید:
                     </p>
                     <div class="form-group">
-                        <input type="text" 
-                               id="pdfVerificationCode" 
-                               class="form-control" 
+                        <input type="number"
+                               id="pdfVerificationCode"
+                               class="form-control"
                                placeholder="کد 6 رقمی"
                                maxlength="6"
                                pattern="[0-9]{6}"
+                               inputmode="numeric"
+                               min="0"
+                               max="999999"
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,6);"
                                style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem; font-weight: 600;">
                     </div>
                     <div class="form-actions" style="justify-content: center; margin-top: 1.5rem;">
