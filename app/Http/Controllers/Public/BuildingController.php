@@ -77,61 +77,6 @@ class BuildingController extends Controller
     }
 
     /**
-     * Show service details
-     *
-     * @param int $id
-     * @return \Illuminate\View\View
-     */
-    public function showService($id)
-    {
-        $service = Service::with([
-            'building.province',
-            'building.city',
-            'building.elevators',
-            'building.organization',
-            'technician',
-            'checklist' => function($query) {
-                $query->with([
-                    'signatures',
-                    'managerSignature',
-                    'technicianSignature',
-                    'elevatorChecklists.elevator',
-                    'elevatorChecklists.descriptions'
-                ]);
-            }
-        ])
-        ->where('status', Service::STATUS_COMPLETED)
-        ->findOrFail($id);
-        
-        // Ensure checklist relationships are loaded
-        if ($service->checklist) {
-            $service->checklist->loadMissing([
-                'signatures',
-                'managerSignature', 
-                'technicianSignature'
-            ]);
-        }
-
-        // Month names in Persian
-        $monthNames = [
-            1 => 'فروردین',
-            2 => 'اردیبهشت',
-            3 => 'خرداد',
-            4 => 'تیر',
-            5 => 'مرداد',
-            6 => 'شهریور',
-            7 => 'مهر',
-            8 => 'آبان',
-            9 => 'آذر',
-            10 => 'دی',
-            11 => 'بهمن',
-            12 => 'اسفند',
-        ];
-
-        return view('public.services.show', compact('service', 'monthNames'));
-    }
-
-    /**
      * Show assigned or completed service details
      *
      * @param Request $request

@@ -100,7 +100,7 @@
                                         </div>
                                     </div>
                                     <div>
-                                        <a href="{{ route('public.services.show', $service->id) }}" class="btn-detail">
+                                        <a href="{{ route('public.services.assigned.show', $service->slug) }}" class="btn-detail">
                                             <i class="fas fa-eye"></i>
                                             جزئیات
                                         </a>

@@ -55,7 +55,6 @@ Route::get('/transactions', [OrganizationViewController::class, 'showTransaction
 Route::get('/buildings/{building}/services', [PublicBuildingController::class, 'showServices'])->name('public.buildings.services');
 Route::get('/d/{slug}', [PublicBuildingController::class, 'showAssignedService'])->name('public.services.assigned.show');
 Route::get('/buildings/{building}/services/{service}/print', [PublicBuildingController::class, 'printService'])->name('public.services.print');
-Route::get('/services/{service}', [PublicBuildingController::class, 'showService'])->name('public.services.show');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     // Auth Routes
