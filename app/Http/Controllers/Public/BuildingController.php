@@ -367,7 +367,18 @@ class BuildingController extends Controller
             'managerSig' => $managerSig,
         ]);
 
-        $filename = 'checklist_' . $service->slug . '_' . date('Y-m-d') . '.pdf';
+        $serviceMonthName = $monthNames[$service->service_month] ?? null;
+        $serviceYear = $service->service_year ?? null;
+
+        // Example: "آذر 1404 ساختمان برج میلاد.pdf"
+        $filenameParts = array_filter([
+            $serviceMonthName,
+            $serviceYear,
+            'ساختمان',
+            $building->name,
+        ], fn ($part) => !is_null($part) && $part !== '');
+
+        $filename = implode(' ', $filenameParts) . '.pdf';
         
         return $pdf->download($filename);
     }

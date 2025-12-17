@@ -37,8 +37,10 @@
 
         /** Content area - accounts for footer space **/
         .page-content {
-            padding: 10mm 12mm;
-            padding-bottom: 125px;
+            /* reduce top whitespace so header sits closer to top border */
+            padding: 7mm 12mm;
+            /* slightly smaller footer reserve to reduce chance of overflowing */
+            padding-bottom: 20px !important;
             box-sizing: border-box;
             overflow: visible;
         }
@@ -50,16 +52,16 @@
             left: 4mm;
             right: 4mm;
             width: calc(100% - 8mm);
-            height: 120px;
+            height: 105px;
             background: #fff;
             border: none;
-            padding: 8px 8mm;
+            padding: 6px 8mm;
             box-sizing: border-box;
             page-break-inside: avoid;
             z-index: 10;
         }
 
-        /** Checklist table (fixed 20 items, 2 columns) **/
+        /** Checklist table (up to 20 items, 2 columns) **/
         .checklist-table {
             width: 100%;
             border-collapse: collapse;
@@ -71,8 +73,8 @@
             vertical-align: top;
             font-size: 11px;
             line-height: 1.3;
-            height: 20px;
-            overflow: hidden;
+            /* allow the cell to grow with content */
+            overflow: visible;
             word-wrap: break-word;
         }
         .checklist-cell-num {
@@ -151,7 +153,7 @@
                                     <span style="font-weight: bold; display: inline-block; min-width: 90px; margin-left: 8px; font-size: 11px;">تعداد توقف:</span>
                                     <span style="font-size: 12px;">{{ ($elevatorChecklist->elevator && isset($elevatorChecklist->elevator->stops_count)) ? $elevatorChecklist->elevator->stops_count : 'نامشخص' }}</span>
                                     <span style="font-weight: bold; display: inline-block; min-width: 90px; margin-left: 8px; margin-right: 8px; font-size: 11px;">ظرفیت:</span>
-                                    <span style="font-size: 12px;">{{ ($elevatorChecklist->elevator && isset($elevatorChecklist->elevator->capacity)) ? $elevatorChecklist->elevator->capacity : 'نامشخص' }}</span>
+                                    <span style="font-size: 12px;">{{ ($elevatorChecklist->elevator && isset($elevatorChecklist->elevator->capacity)) ? $elevatorChecklist->elevator->capacity." نفر" : 'نامشخص' }}</span>
                                 </div>
                             </td>
                             <td style="width: 50%; text-align: left; vertical-align: top; padding-right: 8px;">
@@ -188,38 +190,48 @@
                     @endforeach
                 </ul>
 
-                <!-- Descriptions (fixed 20 items, 2-column table) - Only on first page -->
-                <div style="text-align: center; font-size: 16px; font-weight: bold; margin: 6px 0 4px 0; padding: 3px 0;">توضیحات</div>
+                <!-- Descriptions (up to 20 items, 2-column table) - Only on first page -->
+                <div style="text-align: center; font-size: 15px; font-weight: bold; margin: 4px 0 3px 0; padding: 2px 0;">توضیحات</div>
                 @php
-                    // Render exactly 20 description items in a 2-column table (1-10 in col1, 11-20 in col2)
+                    // Render up to 20 description items in a 2-column table.
+                    // 1st item on the right, 2nd on the left, then continue (3 right, 4 left, ...).
                     $descriptionItems = collect($descriptions ?? [])->values()->take(20);
+                    $descriptionRowCount = (int) ceil($descriptionItems->count() / 2);
                 @endphp
-                <table class="checklist-table" style="margin: 0 0 6px 0;">
-                    @for($row = 0; $row < 10; $row++)
-                        @php
-                            $leftIndex = $row; // 0..9 -> 1..10
-                            $rightIndex = $row + 10; // 10..19 -> 11..20
-                            $leftItem = $descriptionItems->get($leftIndex);
-                            $rightItem = $descriptionItems->get($rightIndex);
-                        @endphp
-                        <tr>
-                            <td style="width: 50%;">
-                                <span class="checklist-cell-num">{{ $leftIndex + 1 }}.</span>
-                                <span style="font-weight: bold; font-size: 11px;">{{ $leftItem->title ?? '' }}</span>
-                                @if(!empty($leftItem?->description))
-                                    <div style="font-size: 10px; line-height: 1.2; margin-top: 2px;">{{ $leftItem->description }}</div>
+                @if($descriptionItems->count() === 0)
+                    <div style="text-align: center; font-size: 12px; padding: 6px 0;">هیچ توضیحی وجود ندارد</div>
+                @else
+                    <table class="checklist-table" style="margin: 0 0 0 0;">
+                        @for($row = 0; $row < $descriptionRowCount; $row++)
+                            @php
+                                $rightIndex = ($row * 2);       // 0,2,4,... -> 1,3,5,...
+                                $leftIndex  = ($row * 2) + 1;   // 1,3,5,... -> 2,4,6,...
+                                $rightItem = $descriptionItems->get($rightIndex);
+                                $leftItem  = $descriptionItems->get($leftIndex);
+                            @endphp
+                            <tr>
+                                <td style="width: 50%;">
+                                    <span class="checklist-cell-num">{{ $rightIndex + 1 }}.</span>
+                                    <span style="font-weight: bold; font-size: 11px;">{{ $rightItem->title ?? '' }}</span>
+                                    @if(!empty($rightItem?->description))
+                                        <div style="font-size: 10px; line-height: 1.2; margin-top: 2px;">{{ $rightItem->description }}</div>
+                                    @endif
+                                </td>
+                                @if($leftItem)
+                                    <td style="width: 50%;">
+                                        <span class="checklist-cell-num">{{ $leftIndex + 1 }}.</span>
+                                        <span style="font-weight: bold; font-size: 11px;">{{ $leftItem->title ?? '' }}</span>
+                                        @if(!empty($leftItem?->description))
+                                            <div style="font-size: 10px; line-height: 1.2; margin-top: 2px;">{{ $leftItem->description }}</div>
+                                        @endif
+                                    </td>
+                                @else
+                                    <td style="width: 50%; border: none;"></td>
                                 @endif
-                            </td>
-                            <td style="width: 50%;">
-                                <span class="checklist-cell-num">{{ $rightIndex + 1 }}.</span>
-                                <span style="font-weight: bold; font-size: 11px;">{{ $rightItem->title ?? '' }}</span>
-                                @if(!empty($rightItem?->description))
-                                    <div style="font-size: 10px; line-height: 1.2; margin-top: 2px;">{{ $rightItem->description }}</div>
-                                @endif
-                            </td>
-                        </tr>
-                    @endfor
-                </table>
+                            </tr>
+                        @endfor
+                    </table>
+                @endif
                 @else
                 <!-- Continuation page - start from top -->
                 <div style="padding: 0; margin: 0;"></div>
@@ -232,30 +244,30 @@
                     <tr style="width: 100%; border: 0; border-style: none;">
                         <td style="width: 50%; text-align: center; vertical-align: top; border: 0; border-style: none; border-width: 0; padding: 0 10px;">
                             <div style="text-align: center; padding: 3px 0; border: 0; border-style: none;">
-                                <div style="font-weight: bold; margin-bottom: 4px; font-size: 16px; text-decoration: none; border: 0;">امضا مدیر/نماینده ساختمان</div>
-                                <div style="height: 85px; margin-bottom: 4px; padding: 2px 0; text-align: center; overflow: visible; border: 0; border-style: none;">
+                                <div style="font-weight: bold; margin-bottom: 3px; font-size: 14px; text-decoration: none; border: 0;">امضا مدیر/نماینده ساختمان</div>
+                                <div style="height: 70px; margin-bottom: 3px; padding: 1px 0; text-align: center; overflow: visible; border: 0; border-style: none;">
                                     @if($managerSig && !empty($managerSig->signature))
-                                        <img src="{{ trim($managerSig->signature) }}" alt="امضای مدیر" style="max-width: 100%; height: 80px; width: auto; display: block; margin: 0 auto; border: 0; object-fit: contain;">
+                                        <img src="{{ trim($managerSig->signature) }}" alt="امضای مدیر" style="max-width: 100%; height: 65px; width: auto; display: block; margin: 0 auto; border: 0; object-fit: contain;">
                                     @else
                                         <span style="font-size: 9px;">امضا نشده</span>
                                     @endif
                                 </div>
-                                <div style="font-size: 14px; margin-top: 2px;">
+                                <div style="font-size: 12px; margin-top: 1px;">
                                     {{ $managerSig->name ?? 'نامشخص' }}
                                 </div>
                             </div>
                         </td>
                         <td style="width: 50%; text-align: center; vertical-align: top; border: 0; border-style: none; border-width: 0; padding: 0 10px;">
                             <div style="text-align: center; padding: 3px 0; border: 0; border-style: none;">
-                                <div style="font-weight: bold; margin-bottom: 4px; font-size: 16px; text-decoration: none; border: 0;">امضا سرویس کار</div>
-                                <div style="height: 85px; margin-bottom: 4px; padding: 2px 0; text-align: center; overflow: visible; border: 0; border-style: none;">
+                                <div style="font-weight: bold; margin-bottom: 3px; font-size: 14px; text-decoration: none; border: 0;">امضا سرویس کار</div>
+                                <div style="height: 70px; margin-bottom: 3px; padding: 1px 0; text-align: center; overflow: visible; border: 0; border-style: none;">
                                     @if($technicianSig && !empty($technicianSig->signature))
-                                        <img src="{{ trim($technicianSig->signature) }}" alt="امضای تکنسین" style="max-width: 100%; height: 80px; width: auto; display: block; margin: 0 auto; border: 0; object-fit: contain;">
+                                        <img src="{{ trim($technicianSig->signature) }}" alt="امضای تکنسین" style="max-width: 100%; height: 65px; width: auto; display: block; margin: 0 auto; border: 0; object-fit: contain;">
                                     @else
                                         <span style="font-size: 9px;">امضا نشده</span>
                                     @endif
                                 </div>
-                                <div style="font-size: 14px; margin-top: 2px;">
+                                <div style="font-size: 12px; margin-top: 1px;">
                                     {{ $technicianSig->name ?? 'نامشخص' }}
                                 </div>
                             </div>
