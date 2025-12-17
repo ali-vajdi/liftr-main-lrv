@@ -58,6 +58,29 @@
             page-break-inside: avoid;
             z-index: 10;
         }
+
+        /** Checklist table (fixed 20 items, 2 columns) **/
+        .checklist-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        .checklist-table td {
+            border: 1px solid #000;
+            padding: 3px 6px;
+            vertical-align: top;
+            font-size: 11px;
+            line-height: 1.3;
+            height: 20px;
+            overflow: hidden;
+            word-wrap: break-word;
+        }
+        .checklist-cell-num {
+            display: inline-block;
+            width: 24px;
+            font-weight: bold;
+            margin-left: 6px;
+        }
     </style>
 </head>
 <body>
@@ -65,12 +88,8 @@
     @foreach($service->checklist->elevatorChecklists as $elevatorIndex => $elevatorChecklist)
         @php
             $descriptions = $elevatorChecklist->descriptions ?? collect([]);
-            $descriptionsPerPage = 10;
-            $descriptionChunks = $descriptions->chunk($descriptionsPerPage);
-            $totalPages = max(1, $descriptionChunks->count());
-            if($descriptionChunks->count() == 0) {
-                $descriptionChunks = collect([collect([])]);
-            }
+            // We render a fixed 20-item table from descriptions, so keep this template to a single page per elevator.
+            $descriptionChunks = collect([collect([])]);
             $pageId = 'page_' . $elevatorIndex . '_' . uniqid();
         @endphp
 
@@ -161,39 +180,49 @@
                 <!-- Unit Checklists - Only on first page -->
                 <div style="text-align: center; font-size: 16px; font-weight: bold; margin: 6px 0 4px 0; padding: 3px 0;">موارد زیر مورد بررسی قرار گرفت</div>
                 <ul style="list-style: none; padding: 0; margin: 0 0 6px 0;">
-                    @foreach($unitChecklists as $index => $unitChecklist)
-                    <li style="padding: 3px 0; border-bottom: 1px solid #000; font-size: 11px; line-height: 1.3; @if($loop->last) border-bottom: none; @endif">
-                        <span style="display: inline-block; width: 25px; font-weight: bold; margin-left: 8px;">{{ $index + 1 }}.</span>
-                        {{ $unitChecklist->title }}
-                    </li>
+                    @foreach(($unitChecklists ?? []) as $index => $unitChecklist)
+                        <li style="padding: 3px 0; border-bottom: 1px solid #000; font-size: 11px; line-height: 1.3; @if($loop->last) border-bottom: none; @endif">
+                            <span style="display: inline-block; width: 25px; font-weight: bold; margin-left: 8px;">{{ $index + 1 }}.</span>
+                            {{ data_get($unitChecklist, 'title', '') }}
+                        </li>
                     @endforeach
                 </ul>
+
+                <!-- Descriptions (fixed 20 items, 2-column table) - Only on first page -->
+                <div style="text-align: center; font-size: 16px; font-weight: bold; margin: 6px 0 4px 0; padding: 3px 0;">توضیحات</div>
+                @php
+                    // Render exactly 20 description items in a 2-column table (1-10 in col1, 11-20 in col2)
+                    $descriptionItems = collect($descriptions ?? [])->values()->take(20);
+                @endphp
+                <table class="checklist-table" style="margin: 0 0 6px 0;">
+                    @for($row = 0; $row < 10; $row++)
+                        @php
+                            $leftIndex = $row; // 0..9 -> 1..10
+                            $rightIndex = $row + 10; // 10..19 -> 11..20
+                            $leftItem = $descriptionItems->get($leftIndex);
+                            $rightItem = $descriptionItems->get($rightIndex);
+                        @endphp
+                        <tr>
+                            <td style="width: 50%;">
+                                <span class="checklist-cell-num">{{ $leftIndex + 1 }}.</span>
+                                <span style="font-weight: bold; font-size: 11px;">{{ $leftItem->title ?? '' }}</span>
+                                @if(!empty($leftItem?->description))
+                                    <div style="font-size: 10px; line-height: 1.2; margin-top: 2px;">{{ $leftItem->description }}</div>
+                                @endif
+                            </td>
+                            <td style="width: 50%;">
+                                <span class="checklist-cell-num">{{ $rightIndex + 1 }}.</span>
+                                <span style="font-weight: bold; font-size: 11px;">{{ $rightItem->title ?? '' }}</span>
+                                @if(!empty($rightItem?->description))
+                                    <div style="font-size: 10px; line-height: 1.2; margin-top: 2px;">{{ $rightItem->description }}</div>
+                                @endif
+                            </td>
+                        </tr>
+                    @endfor
+                </table>
                 @else
                 <!-- Continuation page - start from top -->
                 <div style="padding: 0; margin: 0;"></div>
-                @endif
-
-                <!-- Descriptions -->
-                <div style="text-align: center; font-size: 16px; font-weight: bold; margin: @if($pageIndex == 0) 6px 0 4px 0; @else 0 0 4px 0; @endif padding: 3px 0;">توضیحات</div>
-                @if($descriptions->count() > 0)
-                <div style="margin-bottom: 5px; page-break-inside: auto;">
-                    @foreach($descriptionChunk as $chunkIndex => $description)
-                    @php
-                        $globalIndex = ($pageIndex * $descriptionsPerPage) + $chunkIndex;
-                    @endphp
-                    <div style="margin-bottom: 1px; padding: 2px 0; border-bottom: 1px solid #000; font-size: 10px; line-height: 1.2; page-break-inside: avoid; @if($chunkIndex == 0 && $pageIndex > 0) margin-top: 0; padding-top: 0; @endif">
-                        <span style="display: inline-block; width: 22px; font-weight: bold; margin-left: 6px;">{{ $globalIndex + 1 }}.</span>
-                        @if($description->title)
-                        <span style="font-weight: bold; margin-bottom: 1px; font-size: 11px;">{{ $description->title }}</span>
-                        @endif
-                        @if($description->description)
-                        <div style="line-height: 1.2; font-size: 10px; word-wrap: break-word; margin-top: 1px; margin-right: 22px;">{{ $description->description }}</div>
-                        @endif
-                    </div>
-                    @endforeach
-                </div>
-                @elseif($pageIndex == 0)
-                <div style="text-align: center; font-size: 11px; margin: 12px 0 15px 0; font-style: italic; padding: 12px 0;">هیچ توضیحی وجود ندارد</div>
                 @endif
             </div>
 
