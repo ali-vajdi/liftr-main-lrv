@@ -158,6 +158,12 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::get('provinces', [OrgBuildingController::class, 'getProvinces']);
         Route::get('cities-by-province', [OrgBuildingController::class, 'getCitiesByProvince']);
         
+        // Organization Building Contracts API
+        Route::get('buildings/{building}/contracts', [\App\Http\Controllers\Api\Organization\BuildingContractController::class, 'index']);
+        Route::post('buildings/{building}/contracts', [\App\Http\Controllers\Api\Organization\BuildingContractController::class, 'store']);
+        Route::get('buildings/{building}/contracts/{contract}', [\App\Http\Controllers\Api\Organization\BuildingContractController::class, 'show']);
+        Route::post('buildings/{building}/contracts/{contract}/status', [\App\Http\Controllers\Api\Organization\BuildingContractController::class, 'updateStatus']);
+        
         // Organization Elevators API
         Route::apiResource('buildings.elevators', OrgElevatorController::class);
         Route::post('buildings/{buildingId}/elevators/bulk', [OrgElevatorController::class, 'bulk']);

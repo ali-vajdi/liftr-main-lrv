@@ -92,6 +92,15 @@ class ViewController extends Controller
         return view('organization.buildings.dashboard', compact('buildingSlug'));
     }
 
+    public function showBuildingContracts(Building $building)
+    {
+        // Building and contracts data will be fetched via API in the view
+        // Pass both ID and slug - use slug for navigation, ID for API calls
+        $buildingId = $building->id;
+        $buildingSlug = $building->slug;
+        return view('organization.buildings.contracts', compact('buildingId', 'buildingSlug'));
+    }
+
     // Services Management Views
     public function showPendingServices()
     {

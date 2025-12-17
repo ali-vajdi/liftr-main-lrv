@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Organization;
 
 use App\Http\Controllers\Controller;
 use App\Models\Building;
+use App\Models\BuildingContract;
 use App\Models\Elevator;
 use App\Models\Province;
 use App\Models\City;
@@ -62,50 +63,60 @@ class BuildingController extends Controller
             $query->where('status', $request->status === 'true' || $request->status === true);
         }
 
-        // Filter expiring contracts (service_end_date within next N days, default 30)
+        // Filter expiring contracts (contract_end_date within next N days, default 30)
         if ($request->has('expiring') && $request->expiring === 'true') {
             $today = Carbon::today();
             $days = $request->has('days') ? (int)$request->days : 30;
             $endDate = Carbon::today()->addDays($days);
-            $query->whereNotNull('service_end_date')
-                  ->whereBetween('service_end_date', [$today, $endDate])
-                  ->where('service_end_date', '>=', $today) // Only future dates
-                  ->orderBy('service_end_date', 'asc');
+            $query->whereHas('contract', function($q) use ($today, $endDate) {
+                $q->whereNotNull('contract_end_date')
+                  ->whereBetween('contract_end_date', [$today, $endDate])
+                  ->where('contract_end_date', '>=', $today);
+            });
+            // Note: We can't order by contract_end_date directly, so we'll order by created_at
+            $query->orderBy('created_at', 'desc');
         } 
-        // Filter expired contracts (service_end_date is in the past)
+        // Filter expired contracts (contract_end_date is in the past)
         elseif ($request->has('expired') && $request->expired === 'true') {
             $today = Carbon::today();
-            $query->whereNotNull('service_end_date')
-                  ->where('service_end_date', '<', $today)
-                  ->orderBy('service_end_date', 'desc');
+            $query->whereHas('contract', function($q) use ($today) {
+                $q->whereNotNull('contract_end_date')
+                  ->where('contract_end_date', '<', $today);
+            });
+            $query->orderBy('created_at', 'desc');
         } 
         else {
             $query->orderBy('created_at', 'desc');
         }
 
-        $buildings = $query->paginate(10);
+        $buildings = $query->with('contract')->paginate(10);
         
         $today = Carbon::today();
         
-        // Add Jalali formatted dates and calculate days difference
+        // Add Jalali formatted dates and calculate days difference from contract
         $items = collect($buildings->items())->map(function ($building) use ($today) {
-            if ($building->service_start_date) {
-                $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d');
-            }
-            if ($building->service_end_date) {
-                $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d');
-                
-                // Calculate days difference
-                $endDate = Carbon::parse($building->service_end_date);
-                $diffDays = $today->diffInDays($endDate, false); // false = signed difference
-                
-                if ($diffDays < 0) {
-                    // Expired - days past
-                    $building->days_past = abs($diffDays);
-                    $building->days_remaining = null;
+            if ($building->contract) {
+                if ($building->contract->contract_start_date) {
+                    $building->contract_start_date_jalali = Jalalian::forge($building->contract->contract_start_date)->format('Y/m/d');
+                }
+                if ($building->contract->contract_end_date) {
+                    $building->contract_end_date_jalali = Jalalian::forge($building->contract->contract_end_date)->format('Y/m/d');
+                    
+                    // Calculate days difference
+                    $endDate = Carbon::parse($building->contract->contract_end_date);
+                    $diffDays = $today->diffInDays($endDate, false); // false = signed difference
+                    
+                    if ($diffDays < 0) {
+                        // Expired - days past
+                        $building->days_past = abs($diffDays);
+                        $building->days_remaining = null;
+                    } else {
+                        // Not expired - days remaining
+                        $building->days_remaining = $diffDays;
+                        $building->days_past = null;
+                    }
                 } else {
-                    // Not expired - days remaining
-                    $building->days_remaining = $diffDays;
+                    $building->days_remaining = null;
                     $building->days_past = null;
                 }
             } else {
@@ -147,17 +158,23 @@ class BuildingController extends Controller
             'address' => 'required|string',
             'selected_latitude' => 'nullable|numeric|between:-90,90',
             'selected_longitude' => 'nullable|numeric|between:-180,180',
-            'service_start_date' => 'required|string',
-            'service_end_date' => 'required|string',
             'status' => 'required|in:true,false',
             'elevators_count' => 'nullable|integer|min:0',
-            'monthly_amount' => 'nullable|numeric|min:0',
             'elevators' => 'required|array|min:1',
             'elevators.*.name' => 'required_with:elevators|string|max:255',
             'elevators.*.stops_count' => 'required_with:elevators|integer|min:1',
             'elevators.*.capacity' => 'required_with:elevators|integer|min:1',
             'elevators.*.status' => 'required_with:elevators|in:true,false',
             'elevators.*.description' => 'nullable|string',
+            // Contract fields
+            'contract_start_date' => 'required|string',
+            'contract_end_date' => 'required|string',
+            'contract_monthly_amount' => 'required|numeric|min:0',
+            'payment_method' => 'required|in:1,2,3,4,5,6,custom',
+            'payment_timing' => 'required_if:payment_method,custom|in:after_service,before_service,at_contract_time',
+            'payment_frequency_type' => 'required_if:payment_method,custom|in:monthly,yearly',
+            'payment_frequency_value' => 'required_if:payment_method,custom|integer|min:1',
+            'previous_debt' => 'nullable|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -174,49 +191,25 @@ class BuildingController extends Controller
         $data['status'] = $data['status'] === 'true' || $data['status'] === true;
         $data['elevators_count'] = $data['elevators_count'] ?? 0;
 
-        // Convert Jalali date to Gregorian
-        if (!empty($data['service_start_date'])) {
-            try {
-                // Try with time format first
-                try {
-                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $data['service_start_date']);
-                } catch (\Exception $e) {
-                    // If that fails, try without time
-                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $data['service_start_date']);
-                }
-                $data['service_start_date'] = $jalaliDate->toCarbon()->format('Y-m-d');
-            } catch (\Exception $e) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid date format for service_start_date',
-                    'errors' => ['service_start_date' => ['فرمت تاریخ نامعتبر است']]
-                ], 422);
-            }
-        } else {
-            unset($data['service_start_date']);
+        // Extract contract data
+        $contractData = [
+            'contract_start_date' => $data['contract_start_date'],
+            'contract_end_date' => $data['contract_end_date'],
+            'monthly_amount' => $data['contract_monthly_amount'],
+            'payment_method' => $data['payment_method'],
+            'previous_debt' => $data['previous_debt'] ?? 0,
+        ];
+        
+        if ($data['payment_method'] === 'custom') {
+            $contractData['payment_timing'] = $data['payment_timing'];
+            $contractData['payment_frequency_type'] = $data['payment_frequency_type'];
+            $contractData['payment_frequency_value'] = $data['payment_frequency_value'];
         }
-
-        // Convert Jalali date to Gregorian for service_end_date
-        if (!empty($data['service_end_date'])) {
-            try {
-                // Try with time format first
-                try {
-                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $data['service_end_date']);
-                } catch (\Exception $e) {
-                    // If that fails, try without time
-                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $data['service_end_date']);
-                }
-                $data['service_end_date'] = $jalaliDate->toCarbon()->format('Y-m-d');
-            } catch (\Exception $e) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid date format for service_end_date',
-                    'errors' => ['service_end_date' => ['فرمت تاریخ نامعتبر است']]
-                ], 422);
-            }
-        } else {
-            unset($data['service_end_date']);
-        }
+        
+        // Remove contract fields from building data
+        unset($data['contract_start_date'], $data['contract_end_date'], $data['contract_monthly_amount'], 
+              $data['payment_method'], $data['payment_timing'], $data['payment_frequency_type'], 
+              $data['payment_frequency_value'], $data['previous_debt']);
 
         // Extract elevators data (required for new buildings)
         $elevatorsData = $request->input('elevators', []);
@@ -252,17 +245,76 @@ class BuildingController extends Controller
             $building->elevators_count = count($elevatorsData);
             $building->save();
             
+            // Create contract
+            $contractData['building_id'] = $building->id;
+            $contractData['status'] = BuildingContract::STATUS_ACTIVE;
+            
+            // Convert Jalali dates to Gregorian
+            try {
+                $jalaliDate = Jalalian::fromFormat('Y/m/d', $contractData['contract_start_date']);
+                $contractData['contract_start_date'] = $jalaliDate->toCarbon()->format('Y-m-d');
+            } catch (\Exception $e) {
+                throw new \Exception('Invalid date format for contract_start_date');
+            }
+            
+            try {
+                $jalaliDate = Jalalian::fromFormat('Y/m/d', $contractData['contract_end_date']);
+                $contractData['contract_end_date'] = $jalaliDate->toCarbon()->format('Y-m-d');
+            } catch (\Exception $e) {
+                throw new \Exception('Invalid date format for contract_end_date');
+            }
+            
+            // Calculate annual amount
+            $contractData['annual_amount'] = $contractData['monthly_amount'] * 12;
+            
+            // Map payment method to database fields
+            $paymentMethod = $contractData['payment_method'];
+            unset($contractData['payment_method']);
+            
+            if ($paymentMethod === 'custom') {
+                $contractData['is_custom_payment_method'] = true;
+            } else {
+                $contractData['is_custom_payment_method'] = false;
+                // Map predefined options
+                switch ($paymentMethod) {
+                    case '1':
+                        $contractData['payment_timing'] = 'after_service';
+                        $contractData['payment_frequency_type'] = 'monthly';
+                        $contractData['payment_frequency_value'] = 1;
+                        break;
+                    case '2':
+                        $contractData['payment_timing'] = 'after_service';
+                        $contractData['payment_frequency_type'] = 'monthly';
+                        $contractData['payment_frequency_value'] = 2;
+                        break;
+                    case '3':
+                        $contractData['payment_timing'] = 'after_service';
+                        $contractData['payment_frequency_type'] = 'monthly';
+                        $contractData['payment_frequency_value'] = 3;
+                        break;
+                    case '4':
+                        $contractData['payment_timing'] = 'before_service';
+                        $contractData['payment_frequency_type'] = 'monthly';
+                        $contractData['payment_frequency_value'] = 3;
+                        break;
+                    case '5':
+                        $contractData['payment_timing'] = 'before_service';
+                        $contractData['payment_frequency_type'] = 'monthly';
+                        $contractData['payment_frequency_value'] = 6;
+                        break;
+                    case '6':
+                        $contractData['payment_timing'] = 'at_contract_time';
+                        $contractData['payment_frequency_type'] = 'yearly';
+                        $contractData['payment_frequency_value'] = 1;
+                        break;
+                }
+            }
+            
+            BuildingContract::create($contractData);
+            
             DB::commit();
             
-            $building = $building->load(['province', 'city', 'organizationUser', 'elevators']);
-            
-            // Add Jalali formatted dates
-            if ($building->service_start_date) {
-                $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d');
-            }
-            if ($building->service_end_date) {
-                $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d');
-            }
+            $building = $building->load(['province', 'city', 'organizationUser', 'elevators', 'activeContract']);
 
             return response()->json([
                 'success' => true,
@@ -293,18 +345,6 @@ class BuildingController extends Controller
             ->where('organization_id', $user->organization_id)
             ->findOrFail($id);
 
-        // Add Jalali formatted dates
-        if ($building->service_start_date) {
-            $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d');
-        }else{
-            $building->service_start_date_jalali = null;
-        }
-        if ($building->service_end_date) {
-            $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d');
-        }else{
-            $building->service_end_date_jalali = null;
-        }
-
         return response()->json([
             'success' => true,
             'data' => $building
@@ -334,11 +374,8 @@ class BuildingController extends Controller
             'address' => 'required|string',
             'selected_latitude' => 'nullable|numeric|between:-90,90',
             'selected_longitude' => 'nullable|numeric|between:-180,180',
-            'service_start_date' => 'required|string',
-            'service_end_date' => 'required|string',
             'status' => 'required|in:true,false',
             'elevators_count' => 'nullable|integer|min:0',
-            'monthly_amount' => 'nullable|numeric|min:0',
             'elevators' => 'nullable|array',
             'elevators.*.name' => 'required_with:elevators|string|max:255',
             'elevators.*.stops_count' => 'required_with:elevators|integer|min:1',
@@ -358,52 +395,6 @@ class BuildingController extends Controller
         $data = $validator->validated();
         $data['status'] = $data['status'] === 'true' || $data['status'] === true;
         $data['elevators_count'] = $data['elevators_count'] ?? $building->elevators_count ?? 0;
-
-        // Convert Jalali date to Gregorian
-        if (!empty($data['service_start_date'])) {
-            try {
-                // Try with time format first
-                try {
-                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $data['service_start_date']);
-                } catch (\Exception $e) {
-                    // If that fails, try without time
-                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $data['service_start_date']);
-                }
-                $data['service_start_date'] = $jalaliDate->toCarbon()->format('Y-m-d');
-            } catch (\Exception $e) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid date format for service_start_date',
-                    'errors' => ['service_start_date' => ['فرمت تاریخ نامعتبر است']]
-                ], 422);
-            }
-        } else {
-            // If empty, set to null to allow clearing the date
-            $data['service_start_date'] = null;
-        }
-
-        // Convert Jalali date to Gregorian for service_end_date
-        if (!empty($data['service_end_date'])) {
-            try {
-                // Try with time format first
-                try {
-                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $data['service_end_date']);
-                } catch (\Exception $e) {
-                    // If that fails, try without time
-                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $data['service_end_date']);
-                }
-                $data['service_end_date'] = $jalaliDate->toCarbon()->format('Y-m-d');
-            } catch (\Exception $e) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid date format for service_end_date',
-                    'errors' => ['service_end_date' => ['فرمت تاریخ نامعتبر است']]
-                ], 422);
-            }
-        } else {
-            // If empty, set to null to allow clearing the date
-            $data['service_end_date'] = null;
-        }
 
         // Extract elevators data if provided
         $elevatorsData = $request->has('elevators') ? $request->input('elevators', []) : null;
@@ -563,19 +554,7 @@ class BuildingController extends Controller
         }
 
         // Load relationships
-        $building->load(['province', 'city', 'organizationUser', 'elevators']);
-
-        // Add Jalali formatted dates
-        if ($building->service_start_date) {
-            $building->service_start_date_jalali = Jalalian::forge($building->service_start_date)->format('Y/m/d');
-        } else {
-            $building->service_start_date_jalali = null;
-        }
-        if ($building->service_end_date) {
-            $building->service_end_date_jalali = Jalalian::forge($building->service_end_date)->format('Y/m/d');
-        } else {
-            $building->service_end_date_jalali = null;
-        }
+        $building->load(['province', 'city', 'organizationUser', 'elevators', 'contract']);
 
         // Get all services with complete relationships and filters
         $servicesQuery = Service::with([

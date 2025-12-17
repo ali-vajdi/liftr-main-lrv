@@ -21,21 +21,15 @@ class Building extends Model
         'address',
         'selected_latitude',
         'selected_longitude',
-        'service_start_date',
-        'service_end_date',
         'status',
         'elevators_count',
-        'monthly_amount',
         'slug',
     ];
 
     protected $casts = [
         'selected_latitude' => 'decimal:8',
         'selected_longitude' => 'decimal:8',
-        'service_start_date' => 'timestamp',
-        'service_end_date' => 'timestamp',
         'status' => 'boolean',
-        'monthly_amount' => 'decimal:2',
     ];
 
     // Relationships
@@ -67,6 +61,21 @@ class Building extends Model
     public function services()
     {
         return $this->hasMany(Service::class);
+    }
+
+    public function contract()
+    {
+        return $this->hasOne(BuildingContract::class)->where('status', BuildingContract::STATUS_ACTIVE);
+    }
+
+    public function contracts()
+    {
+        return $this->hasMany(BuildingContract::class);
+    }
+
+    public function activeContract()
+    {
+        return $this->hasOne(BuildingContract::class)->where('status', BuildingContract::STATUS_ACTIVE);
     }
 
     // Accessors

@@ -65,8 +65,10 @@ class DashboardController extends Controller
             'total' => \App\Models\Building::where('organization_id', $organization->id)->count(),
             'active' => \App\Models\Building::where('organization_id', $organization->id)->where('status', true)->count(),
             'expiring_soon' => \App\Models\Building::where('organization_id', $organization->id)
-                ->where('service_end_date', '<=', now()->addDays(30))
-                ->where('service_end_date', '>=', now())
+                ->whereHas('contract', function($q) {
+                    $q->where('contract_end_date', '<=', now()->addDays(30))
+                      ->where('contract_end_date', '>=', now());
+                })
                 ->count(),
         ];
 
