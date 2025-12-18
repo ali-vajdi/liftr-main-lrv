@@ -216,7 +216,7 @@
             <div class="widget-content" style="padding: 25px 20px;">
                 <div class="row text-center">
                     <div class="col-md-2 col-4 mb-3">
-                        <a href="{{ route('organization.services.all') }}" class="clickable-stat-card" style="text-decoration: none; display: block;">
+                        <a href="{{ route('organization.services.all') }}" class="clickable-stat-card current-month-link" data-route="all" style="text-decoration: none; display: block;">
                             <div style="padding: 20px 10px; background: #f1f2f3; border-radius: 12px; border: 2px solid #e0e6ed; transition: all 0.3s ease; cursor: pointer;">
                                 <h4 class="mb-2" style="color: #3b3f5c; font-weight: 700; font-size: 28px;"><span id="current-month-services-total-overview">0</span></h4>
                                 <small class="text-muted" style="font-size: 12px; font-weight: 500;">کل سرویس‌ها</small>
@@ -224,7 +224,7 @@
                         </a>
                     </div>
                     <div class="col-md-2 col-4 mb-3">
-                        <a href="{{ route('organization.services.pending') }}" class="clickable-stat-card" style="text-decoration: none; display: block;">
+                        <a href="{{ route('organization.services.pending') }}" class="clickable-stat-card current-month-link" data-route="pending" style="text-decoration: none; display: block;">
                             <div style="padding: 20px 10px; background: linear-gradient(135deg, #fad96115 0%, #f76b1c15 100%); border-radius: 12px; border: 2px solid #f59e0b; transition: all 0.3s ease; cursor: pointer;">
                                 <h4 class="text-warning mb-2" style="font-weight: 700; font-size: 28px;"><span id="current-month-services-pending-overview">0</span></h4>
                                 <small class="text-muted" style="font-size: 12px; font-weight: 500;">در انتظار</small>
@@ -232,7 +232,7 @@
                         </a>
                     </div>
                     <div class="col-md-2 col-4 mb-3">
-                        <a href="{{ route('organization.services.assigned') }}" class="clickable-stat-card" style="text-decoration: none; display: block;">
+                        <a href="{{ route('organization.services.assigned') }}" class="clickable-stat-card current-month-link" data-route="assigned" style="text-decoration: none; display: block;">
                             <div style="padding: 20px 10px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 12px; border: 2px solid #4361ee; transition: all 0.3s ease; cursor: pointer;">
                                 <h4 class="text-primary mb-2" style="font-weight: 700; font-size: 28px;"><span id="current-month-services-assigned-overview">0</span></h4>
                                 <small class="text-muted" style="font-size: 12px; font-weight: 500;">اختصاص داده شده</small>
@@ -240,7 +240,7 @@
                         </a>
                     </div>
                     <div class="col-md-2 col-4 mb-3">
-                        <a href="{{ route('organization.services.completed') }}" class="clickable-stat-card" style="text-decoration: none; display: block;">
+                        <a href="{{ route('organization.services.completed') }}" class="clickable-stat-card current-month-link" data-route="completed" style="text-decoration: none; display: block;">
                             <div style="padding: 20px 10px; background: linear-gradient(135deg, #4facfe15 0%, #00f2fe15 100%); border-radius: 12px; border: 2px solid #00d4aa; transition: all 0.3s ease; cursor: pointer;">
                                 <h4 class="text-success mb-2" style="font-weight: 700; font-size: 28px;"><span id="current-month-services-completed-overview">0</span></h4>
                                 <small class="text-muted" style="font-size: 12px; font-weight: 500;">تکمیل شده</small>
@@ -255,7 +255,7 @@
                     </div>
                     <div class="col-md-2 col-4 mb-3">
                         <div style="padding: 20px 10px; display: flex; align-items: center; justify-content: center; height: 100%;">
-                            <a href="{{ route('organization.services.all') }}" class="btn btn-info" style="border-radius: 50px; padding: 10px 25px; font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">مشاهده همه</a>
+                            <a href="{{ route('organization.services.all') }}" class="btn btn-info current-month-link" data-route="all" style="border-radius: 50px; padding: 10px 25px; font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">مشاهده همه</a>
                         </div>
                     </div>
                 </div>
@@ -710,6 +710,78 @@ $(document).ready(function() {
 
         renderDashboardData(data);
     });
+
+    // Function to get current Jalali month and year
+    function getCurrentJalaliDate() {
+        // Use jalaliDatepicker if available, otherwise use approximate conversion
+        if (typeof jalaliDatepicker !== 'undefined' && jalaliDatepicker.toJalali) {
+            const now = new Date();
+            const jalali = jalaliDatepicker.toJalali(now.getFullYear(), now.getMonth() + 1, now.getDate());
+            return {
+                year: jalali[0],
+                month: jalali[1]
+            };
+        } else {
+            // Approximate conversion (Gregorian to Jalali)
+            const now = new Date();
+            const gregorianYear = now.getFullYear();
+            const gregorianMonth = now.getMonth() + 1;
+            const gregorianDay = now.getDate();
+            
+            // Approximate conversion: Jalali year ≈ Gregorian year - 621
+            // This is a simplified conversion, for more accuracy use a proper library
+            let jalaliYear = gregorianYear - 621;
+            let jalaliMonth = gregorianMonth;
+            let jalaliDay = gregorianDay;
+            
+            // Adjust for month differences (Jalali months start around March 21)
+            if (gregorianMonth < 3 || (gregorianMonth === 3 && gregorianDay < 21)) {
+                jalaliYear -= 1;
+                jalaliMonth += 9;
+            } else {
+                jalaliMonth -= 3;
+            }
+            
+            // Ensure month is between 1-12
+            if (jalaliMonth < 1) {
+                jalaliMonth += 12;
+            }
+            
+            return {
+                year: jalaliYear,
+                month: jalaliMonth
+            };
+        }
+    }
+
+    // Update current month links with query parameters
+    function updateCurrentMonthLinks() {
+        const jalaliDate = getCurrentJalaliDate();
+        const currentMonth = jalaliDate.month;
+        const currentYear = jalaliDate.year;
+        
+        // Route mapping
+        const routeMap = {
+            'all': '{{ route("organization.services.all") }}',
+            'pending': '{{ route("organization.services.pending") }}',
+            'assigned': '{{ route("organization.services.assigned") }}',
+            'completed': '{{ route("organization.services.completed") }}'
+        };
+        
+        // Update all current month links
+        $('.current-month-link').each(function() {
+            const route = $(this).data('route');
+            if (route && routeMap[route]) {
+                const baseUrl = routeMap[route];
+                const separator = baseUrl.includes('?') ? '&' : '?';
+                const newUrl = baseUrl + separator + 'month=' + currentMonth + '&year=' + currentYear;
+                $(this).attr('href', newUrl);
+            }
+        });
+    }
+
+    // Update links on page load
+    updateCurrentMonthLinks();
 
 });
 </script>

@@ -1952,6 +1952,58 @@ function populateYearDropdown() {
     
     // Set current year as default
     select.val(currentYear);
+    
+    // Read URL parameters and set filters
+    const urlParams = new URLSearchParams(window.location.search);
+    const monthParam = urlParams.get('month');
+    const yearParam = urlParams.get('year');
+    
+    // Function to apply URL parameters to filters
+    function applyUrlFilters() {
+        if (monthParam) {
+            const monthSelect = $('.filter-control[data-filter-name="month"]');
+            if (monthSelect.length && monthSelect.find('option').length > 1) {
+                monthSelect.val(monthParam);
+                if (typeof window.datatableApi !== 'undefined' && window.datatableApi.setFilter) {
+                    window.datatableApi.setFilter('month', monthParam);
+                }
+            }
+        }
+        
+        if (yearParam) {
+            const yearSelect = $('.filter-control[data-filter-name="year"]');
+            if (yearSelect.length && yearSelect.find('option').length > 1) {
+                yearSelect.val(yearParam);
+                if (typeof window.datatableApi !== 'undefined' && window.datatableApi.setFilter) {
+                    window.datatableApi.setFilter('year', yearParam);
+                }
+            }
+        }
+    }
+    
+    // Wait for datatable to be initialized, then set filters
+    // Try multiple times to ensure filters are populated
+    let attempts = 0;
+    const maxAttempts = 10;
+    const checkInterval = setInterval(function() {
+        attempts++;
+        const monthSelect = $('.filter-control[data-filter-name="month"]');
+        const yearSelect = $('.filter-control[data-filter-name="year"]');
+        
+        // Check if filters are ready (have options populated)
+        const monthReady = monthSelect.length > 0 && monthSelect.find('option').length > 1;
+        const yearReady = yearSelect.length > 0 && yearSelect.find('option').length > 1;
+        const datatableReady = typeof window.datatableApi !== 'undefined' && window.datatableApi.setFilter;
+        
+        if ((monthReady || !monthParam) && (yearReady || !yearParam) && datatableReady) {
+            clearInterval(checkInterval);
+            applyUrlFilters();
+        } else if (attempts >= maxAttempts) {
+            clearInterval(checkInterval);
+            // Try to apply anyway
+            applyUrlFilters();
+        }
+    }, 200);
 }
 
 // Load buildings for filter
