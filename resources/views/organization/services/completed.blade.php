@@ -128,6 +128,13 @@
                                     html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>\';
                                     html += \'</a>\';
                                 }
+                                
+                                // Resend checklist button (for completed services)
+                                if (item.status === "completed") {
+                                    html += \'<button type="button" class="btn btn-sm btn-success resend-checklist-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="ارسال مجدد چک لیست">\';
+                                    html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>\';
+                                    html += \'</button>\';
+                                }
                             ',
                             'actionHandlers' => '
                                 // Handle show details button click
@@ -140,10 +147,63 @@
                                     }
                                     return false;
                                 });
+                                
+                                // Handle resend checklist button click
+                                $(document).off("click", ".resend-checklist-btn").on("click", ".resend-checklist-btn", function(e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const id = $(this).data("id");
+                                    if (id) {
+                                        $("#resendChecklistModal").data("service-id", id).modal("show");
+                                    }
+                                    return false;
+                                });
                             ',
                         ])
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resend Checklist Modal -->
+<div class="modal fade" id="resendChecklistModal" tabindex="-1" role="dialog" aria-labelledby="resendChecklistModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resendChecklistModalLabel">ارسال مجدد چک لیست</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <button type="button" class="btn btn-success btn-block" id="resendSmsBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 5px;">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                            ارسال مجدد با اس ام اس
+                        </button>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <button type="button" class="btn btn-secondary btn-block" id="resendVoiceBtn" disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 5px;">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                <line x1="12" y1="19" x2="12" y2="23"></line>
+                                <line x1="8" y1="23" x2="16" y2="23"></line>
+                            </svg>
+                            ارسال مجدد با پیام صوتی
+                        </button>
+                        <p class="text-muted text-center small mt-2 mb-0">بزودی!</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
             </div>
         </div>
     </div>
@@ -501,6 +561,72 @@ getOrganizationData(function(org, error) {
     if (!error && org) {
         $('#org-name-completed').text(org.name);
     }
+});
+
+// Handle resend SMS button click
+$('#resendSmsBtn').on('click', function() {
+    const serviceId = $('#resendChecklistModal').data('service-id');
+    if (!serviceId) {
+        return;
+    }
+    
+    const token = localStorage.getItem('organization_token');
+    if (!token) {
+        swal({
+            title: 'خطا',
+            text: 'لطفاً مجدداً وارد شوید',
+            type: 'error',
+            padding: '2em'
+        });
+        return;
+    }
+    
+    const btn = $(this);
+    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> در حال ارسال...');
+    
+    $.ajax({
+        url: `/api/organization/services/${serviceId}/resend-checklist-sms`,
+        type: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(response) {
+            if (response.success) {
+                $('#resendChecklistModal').modal('hide');
+                swal({
+                    title: 'موفقیت',
+                    text: response.message,
+                    type: 'success',
+                    padding: '2em'
+                });
+            } else {
+                swal({
+                    title: 'خطا',
+                    text: response.message || 'خطا در ارسال پیامک',
+                    type: 'error',
+                    padding: '2em'
+                });
+            }
+        },
+        error: function(xhr) {
+            const response = xhr.responseJSON;
+            let errorMessage = 'خطا در ارسال پیامک';
+            
+            if (response && response.message) {
+                errorMessage = response.message;
+            }
+            
+            swal({
+                title: 'خطا',
+                text: errorMessage,
+                type: 'error',
+                padding: '2em'
+            });
+        },
+        complete: function() {
+            btn.prop('disabled', false).html('<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 5px;"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> ارسال مجدد با اس ام اس');
+        }
+    });
 });
 </script>
 @endsection

@@ -10,6 +10,7 @@ use App\Models\Technician;
 use App\Models\Message;
 use App\Models\Organization;
 use App\Services\SmsService;
+use App\Services\SmsPattern;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
@@ -1402,7 +1403,7 @@ class ServiceController extends Controller
     }
 
     /**
-     * Resend checklist SMS to building manager for an assigned service
+     * Resend checklist SMS to building manager for a completed service
      */
     public function resendChecklistSms($id)
     {
@@ -1420,15 +1421,15 @@ class ServiceController extends Controller
         // Refresh service to ensure slug is available
         $service->refresh();
 
-        // Check if service is assigned
-        if ($service->status !== Service::STATUS_ASSIGNED) {
+        // Check if service is completed
+        if ($service->status !== Service::STATUS_COMPLETED) {
             return response()->json([
                 'success' => false,
-                'message' => 'فقط سرویس‌های اختصاص داده شده را می‌توان ارسال مجدد کرد.'
+                'message' => 'فقط سرویس‌های تکمیل شده را می‌توان ارسال مجدد کرد.'
             ], 400);
         }
 
-        // Check if building has manager phone
+        // Check if building has manager phone and organization
         if (!$service->building || !$service->building->manager_phone) {
             return response()->json([
                 'success' => false,
@@ -1436,15 +1437,15 @@ class ServiceController extends Controller
             ], 400);
         }
 
-        // Check if service has visit_date and visit_time_range
-        if (!$service->visit_date || !$service->visit_time_range) {
+        $service->load('building.organization');
+        if (!$service->building->organization) {
             return response()->json([
                 'success' => false,
-                'message' => 'تاریخ و بازه زمانی مراجعه برای این سرویس ثبت نشده است.'
+                'message' => 'اطلاعات سازمان یافت نشد.'
             ], 400);
         }
 
-        $organization = Organization::findOrFail($user->organization_id);
+        $organization = $service->building->organization;
         
         // Format date_value as "آذر 1404" (month name + year) using service_month and service_year
         $monthNames = [
@@ -1455,17 +1456,36 @@ class ServiceController extends Controller
         $monthName = $monthNames[$service->service_month] ?? $service->service_month;
         $dateValue = $monthName . ' ' . $service->service_year;
         
-        $smsResult = $this->smsService->sendBuildingManagerTechnicianAssignedSms(
+        // Format URL value as "d/{service_slug}"
+        $urlValue = 'd/' . $service->slug;
+        
+        // Get pattern code (same as submitChecklist)
+        $patternCode = SmsPattern::getPatternCode('building_manager_checklist_submitted');
+        
+        if (!$patternCode) {
+            return response()->json([
+                'success' => false,
+                'message' => 'الگوی پیامک یافت نشد.'
+            ], 400);
+        }
+
+        $fillData = [
+            'building_name' => $service->building->name,
+            'date_value' => $dateValue,
+            'organization_name' => $organization->name,
+            'url_value' => $urlValue,
+        ];
+        
+        $smsResult = $this->smsService->sendPatternSms(
             $organization,
+            $patternCode,
+            $fillData,
             $service->building->manager_phone,
-            $service->building->name,
-            $dateValue,
-            $service->slug,
             true // Use queue
         );
 
         if (!$smsResult['success']) {
-            Log::error('Resend building manager technician assigned SMS failed', [
+            Log::error('Resend building manager checklist submitted SMS failed', [
                 'service_id' => $service->id,
                 'building_id' => $service->building->id,
                 'phone_number' => $service->building->manager_phone,
