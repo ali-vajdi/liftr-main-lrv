@@ -527,44 +527,14 @@ class ServiceController extends Controller
             if ($service->building && $service->building->manager_phone && $service->building->organization) {
                 $organization = $service->building->organization;
                 
-                // Format date_value as Jalali date (e.g., "آبان 1404")
-                $dateValue = '';
-                if ($service->visit_date) {
-                    try {
-                        $jalaliDate = Jalalian::forge($service->visit_date);
-                        $monthNames = [
-                            1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
-                            5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
-                            9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
-                        ];
-                        $monthName = $monthNames[$jalaliDate->getMonth()] ?? $jalaliDate->getMonth();
-                        $year = $jalaliDate->getYear();
-                        $dateValue = $monthName . ' ' . $year;
-                    } catch (\Exception $e) {
-                        // Fallback to service date if visit_date parsing fails
-                        $monthNames = [
-                            1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
-                            5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
-                            9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
-                        ];
-                        $monthName = $monthNames[$service->service_month] ?? $service->service_month;
-                        $dateValue = $monthName . ' ' . $service->service_year;
-                        Log::warning('Failed to format visit_date for SMS, using service_date', [
-                            'service_id' => $service->id,
-                            'visit_date' => $service->visit_date,
-                            'error' => $e->getMessage()
-                        ]);
-                    }
-                } else {
-                    // Use service date if visit_date is not set
-                    $monthNames = [
-                        1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
-                        5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
-                        9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
-                    ];
-                    $monthName = $monthNames[$service->service_month] ?? $service->service_month;
-                    $dateValue = $monthName . ' ' . $service->service_year;
-                }
+                // Format date_value as "آذر 1404" (month name + year) using service_month and service_year
+                $monthNames = [
+                    1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
+                    5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
+                    9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
+                ];
+                $monthName = $monthNames[$service->service_month] ?? $service->service_month;
+                $dateValue = $monthName . ' ' . $service->service_year;
                 
                 // Format URL value as "d/{service_slug}"
                 $urlValue = 'd/' . $service->slug;

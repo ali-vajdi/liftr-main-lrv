@@ -489,27 +489,8 @@ class ServiceController extends Controller
         if ($service->building && $service->building->manager_phone) {
             $organization = Organization::findOrFail($user->organization_id);
             
-            // Format date_value as "آبان 1404" (month name + year)
-            $dateValue = $request->visit_date;
-            if (!empty($request->visit_date)) {
-                try {
-                    $jalaliDate = Jalalian::fromFormat('Y/m/d', $request->visit_date);
-                    $monthNames = [
-                        1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
-                        5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
-                        9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
-                    ];
-                    $monthName = $monthNames[$jalaliDate->getMonth()] ?? $jalaliDate->getMonth();
-                    $year = $jalaliDate->getYear();
-                    $dateValue = $monthName . ' ' . $year;
-                } catch (\Exception $e) {
-                    // Fallback to original format if parsing fails
-                    Log::warning('Failed to format date_value for SMS', [
-                        'visit_date' => $request->visit_date,
-                        'error' => $e->getMessage()
-                    ]);
-                }
-            }
+            // Format date_value as "آذر 1404" (month name + year) using service_month and service_year
+            $dateValue = $monthName . ' ' . $service->service_year;
             
             $smsResult = $this->smsService->sendBuildingManagerTechnicianAssignedSms(
                 $organization,
@@ -1465,28 +1446,14 @@ class ServiceController extends Controller
 
         $organization = Organization::findOrFail($user->organization_id);
         
-        // Format date_value as "آبان 1404" (month name + year)
-        $dateValue = '';
-        if ($service->visit_date) {
-            try {
-                $jalaliDate = Jalalian::forge($service->visit_date);
-                $monthNames = [
-                    1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
-                    5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
-                    9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
-                ];
-                $monthName = $monthNames[$jalaliDate->getMonth()] ?? $jalaliDate->getMonth();
-                $year = $jalaliDate->getYear();
-                $dateValue = $monthName . ' ' . $year;
-            } catch (\Exception $e) {
-                // Fallback to original format if parsing fails
-                $dateValue = Jalalian::forge($service->visit_date)->format('Y/m/d');
-                Log::warning('Failed to format date_value for SMS', [
-                    'visit_date' => $service->visit_date,
-                    'error' => $e->getMessage()
-                ]);
-            }
-        }
+        // Format date_value as "آذر 1404" (month name + year) using service_month and service_year
+        $monthNames = [
+            1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
+            5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
+            9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
+        ];
+        $monthName = $monthNames[$service->service_month] ?? $service->service_month;
+        $dateValue = $monthName . ' ' . $service->service_year;
         
         $smsResult = $this->smsService->sendBuildingManagerTechnicianAssignedSms(
             $organization,
