@@ -221,93 +221,95 @@
                             </div>
                         </div>
                     </div>
-                    <hr>
-                    <h6 class="mb-3">اطلاعات قرارداد</h6>
-                    <div class="row" id="contractFieldsSection">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="contract_start_date">تاریخ شروع قرارداد <span class="text-danger">*</span></label>
-                                <input data-jdp-only-date="true" type="text" class="form-control" id="contract_start_date" name="contract_start_date" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="contract_end_date">تاریخ پایان قرارداد <span class="text-danger">*</span></label>
-                                <input data-jdp-only-date="true" type="text" class="form-control" id="contract_end_date" name="contract_end_date" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="contract_monthly_amount">مبلغ ماهیانه قرارداد <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="contract_monthly_amount" name="contract_monthly_amount" min="0" step="0.01" placeholder="0.00" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="contract_annual_amount">مبلغ سالیانه قرارداد</label>
-                                <input type="number" class="form-control" id="contract_annual_amount" name="contract_annual_amount" readonly disabled>
-                                <small class="form-text text-muted">محاسبه خودکار (مبلغ ماهیانه × 12)</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label for="payment_method">نحوه دریافت مبلغ قرارداد <span class="text-danger">*</span></label>
-                                <select class="form-control" id="payment_method" name="payment_method" required>
-                                    <option value="">انتخاب کنید</option>
-                                    <option value="1">ماهانه بعد از انجام سرویس</option>
-                                    <option value="2">2ماه یکبار بعد از انجام سرویس</option>
-                                    <option value="3">3 ماه یکبار بعد از انجام سرویس</option>
-                                    <option value="4">3 ماه یکبار قبل از انجام سرویس</option>
-                                    <option value="5">6ماه یکبار قبل از انجام سرویس</option>
-                                    <option value="6">یکساله زمان عقد قرارداد</option>
-                                    <option value="custom">وارد کردن</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="custom_payment_method_fields" style="display: none;">
+                    <hr id="contractFieldsSeparator">
+                    <div id="contractFieldsSection">
+                        <h6 class="mb-3">اطلاعات قرارداد</h6>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="payment_timing">زمان دریافت <span class="text-danger">*</span></label>
-                                    <select class="form-control" id="payment_timing" name="payment_timing">
-                                        <option value="">انتخاب کنید</option>
-                                        <option value="after_service">بعد از انجام سرویس</option>
-                                        <option value="before_service">قبل از انجام سرویس</option>
-                                        <option value="at_contract_time">زمان عقد قرارداد</option>
-                                    </select>
+                                    <label for="contract_start_date">تاریخ شروع قرارداد <span class="text-danger">*</span></label>
+                                    <input data-jdp-only-date="true" type="text" class="form-control" id="contract_start_date" name="contract_start_date" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="payment_frequency_type">نوع فرکانس <span class="text-danger">*</span></label>
-                                    <select class="form-control" id="payment_frequency_type" name="payment_frequency_type">
-                                        <option value="">انتخاب کنید</option>
-                                        <option value="monthly">ماهانه</option>
-                                        <option value="yearly">سالانه</option>
-                                    </select>
+                                    <label for="contract_end_date">تاریخ پایان قرارداد <span class="text-danger">*</span></label>
+                                    <input data-jdp-only-date="true" type="text" class="form-control" id="contract_end_date" name="contract_end_date" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="contract_monthly_amount">مبلغ ماهیانه قرارداد <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="contract_monthly_amount" name="contract_monthly_amount" min="0" step="0.01" placeholder="0.00" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="contract_annual_amount">مبلغ سالیانه قرارداد</label>
+                                    <input type="number" class="form-control" id="contract_annual_amount" name="contract_annual_amount" readonly disabled>
+                                    <small class="form-text text-muted">محاسبه خودکار (مبلغ ماهیانه × 12)</small>
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label for="payment_frequency_value">مقدار فرکانس <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" id="payment_frequency_value" name="payment_frequency_value" min="1" placeholder="مثال: 3 (برای 3 ماه یکبار)">
-                                    <small class="form-text text-muted">تعداد ماه یا سال را وارد کنید</small>
+                                    <label for="payment_method">نحوه دریافت مبلغ قرارداد <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="payment_method" name="payment_method" required>
+                                        <option value="">انتخاب کنید</option>
+                                        <option value="1">ماهانه بعد از انجام سرویس</option>
+                                        <option value="2">2ماه یکبار بعد از انجام سرویس</option>
+                                        <option value="3">3 ماه یکبار بعد از انجام سرویس</option>
+                                        <option value="4">3 ماه یکبار قبل از انجام سرویس</option>
+                                        <option value="5">6ماه یکبار قبل از انجام سرویس</option>
+                                        <option value="6">یکساله زمان عقد قرارداد</option>
+                                        <option value="custom">وارد کردن</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label for="previous_debt">بدهی قبلی</label>
-                                <input type="number" class="form-control" id="previous_debt" name="previous_debt" min="0" step="0.01" placeholder="0.00" value="0">
+                        <div id="custom_payment_method_fields" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="payment_timing">زمان دریافت <span class="text-danger">*</span></label>
+                                        <select class="form-control" id="payment_timing" name="payment_timing">
+                                            <option value="">انتخاب کنید</option>
+                                            <option value="after_service">بعد از انجام سرویس</option>
+                                            <option value="before_service">قبل از انجام سرویس</option>
+                                            <option value="at_contract_time">زمان عقد قرارداد</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="payment_frequency_type">نوع فرکانس <span class="text-danger">*</span></label>
+                                        <select class="form-control" id="payment_frequency_type" name="payment_frequency_type">
+                                            <option value="">انتخاب کنید</option>
+                                            <option value="monthly">ماهانه</option>
+                                            <option value="yearly">سالانه</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label for="payment_frequency_value">مقدار فرکانس <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="payment_frequency_value" name="payment_frequency_value" min="1" placeholder="مثال: 3 (برای 3 ماه یکبار)">
+                                        <small class="form-text text-muted">تعداد ماه یا سال را وارد کنید</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="previous_debt">بدهی قبلی</label>
+                                    <input type="number" class="form-control" id="previous_debt" name="previous_debt" min="0" step="0.01" placeholder="0.00" value="0">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -747,6 +749,7 @@ $('.create-new-button').click(function() {
     $('#buildingForm')[0].reset();
     $('#buildingModalLabel').text('افزودن ساختمان/پروژه جدید');
     updateElevatorsCount(0);
+    $('#contractFieldsSeparator').show(); // Show contract separator for new building
     $('#contractFieldsSection').show(); // Show contract fields for new building
     $('#buildingModal').modal('show');
     
@@ -877,6 +880,7 @@ $(document).ready(function() {
                     updateElevatorsCount(data.elevators_count || 0);
                     
                     // Hide contract fields for edit mode
+                    $('#contractFieldsSeparator').hide();
                     $('#contractFieldsSection').hide();
                     $('#contractFieldsSection').find('input, select').prop('required', false);
                     
