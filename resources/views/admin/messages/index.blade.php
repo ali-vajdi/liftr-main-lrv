@@ -290,7 +290,7 @@
                             }
 
                             swal({
-                                title: 'خطا در اعتبارسنجی',
+                                title: 'اطلاعات را به صورت صحیح وارد نمایید',
                                 text: errorMessage,
                                 type: 'error',
                                 padding: '2em'

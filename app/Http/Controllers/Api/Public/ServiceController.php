@@ -31,7 +31,7 @@ class ServiceController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'خطا در اعتبارسنجی',
+                'message' => 'اطلاعات را به صورت صحیح وارد نمایید',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -172,7 +172,7 @@ class ServiceController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'خطا در اعتبارسنجی',
+                'message' => 'اطلاعات را به صورت صحیح وارد نمایید',
                 'errors' => $validator->errors()
             ], 422);
         }
