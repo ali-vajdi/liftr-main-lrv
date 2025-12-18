@@ -490,7 +490,7 @@ function displayLastServiceDetails(service) {
     // View Details
     if (service.views && service.views.length > 0) {
         html += '<div class="card mb-3">';
-        html += '<div class="card-header"><h6 class="mb-0">جزئیات بازدیدها</h6></div>';
+        html += '<div class="card-header"><h6 class="mb-0">جزئیات بازدید لینک ها</h6></div>';
         html += '<div class="card-body">';
         html += '<div class="table-responsive">';
         html += '<table class="table table-bordered table-sm">';

@@ -768,7 +768,7 @@ $(document).ready(function() {
         if (service.views && service.views.length > 0) {
             html += `
                 <div class="service-details-section">
-                    <h6>جزئیات بازدیدها</h6>
+                    <h6>جزئیات بازدید لینک ها</h6>
                     <div style="overflow-x: auto;">
                         <table class="table table-bordered table-sm" style="margin-bottom: 0;">
                             <thead>

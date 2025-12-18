@@ -572,7 +572,7 @@ function displayServiceDetails(service) {
         ${service.technician_note ? `<hr><div class="row"><div class="col-12"><h6>یادداشت تکنسین</h6><p>${service.technician_note}</p></div></div>` : ''}
         ${service.user_note ? `<hr><div class="row"><div class="col-12"><h6>یادداشت مدیر</h6><p>${service.user_note}</p></div></div>` : ''}
         ${service.views && service.views.length > 0 ? (function() {
-            let viewsHtml = '<hr><div class="row"><div class="col-12"><h6>جزئیات بازدیدها</h6><div class="table-responsive"><table class="table table-bordered table-sm"><thead><tr><th>ردیف</th><th>تاریخ و زمان</th><th>نوع دستگاه</th><th>مرورگر</th><th>سیستم عامل</th></tr></thead><tbody>';
+            let viewsHtml = '<hr><div class="row"><div class="col-12"><h6>جزئیات بازدید لینک ها</h6><div class="table-responsive"><table class="table table-bordered table-sm"><thead><tr><th>ردیف</th><th>تاریخ و زمان</th><th>نوع دستگاه</th><th>مرورگر</th><th>سیستم عامل</th></tr></thead><tbody>';
             const deviceTypeText = {'mobile': 'موبایل', 'tablet': 'تبلت', 'desktop': 'دسکتاپ', 'unknown': 'نامشخص'};
             service.views.forEach(function(view, index) {
                 viewsHtml += '<tr><td>' + (index + 1) + '</td><td>' + (view.viewed_at || '-') + '</td><td><span class="badge badge-secondary">' + (deviceTypeText[view.device_type] || view.device_type || '-') + '</span></td><td>' + (view.browser || '-') + '</td><td>' + (view.platform || '-') + '</td></tr>';
