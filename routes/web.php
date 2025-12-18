@@ -56,6 +56,9 @@ Route::get('/buildings/{building}/services', [PublicBuildingController::class, '
 Route::get('/d/{slug}', [PublicBuildingController::class, 'showAssignedService'])->name('public.services.assigned.show');
 Route::get('/buildings/{building}/services/{service}/print', [PublicBuildingController::class, 'printService'])->name('public.services.print');
 
+// Organization PDF Download Route (token-based, no middleware needed)
+Route::get('/organization/services/{service}/pdf/download', [\App\Http\Controllers\Api\Organization\ServiceController::class, 'downloadPdf'])->name('organization.services.pdf.download');
+
 Route::prefix('admin')->name('admin.')->group(function () {
     // Auth Routes
     Route::get('login', [ViewController::class, 'showLogin'])->name('login');

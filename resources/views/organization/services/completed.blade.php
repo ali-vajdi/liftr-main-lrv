@@ -135,6 +135,13 @@
                                     html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>\';
                                     html += \'</button>\';
                                 }
+                                
+                                // Print PDF button (for completed services)
+                                if (item.status === "completed") {
+                                    html += \'<button type="button" class="btn btn-sm btn-primary print-pdf-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="چاپ PDF">\';
+                                    html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-printer"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>\';
+                                    html += \'</button>\';
+                                }
                             ',
                             'actionHandlers' => '
                                 // Handle show details button click
@@ -155,6 +162,17 @@
                                     const id = $(this).data("id");
                                     if (id) {
                                         $("#resendChecklistModal").data("service-id", id).modal("show");
+                                    }
+                                    return false;
+                                });
+                                
+                                // Handle print PDF button click
+                                $(document).off("click", ".print-pdf-btn").on("click", ".print-pdf-btn", function(e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const id = $(this).data("id");
+                                    if (id && typeof window.onPrintPdf === "function") {
+                                        window.onPrintPdf(id);
                                     }
                                     return false;
                                 });
@@ -562,6 +580,65 @@ getOrganizationData(function(org, error) {
         $('#org-name-completed').text(org.name);
     }
 });
+
+// Define onPrintPdf function
+window.onPrintPdf = function(id) {
+    const $ = jQuery || window.$;
+    const token = localStorage.getItem('organization_token');
+    
+    if (!token) {
+        swal({
+            title: 'خطا',
+            text: 'لطفاً مجدداً وارد شوید',
+            type: 'error',
+            padding: '2em'
+        });
+        return;
+    }
+    
+    const btn = $(`.print-pdf-btn[data-id="${id}"]`);
+    const originalHtml = btn.html();
+    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>');
+    
+    $.ajax({
+        url: `/api/organization/services/${id}/pdf-download-url`,
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(response) {
+            if (response.success && response.data && response.data.download_url) {
+                // Open download URL in new tab
+                window.open(response.data.download_url, '_blank');
+            } else {
+                swal({
+                    title: 'خطا',
+                    text: response.message || 'خطا در ایجاد لینک دانلود',
+                    type: 'error',
+                    padding: '2em'
+                });
+            }
+        },
+        error: function(xhr) {
+            const response = xhr.responseJSON;
+            let errorMessage = 'خطا در ایجاد لینک دانلود';
+            
+            if (response && response.message) {
+                errorMessage = response.message;
+            }
+            
+            swal({
+                title: 'خطا',
+                text: errorMessage,
+                type: 'error',
+                padding: '2em'
+            });
+        },
+        complete: function() {
+            btn.prop('disabled', false).html(originalHtml);
+        }
+    });
+};
 
 // Handle resend SMS button click
 $('#resendSmsBtn').on('click', function() {

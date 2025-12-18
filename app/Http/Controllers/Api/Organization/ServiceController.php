@@ -9,13 +9,17 @@ use App\Models\Building;
 use App\Models\Technician;
 use App\Models\Message;
 use App\Models\Organization;
+use App\Models\PdfVerificationCode;
+use App\Models\UnitChecklist;
 use App\Services\SmsService;
 use App\Services\SmsPattern;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Morilog\Jalali\Jalalian;
 use Carbon\Carbon;
+use niklasravnsborg\LaravelPdf\Facades\Pdf;
 
 class ServiceController extends Controller
 {
@@ -1502,5 +1506,206 @@ class ServiceController extends Controller
             'success' => true,
             'message' => 'پیامک با موفقیت ارسال شد.',
         ]);
+    }
+
+    /**
+     * Generate temporary download URL for PDF (expires in 2 minutes)
+     */
+    public function generatePdfDownloadUrl($id)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $service = Service::with(['building'])
+            ->whereHas('building', function ($q) use ($user) {
+                $q->where('organization_id', $user->organization_id);
+            })
+            ->findOrFail($id);
+
+        // Only allow completed services
+        if ($service->status !== Service::STATUS_COMPLETED) {
+            return response()->json([
+                'success' => false,
+                'message' => 'فقط سرویس‌های تکمیل شده قابل دانلود هستند.'
+            ], 400);
+        }
+
+        // Check if service has checklist
+        $service->load('checklist.elevatorChecklists');
+        if (!$service->checklist || $service->checklist->elevatorChecklists->count() === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'چک لیست برای این سرویس موجود نیست.'
+            ], 400);
+        }
+
+        // Generate unique token (60 chars so that 'org_' prefix fits in 64 char column)
+        $token = Str::random(60);
+
+        // Invalidate any existing unexpired tokens for this service (organization downloads)
+        PdfVerificationCode::where('service_id', $service->id)
+            ->where('download_token', 'like', 'org_%')
+            ->where('expires_at', '>', now())
+            ->delete();
+
+        // Create verification code record (marked as verified for organization)
+        $verificationCode = PdfVerificationCode::create([
+            'service_id' => $service->id,
+            'code' => 'ORG', // Special code for organization downloads
+            'ip_address' => request()->ip(),
+            'download_token' => 'org_' . $token,
+            'used' => false,
+            'verified' => true, // Pre-verified for organizations
+            'expires_at' => now()->addMinutes(2), // 2 minutes expiration
+            'verified_at' => now(),
+        ]);
+
+        // Generate download URL
+        $downloadUrl = route('organization.services.pdf.download', [
+            'service' => $service->id,
+            'token' => $token
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'download_url' => $downloadUrl,
+                'expires_at' => $verificationCode->expires_at->toIso8601String(),
+                'expires_in_seconds' => 120
+            ]
+        ]);
+    }
+
+    /**
+     * Download PDF for organization (no verification needed, just token check)
+     */
+    public function downloadPdf($service, Request $request)
+    {
+        // Handle route model binding - $service might be Service model or ID
+        if (!$service instanceof Service) {
+            $service = Service::with(['building'])->findOrFail($service);
+        } else {
+            $service->load('building');
+        }
+
+        // Only allow completed services
+        if ($service->status !== Service::STATUS_COMPLETED) {
+            abort(404, 'فقط سرویس‌های تکمیل شده قابل چاپ هستند.');
+        }
+
+        // Check for download token
+        $token = $request->query('token');
+        if (!$token) {
+            abort(403, 'دسترسی غیرمجاز.');
+        }
+
+        // Verify token in database (organization tokens start with 'org_')
+        $verificationCode = PdfVerificationCode::where('service_id', $service->id)
+            ->where('download_token', 'org_' . $token)
+            ->where('verified', true)
+            ->where('expires_at', '>', now())
+            ->first();
+
+        if (!$verificationCode) {
+            abort(403, 'لینک دانلود منقضی شده است. لطفا دوباره درخواست کنید.');
+        }
+
+        // Load all necessary relationships
+        $service->load([
+            'building.organization',
+            'building.province',
+            'building.city',
+            'technician',
+            'checklist' => function($query) {
+                $query->with([
+                    'signatures',
+                    'managerSignature',
+                    'technicianSignature',
+                    'elevatorChecklists.elevator',
+                    'elevatorChecklists.descriptions'
+                ]);
+            }
+        ]);
+
+        if (!$service->checklist || $service->checklist->elevatorChecklists->count() === 0) {
+            abort(404, 'چک لیست برای این سرویس موجود نیست.');
+        }
+
+        // Get unit checklists ordered by order
+        $unitChecklists = UnitChecklist::orderBy('order')->get();
+
+        // Month names in Persian
+        $monthNames = [
+            1 => 'فروردین',
+            2 => 'اردیبهشت',
+            3 => 'خرداد',
+            4 => 'تیر',
+            5 => 'مرداد',
+            6 => 'شهریور',
+            7 => 'مهر',
+            8 => 'آبان',
+            9 => 'آذر',
+            10 => 'دی',
+            11 => 'بهمن',
+            12 => 'اسفند',
+        ];
+
+        // Format completion date
+        $completedDate = null;
+        if ($service->completed_at) {
+            try {
+                if ($service->completed_at instanceof \Carbon\Carbon) {
+                    $jalaliDate = Jalalian::fromCarbon($service->completed_at);
+                } else {
+                    $jalaliDate = Jalalian::fromDateTime($service->completed_at);
+                }
+                $completedDate = $jalaliDate->format('Y/m/d');
+            } catch (\Exception $e) {
+                $completedDate = $service->completed_at instanceof \Carbon\Carbon 
+                    ? $service->completed_at->format('Y/m/d')
+                    : date('Y/m/d', strtotime($service->completed_at));
+            }
+        }
+
+        // Get signatures
+        $checklist = $service->checklist;
+        $allSignatures = $checklist->signatures;
+        $technicianSig = $allSignatures->where('type', 'technician')->first();
+        $managerSig = $allSignatures->where('type', 'manager')->first();
+        
+        if (!$technicianSig) {
+            $technicianSig = $checklist->technicianSignature;
+        }
+        if (!$managerSig) {
+            $managerSig = $checklist->managerSignature;
+        }
+
+        // Generate PDF using niklasravnsborg/laravel-pdf
+        $pdf = Pdf::loadView('public.services.pdf', [
+            'service' => $service,
+            'building' => $service->building,
+            'unitChecklists' => $unitChecklists,
+            'monthNames' => $monthNames,
+            'completedDate' => $completedDate,
+            'technicianSig' => $technicianSig,
+            'managerSig' => $managerSig,
+        ]);
+
+        $serviceMonthName = $monthNames[$service->service_month] ?? null;
+        $serviceYear = $service->service_year ?? null;
+
+        // Example: "آذر 1404 ساختمان برج میلاد.pdf"
+        $filenameParts = array_filter([
+            $serviceMonthName,
+            $serviceYear,
+            'ساختمان',
+            $service->building->name,
+        ], fn ($part) => !is_null($part) && $part !== '');
+
+        $filename = implode(' ', $filenameParts) . '.pdf';
+        
+        return $pdf->download($filename);
     }
 }
