@@ -563,7 +563,7 @@ $(document).ready(function() {
                         ` : ''}
                         ${service.completed_at_jalali ? `
                         <div class="info-item">
-                            <span class="info-label">تاریخ تکمیل</span>
+                            <span class="info-label">تاریخ مراجعه و تکمیل چک‌لیست</span>
                             <span class="info-value">${service.completed_at_jalali}</span>
                         </div>
                         ` : ''}
@@ -640,8 +640,8 @@ $(document).ready(function() {
                                 <span class="info-value">${elevator.capacity ? elevator.capacity + ' نفر' : '-'}</span>
                             </div>
                             <div class="info-item">
-                                <span class="info-label">وضعیت تایید</span>
-                                <span class="info-value">${elevatorChecklist.verified ? '<span class="badge badge-success">تایید شده</span>' : '<span class="badge badge-warning">تایید نشده</span>'}</span>
+                                <span class="info-label">وضعیت</span>
+                                <span class="info-value">${elevatorChecklist.verified ? '<span class="badge badge-success">انجام شده</span>' : '<span class="badge badge-warning">تایید نشده</span>'}</span>
                             </div>
                         </div>
                         ` : ''}
@@ -665,20 +665,6 @@ $(document).ready(function() {
             });
 
             html += `</div>`;
-        }
-
-        if (service.checklist && service.checklist.submitted_at_jalali) {
-            html += `
-                <div class="service-details-section">
-                    <h6>اطلاعات چک‌لیست</h6>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <span class="info-label">تاریخ ارسال</span>
-                            <span class="info-value">${service.checklist.submitted_at_jalali}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
         }
 
         $('#service-details-content').html(html);
