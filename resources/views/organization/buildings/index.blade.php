@@ -90,7 +90,7 @@
                                 html += \'</button>\';
                                 
                                 // Public page button (opens QR code modal)
-                                html += \'<button type="button" class="btn btn-sm btn-info public-page-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" data-slug="\' + (item.slug || item.id) + \'" title="آرشیو عمومی سرویس ها">\';
+                                html += \'<button type="button" class="btn btn-sm btn-info public-page-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" data-slug="\' + (item.slug || item.id) + \'" title="آرشیو سرویس ها">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>\';
                                 html += \'</button>\';
                                 
@@ -672,7 +672,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="qrcodeModalLabel">QR Code صفحه عمومی ساختمان</h5>
+                <h5 class="modal-title" id="qrcodeModalLabel">QR Code آرشیو سرویس ها</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -682,7 +682,7 @@
                     <canvas id="qrcode-canvas"></canvas>
                 </div>
                 <div class="mt-3">
-                    <p class="mb-2"><strong>لینک صفحه عمومی:</strong></p>
+                    <p class="mb-2"><strong>لینک آرشیو سرویس ها:</strong></p>
                     <div class="input-group">
                         <input type="text" class="form-control" id="public-link-input" readonly>
                         <div class="input-group-append">
@@ -697,11 +697,11 @@
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
                 <button type="button" class="btn btn-info" id="open-public-page-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                    باز کردن صفحه عمومی
+                    باز کردن آرشیو سرویس ها
                 </button>
                 <button type="button" class="btn btn-warning" id="send-sms-btn" disabled>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-message-square"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                    ارسال صفحه از طریق SMS
+                    ارسال آرشیو سرویس ها از طریق SMS
                 </button>
                 <button type="button" class="btn btn-primary" id="download-qrcode-btn">دانلود QR Code</button>
             </div>
