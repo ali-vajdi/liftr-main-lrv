@@ -84,29 +84,14 @@
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>\';
                                 html += \'</button>\';
                                 
-                                // Location button
-                                html += \'<button type="button" class="btn btn-sm btn-warning location-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="مشاهده موقعیت">\';
-                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map-pin"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>\';
-                                html += \'</button>\';
-                                
-                                // Elevators button (modal)
-                                html += \'<button type="button" class="btn btn-sm btn-success elevators-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="مدیریت آسانسورها">\';
-                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-up"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>\';
-                                html += \'</button>\';
-                                
                                 // Elevators list button (page)
                                 html += \'<button type="button" class="btn btn-sm btn-primary elevators-list-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" data-slug="\' + (item.slug || item.id) + \'" title="لیست آسانسورها">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>\';
                                 html += \'</button>\';
                                 
-                                // Public page button
+                                // Public page button (opens QR code modal)
                                 html += \'<button type="button" class="btn btn-sm btn-info public-page-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" data-slug="\' + (item.slug || item.id) + \'" title="آرشیو عمومی سرویس ها">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>\';
-                                html += \'</button>\';
-                                
-                                // QR Code button
-                                html += \'<button type="button" class="btn btn-sm btn-secondary qrcode-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" data-slug="\' + (item.slug || item.id) + \'" title="نمایش QR Code">\';
-                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-grid"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>\';
                                 html += \'</button>\';
                                 
                                 // Dashboard button
@@ -126,33 +111,14 @@
                                     window.onShow(id);
                                 });
                                 
-                                // Handle location button click
-                                $(".location-btn").on("click", function() {
-                                    const id = $(this).data("id");
-                                    window.onShowLocation(id);
-                                });
-                                
-                                // Handle elevators button click (modal)
-                                $(".elevators-btn").on("click", function() {
-                                    const id = $(this).data("id");
-                                    window.onShowElevators(id);
-                                });
-                                
                                 // Handle elevators list button click (page)
                                 $(".elevators-list-btn").on("click", function() {
                                     const slug = $(this).data("slug") || $(this).data("id");
                                     window.location.href = `/buildings/${slug}/elevators`;
                                 });
                                 
-                                // Handle public page button click
+                                // Handle public page button click (opens QR code modal)
                                 $(".public-page-btn").on("click", function() {
-                                    const slug = $(this).data("slug") || $(this).data("id");
-                                    const url = `${window.location.origin}/buildings/${slug}/services`;
-                                    window.open(url, \'_blank\');
-                                });
-                                
-                                // Handle QR code button click
-                                $(".qrcode-btn").on("click", function() {
                                     const slug = $(this).data("slug") || $(this).data("id");
                                     window.onShowQRCode(slug);
                                 });
@@ -450,6 +416,10 @@
                         </tr>
                     </tbody>
                 </table>
+                <div id="detailMapContainer" style="margin-top: 20px; display: none;">
+                    <h6 class="mb-3">موقعیت روی نقشه</h6>
+                    <div id="detailMap" style="height: 400px; width: 100%; border: 1px solid #ddd; border-radius: 4px;"></div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
@@ -458,25 +428,6 @@
     </div>
 </div>
 
-<!-- Location Modal -->
-<div class="modal fade" id="locationModal" tabindex="-1" role="dialog" aria-labelledby="locationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="locationModalLabel">موقعیت ساختمان/پروژه</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="map" style="height: 400px; width: 100%;"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Elevators Modal (Bulk - kept for backward compatibility) -->
 <div class="modal fade" id="elevatorsModal" tabindex="-1" role="dialog" aria-labelledby="elevatorsModalLabel" aria-hidden="true">
@@ -742,6 +693,14 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                <button type="button" class="btn btn-info" id="open-public-page-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    باز کردن صفحه عمومی
+                </button>
+                <button type="button" class="btn btn-warning" id="send-sms-btn" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-message-square"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    ارسال صفحه از طریق SMS
+                </button>
                 <button type="button" class="btn btn-primary" id="download-qrcode-btn">دانلود QR Code</button>
             </div>
         </div>
@@ -1210,7 +1169,29 @@ window.onShow = function(id) {
                 );
                 $('#detailCreatedAt').text(new Date(data.created_at).toLocaleDateString('fa-IR'));
 
+                // Show/hide map based on location availability
+                if (data.selected_latitude && data.selected_longitude) {
+                    $('#detailMapContainer').show();
+                } else {
+                    $('#detailMapContainer').hide();
+                }
+
                 $('#detailsModal').modal('show');
+                
+                // Initialize map after modal is shown (only if location exists)
+                if (data.selected_latitude && data.selected_longitude) {
+                    $('#detailsModal').one('shown.bs.modal', function() {
+                        initializeDetailMap(data.selected_latitude, data.selected_longitude, data.name);
+                    });
+                }
+                
+                // Clean up map when modal is hidden
+                $('#detailsModal').one('hidden.bs.modal', function() {
+                    if (map) {
+                        map.remove();
+                        map = null;
+                    }
+                });
             }
         },
         error: function(xhr) {
@@ -1765,55 +1746,25 @@ $('#elevatorForm').on('submit', function(e) {
     });
 });
 
-// Show building location on map
-window.onShowLocation = function(id) {
-    $.ajax({
-        url: `/api/organization/buildings/${id}`,
-        type: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
-        },
-        success: function(response) {
-            if (response.success) {
-                const data = response.data;
-                if (data.selected_latitude && data.selected_longitude) {
-                    showMap(data.selected_latitude, data.selected_longitude, data.name);
-                } else {
-                    swal({
-                        title: 'اطلاع',
-                        text: 'موقعیت برای این ساختمان تعریف نشده است',
-                        type: 'info',
-                        padding: '2em'
-                    });
-                }
-            }
-        },
-        error: function(xhr) {
-            console.error('Error loading building location:', xhr);
-        }
-    });
-};
-
-// Show map
-function showMap(lat, lng, title) {
-    $('#locationModal').modal('show');
+// Initialize map in details modal
+function initializeDetailMap(lat, lng, title) {
+    // Remove existing map if it exists
+    if (map) {
+        map.remove();
+    }
     
-    // Initialize map after modal is shown
-    $('#locationModal').on('shown.bs.modal', function() {
-        if (map) {
-            map.remove();
-        }
-        
-        map = L.map('map').setView([lat, lng], 13);
-        
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-        
-        L.marker([lat, lng]).addTo(map)
-            .bindPopup(title)
-            .openPopup();
-    });
+    // Initialize map
+    map = L.map('detailMap').setView([lat, lng], 13);
+    
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // Add marker
+    L.marker([lat, lng]).addTo(map)
+        .bindPopup(title)
+        .openPopup();
 }
 
 
@@ -1915,6 +1866,14 @@ $('#copy-link-btn').on('click', function() {
             type: 'error',
             padding: '2em'
         });
+    }
+});
+
+// Open public page
+$('#open-public-page-btn').on('click', function() {
+    const publicUrl = $('#public-link-input').val();
+    if (publicUrl) {
+        window.open(publicUrl, '_blank');
     }
 });
 
