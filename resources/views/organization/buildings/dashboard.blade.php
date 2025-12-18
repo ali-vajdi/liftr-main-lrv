@@ -263,7 +263,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="resendChecklistModalLabel">ارسال مجدد چک لیست</h5>
+                <h5 class="modal-title" id="resendChecklistModalLabel">ارسال مجدد برگه سرویس</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -555,7 +555,7 @@ $(document).ready(function() {
                         </a>
                         ` : ''}
                         ${service.status === 'completed' ? `
-                        <button class="btn btn-sm btn-success resend-checklist-btn mr-1" data-service-id="${service.id}" title="ارسال مجدد چک لیست">
+                        <button class="btn btn-sm btn-success resend-checklist-btn mr-1" data-service-id="${service.id}" title="ارسال مجدد برگه سرویس">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                         </button>
                         <button class="btn btn-sm btn-primary print-pdf-btn mr-1" data-service-id="${service.id}" title="چاپ PDF">
