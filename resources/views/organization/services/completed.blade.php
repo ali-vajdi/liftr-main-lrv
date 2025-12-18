@@ -419,8 +419,7 @@ function displayServiceDetails(service) {
                     html += '<ul>';
                     elevator.descriptions.forEach(function(desc) {
                         html += '<li>';
-                        html += '<strong>' + (desc.checklist_title || desc.title) + ':</strong> ';
-                        html += desc.description || '-';
+                        html += '<strong>' + (desc.checklist_title || desc.title) + '</strong> ';
                         html += '</li>';
                     });
                     html += '</ul>';
