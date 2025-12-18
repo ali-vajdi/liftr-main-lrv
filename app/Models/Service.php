@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Service extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'building_id',
@@ -179,7 +180,7 @@ class Service extends Model
                 $slug .= $characters[random_int(0, strlen($characters) - 1)];
             }
             $attempt++;
-        } while (static::where('slug', $slug)->exists() && $attempt < $maxAttempts);
+        } while (static::withTrashed()->where('slug', $slug)->exists() && $attempt < $maxAttempts);
 
         if ($attempt >= $maxAttempts) {
             throw new \Exception('Unable to generate unique slug after ' . $maxAttempts . ' attempts');
