@@ -807,8 +807,7 @@ function displayServiceDetails(service) {
         html += '<div class="card-header"><h6 class="mb-0">اطلاعات تکمیل</h6></div>';
         html += '<div class="card-body">';
         html += '<table class="table table-bordered mb-3">';
-        html += '<tr><th width="30%">تاریخ تکمیل:</th><td>' + (service.completed_at_jalali || '-') + '</td></tr>';
-        html += '<tr><th>تاریخ ارسال چک‌لیست:</th><td>' + (service.checklist_data.submitted_at || '-') + '</td></tr>';
+        html += '<tr><th width="30%">تاریخ تکمیل چک‌لیست:</th><td>' + (service.completed_at_jalali || '-') + '</td></tr>';
         if (service.technician_note) {
             html += '<tr><th>یادداشت تکنسین:</th><td>' + service.technician_note + '</td></tr>';
         }
