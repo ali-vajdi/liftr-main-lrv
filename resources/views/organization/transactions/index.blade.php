@@ -32,7 +32,7 @@
                                     'type' => 'select',
                                     'placeholder' => 'همه',
                                     'options' => [
-                                        ['value' => 'completed', 'label' => 'تکمیل شده'],
+                                        ['value' => 'completed', 'label' => 'انجام شده'],
                                         ['value' => 'pending', 'label' => 'در انتظار'],
                                         ['value' => 'failed', 'label' => 'ناموفق'],
                                         ['value' => 'cancelled', 'label' => 'لغو شده'],

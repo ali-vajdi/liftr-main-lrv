@@ -76,7 +76,7 @@ class Service extends Model
         $statuses = [
             'pending' => 'در انتظار',
             'assigned' => 'اختصاص داده شده',
-            'completed' => 'تکمیل شده',
+            'completed' => 'انجام شده',
             'expired' => 'منقضی شده',
             'cancelled' => 'لغو شده',
         ];

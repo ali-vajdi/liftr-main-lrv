@@ -180,7 +180,7 @@
                         <a style="margin-right: 0; !important;" href="{{ route('organization.services.assigned') }}">اختصاص داده شده</a>
                     </li>
                     <li class="{{ request()->routeIs('organization.services.completed') ? 'active' : '' }}">
-                        <a style="margin-right: 0; !important;" href="{{ route('organization.services.completed') }}">تکمیل شده</a>
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.services.completed') }}">انجام شده</a>
                     </li>
                 </ul>
             </li>

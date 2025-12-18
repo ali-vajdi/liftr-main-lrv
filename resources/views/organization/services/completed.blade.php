@@ -1,6 +1,6 @@
 @extends('organization.layout.master')
 
-@section('title', 'سرویس‌های تکمیل شده')
+@section('title', 'سرویس‌های انجام شده')
 
 @section('content')
 <div class="layout-px-spacing">
@@ -8,12 +8,12 @@
         <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
             <div class="widget widget-chart-one">
                 <div class="widget-heading">
-                    <h5 class="mb-0">سرویس‌های تکمیل شده - <span id="org-name-completed">...</span></h5>
+                    <h5 class="mb-0">سرویس‌های انجام شده - <span id="org-name-completed">...</span></h5>
                 </div>
                 <div class="widget-content">
                     <div class="widget-content widget-content-area br-6">
                         @include('organization.components.datatable', [
-                            'title' => 'لیست سرویس‌های تکمیل شده',
+                            'title' => 'لیست سرویس‌های انجام شده',
                             'apiUrl' => '/api/organization/services/completed',
                             'createButton' => false,
                             'hideDefaultActions' => true,
@@ -106,7 +106,7 @@
                                         const statuses = {
                                             "pending": `<span class="badge badge-warning">در انتظار</span>`,
                                             "assigned": `<span class="badge badge-info">اختصاص داده شده</span>`,
-                                            "completed": `<span class="badge badge-success">تکمیل شده</span>`,
+                                            "completed": `<span class="badge badge-success">انجام شده</span>`,
                                             "expired": `<span class="badge badge-danger">منقضی شده</span>`,
                                             "cancelled": `<span class="badge badge-secondary">لغو شده</span>`
                                         };

@@ -193,7 +193,7 @@
                         <div class="text-center" style="padding: 15px; background: linear-gradient(135deg, #4facfe15 0%, #00f2fe15 100%); border-radius: 12px; border: 1px solid #e0e6ed;">
                             <h3 class="mb-2" style="color: #2196f3; font-weight: 700; font-size: 28px;"><span id="services-total">0</span></h3>
                             <p class="text-muted mb-1" style="font-size: 13px; font-weight: 500; margin-bottom: 5px;">سرویس</p>
-                            <small class="text-muted" style="font-size: 11px; color: #888ea8;"><span id="services-completed">0</span> تکمیل شده</small>
+                            <small class="text-muted" style="font-size: 11px; color: #888ea8;"><span id="services-completed">0</span> انجام شده</small>
                         </div>
                     </div>
                 </div>
@@ -243,7 +243,7 @@
                         <a href="{{ route('organization.services.completed') }}" class="clickable-stat-card current-month-link" data-route="completed" style="text-decoration: none; display: block;">
                             <div style="padding: 20px 10px; background: linear-gradient(135deg, #4facfe15 0%, #00f2fe15 100%); border-radius: 12px; border: 2px solid #00d4aa; transition: all 0.3s ease; cursor: pointer;">
                                 <h4 class="text-success mb-2" style="font-weight: 700; font-size: 28px;"><span id="current-month-services-completed-overview">0</span></h4>
-                                <small class="text-muted" style="font-size: 12px; font-weight: 500;">تکمیل شده</small>
+                                <small class="text-muted" style="font-size: 12px; font-weight: 500;">انجام شده</small>
                             </div>
                         </a>
                     </div>
@@ -305,7 +305,7 @@
                         <a href="{{ route('organization.services.completed') }}" class="clickable-stat-card" style="text-decoration: none; display: block;">
                             <div style="padding: 20px 10px; background: linear-gradient(135deg, #4facfe15 0%, #00f2fe15 100%); border-radius: 12px; border: 2px solid #00d4aa; transition: all 0.3s ease; cursor: pointer;">
                                 <h4 class="text-success mb-2" style="font-weight: 700; font-size: 28px;"><span id="services-completed-overview">0</span></h4>
-                                <small class="text-muted" style="font-size: 12px; font-weight: 500;">تکمیل شده</small>
+                                <small class="text-muted" style="font-size: 12px; font-weight: 500;">انجام شده</small>
                             </div>
                         </a>
                     </div>

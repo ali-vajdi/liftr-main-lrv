@@ -80,7 +80,7 @@ class Transaction extends Model
     {
         return match($this->status) {
             self::STATUS_PENDING => 'در انتظار',
-            self::STATUS_COMPLETED => 'تکمیل شده',
+            self::STATUS_COMPLETED => 'انجام شده',
             self::STATUS_FAILED => 'ناموفق',
             self::STATUS_CANCELLED => 'لغو شده',
             default => 'نامشخص',

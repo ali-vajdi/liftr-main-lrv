@@ -116,7 +116,7 @@
                                         const statuses = {
                                             "pending": `<span class="badge badge-warning">در انتظار</span>`,
                                             "assigned": `<span class="badge badge-info">اختصاص داده شده</span>`,
-                                            "completed": `<span class="badge badge-success">تکمیل شده</span>`,
+                                            "completed": `<span class="badge badge-success">انجام شده</span>`,
                                             "expired": `<span class="badge badge-danger">منقضی شده</span>`,
                                             "cancelled": `<span class="badge badge-secondary">لغو شده</span>`
                                         };

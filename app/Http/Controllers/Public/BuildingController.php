@@ -260,7 +260,7 @@ class BuildingController extends Controller
 
         // Only allow completed services
         if ($service->status !== Service::STATUS_COMPLETED) {
-            abort(404, 'فقط سرویس‌های تکمیل شده قابل چاپ هستند.');
+            abort(404, 'فقط سرویس‌های انجام شده قابل چاپ هستند.');
         }
 
         // Check for download token

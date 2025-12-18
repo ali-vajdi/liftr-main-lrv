@@ -1,8 +1,8 @@
 @extends('public.layout.master')
 
-@section('title', 'سرویس‌های تکمیل شده - ' . $building->name)
+@section('title', 'سرویس‌های انجام شده - ' . $building->name)
 
-@section('page-title', 'سرویس‌های تکمیل شده ساختمان')
+@section('page-title', 'سرویس‌های انجام شده ساختمان')
 
 @section('content')
     <!-- Building Information -->
@@ -53,7 +53,7 @@
     <!-- Services List -->
     @if(count($groupedServices) > 0)
         <div class="services-section">
-            <h2 class="section-title">سرویس‌های تکمیل شده</h2>
+            <h2 class="section-title">سرویس‌های انجام شده</h2>
             
             @foreach($groupedServices as $year => $months)
                 @foreach($months as $month => $services)
@@ -117,8 +117,8 @@
             <div class="empty-state-icon">
                 <i class="fas fa-inbox"></i>
             </div>
-            <h4>سرویس تکمیل شده‌ای یافت نشد</h4>
-            <p>در حال حاضر هیچ سرویس تکمیل شده‌ای برای این ساختمان ثبت نشده است.</p>
+            <h4>سرویس انجام شده‌ای یافت نشد</h4>
+            <p>در حال حاضر هیچ سرویس انجام شده‌ای برای این ساختمان ثبت نشده است.</p>
         </div>
     @endif
 @endsection

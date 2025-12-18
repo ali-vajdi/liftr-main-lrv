@@ -71,7 +71,7 @@ class ServiceController extends Controller
         if ($service->status !== Service::STATUS_COMPLETED) {
             return response()->json([
                 'success' => false,
-                'message' => 'فقط سرویس‌های تکمیل شده قابل دانلود هستند.'
+                'message' => 'فقط سرویس‌های انجام شده قابل دانلود هستند.'
             ], 400);
         }
 
@@ -181,7 +181,7 @@ class ServiceController extends Controller
         if ($service->status !== Service::STATUS_COMPLETED) {
             return response()->json([
                 'success' => false,
-                'message' => 'فقط سرویس‌های تکمیل شده قابل دانلود هستند.'
+                'message' => 'فقط سرویس‌های انجام شده قابل دانلود هستند.'
             ], 400);
         }
 

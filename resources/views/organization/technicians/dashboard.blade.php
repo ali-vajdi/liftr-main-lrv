@@ -98,7 +98,7 @@
                                         <option value="">همه</option>
                                         <option value="pending">در انتظار</option>
                                         <option value="assigned">اختصاص داده شده</option>
-                                        <option value="completed">تکمیل شده</option>
+                                        <option value="completed">انجام شده</option>
                                         <option value="expired">منقضی شده</option>
                                         <option value="cancelled">لغو شده</option>
                                     </select>
@@ -156,7 +156,7 @@
         <div class="col-xl-4 col-lg-6 col-sm-12 layout-spacing">
             <div class="widget widget-chart-one">
                 <div class="widget-heading">
-                    <h5 class="mb-0">سرویس‌های تکمیل شده</h5>
+                    <h5 class="mb-0">سرویس‌های انجام شده</h5>
                 </div>
                 <div class="widget-content">
                     <div class="text-center p-4">
@@ -438,7 +438,7 @@ $(document).ready(function() {
         const statusBadges = {
             'pending': '<span class="badge badge-warning">در انتظار</span>',
             'assigned': '<span class="badge badge-info">اختصاص داده شده</span>',
-            'completed': '<span class="badge badge-success">تکمیل شده</span>',
+            'completed': '<span class="badge badge-success">انجام شده</span>',
             'expired': '<span class="badge badge-danger">منقضی شده</span>',
             'cancelled': '<span class="badge badge-secondary">لغو شده</span>'
         };
@@ -493,7 +493,7 @@ $(document).ready(function() {
         const statusTexts = {
             'pending': 'در انتظار',
             'assigned': 'اختصاص داده شده',
-            'completed': 'تکمیل شده',
+            'completed': 'انجام شده',
             'expired': 'منقضی شده',
             'cancelled': 'لغو شده'
         };

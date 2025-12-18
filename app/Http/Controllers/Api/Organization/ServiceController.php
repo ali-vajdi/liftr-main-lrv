@@ -800,7 +800,7 @@ class ServiceController extends Controller
         if ($service->status === Service::STATUS_COMPLETED) {
             return response()->json([
                 'success' => false,
-                'message' => 'سرویس‌های تکمیل شده را نمی‌توان لغو کرد.'
+                'message' => 'سرویس‌های انجام شده را نمی‌توان لغو کرد.'
             ], 400);
         }
 
@@ -911,7 +911,7 @@ class ServiceController extends Controller
         if ($service->status === Service::STATUS_COMPLETED) {
             return response()->json([
                 'success' => false,
-                'message' => 'سرویس‌های تکمیل شده را نمی‌توان لغو کرد.'
+                'message' => 'سرویس‌های انجام شده را نمی‌توان لغو کرد.'
             ], 400);
         }
 
@@ -1453,7 +1453,7 @@ class ServiceController extends Controller
         if ($service->status !== Service::STATUS_COMPLETED) {
             return response()->json([
                 'success' => false,
-                'message' => 'فقط سرویس‌های تکمیل شده را می‌توان ارسال مجدد کرد.'
+                'message' => 'فقط سرویس‌های انجام شده را می‌توان ارسال مجدد کرد.'
             ], 400);
         }
 
@@ -1552,7 +1552,7 @@ class ServiceController extends Controller
         if ($service->status !== Service::STATUS_COMPLETED) {
             return response()->json([
                 'success' => false,
-                'message' => 'فقط سرویس‌های تکمیل شده قابل دانلود هستند.'
+                'message' => 'فقط سرویس‌های انجام شده قابل دانلود هستند.'
             ], 400);
         }
 
@@ -1616,7 +1616,7 @@ class ServiceController extends Controller
 
         // Only allow completed services
         if ($service->status !== Service::STATUS_COMPLETED) {
-            abort(404, 'فقط سرویس‌های تکمیل شده قابل چاپ هستند.');
+            abort(404, 'فقط سرویس‌های انجام شده قابل چاپ هستند.');
         }
 
         // Check for download token
