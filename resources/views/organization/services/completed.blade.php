@@ -411,7 +411,7 @@ function displayServiceDetails(service) {
                 html += '<div class="card mb-2">';
                 html += '<div class="card-header"><strong>آسانسور: ' + (elevator.elevator_name || elevator.elevator_id) + '</strong></div>';
                 html += '<div class="card-body">';
-                html += '<p><strong>وضعیت:</strong> ' + (elevator.verified ? '<span class="badge badge-success">تایید شده</span>' : '<span class="badge badge-danger">تایید نشده</span>') + '</p>';
+                html += '<p><strong>وضعیت:</strong> ' + (elevator.verified ? '<span class="badge badge-success">سرویس انجام شده</span>' : '<span class="badge badge-danger">سرویس انجام نشده</span>') + '</p>';
                 
                 if (elevator.descriptions && elevator.descriptions.length > 0) {
                     html += '<h6 class="mt-2 mb-2">توضیحات:</h6>';
