@@ -812,6 +812,9 @@ class ServiceController extends Controller
             ], 400);
         }
 
+        // Store technician ID before removing it (for sending message)
+        $technicianId = $service->technician_id;
+
         // Remove technician and set status to cancelled
         // Can cancel pending, assigned, or expired services
         $service->update([
@@ -819,6 +822,27 @@ class ServiceController extends Controller
             'status' => Service::STATUS_CANCELLED,
             'assigned_at' => null,
         ]);
+
+        // Send message to technician if one was assigned
+        if ($technicianId) {
+            $service->load(['building']);
+            $monthNames = [
+                1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
+                5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
+                9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
+            ];
+            $monthName = $monthNames[$service->service_month] ?? $service->service_month;
+            
+            Message::create([
+                'sender_type' => Message::SENDER_TYPE_ORGANIZATION,
+                'sender_id' => $user->organization_id,
+                'receiver_type' => Message::RECEIVER_TYPE_TECHNICIAN,
+                'receiver_id' => $technicianId,
+                'subject' => 'لغو سرویس',
+                'message' => "یک سرویس که به شما اختصاص داده شده بود لغو شد.\n\nساختمان: {$service->building->name}\nماه: {$monthName} {$service->service_year}",
+                'service_id' => $service->id,
+            ]);
+        }
 
         $service->load(['building.province', 'building.city', 'building.elevators']);
         $service->status_text = $service->status_text;
