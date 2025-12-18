@@ -557,7 +557,7 @@ function displayServiceDetails(service) {
                 <p><strong>ماه:</strong> ${service.service_date_text || '-'}</p>
                 <p><strong>سال:</strong> ${service.service_year || '-'}</p>
                 <p><strong>وضعیت:</strong> <span class="badge badge-info">${service.status_text || service.status}</span></p>
-                <p><strong>دفعات بازدید برگه سرویس توسط مدیرساختمان:</strong> <span class="badge badge-info"><i class="fas fa-eye"></i> ${service.view_count || 0}</span></p>
+                <p><strong>دفعات بازدید لینک هماهنگی و برگه سرویس توسط مدیرساختمان:</strong> <span class="badge badge-info"><i class="fas fa-eye"></i> ${service.view_count || 0}</span></p>
                 <p><strong>تاریخ اختصاص:</strong> ${service.assigned_at_jalali || '-'}</p>
                 ${service.visit_date_jalali ? `<p><strong>تاریخ مراجعه:</strong> ${service.visit_date_jalali}</p>` : ''}
                 ${service.visit_time_range ? `<p><strong>بازه زمانی مراجعه:</strong> ${service.visit_time_range}</p>` : ''}
