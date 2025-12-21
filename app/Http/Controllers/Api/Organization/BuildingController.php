@@ -307,7 +307,10 @@ class BuildingController extends Controller
             }
             // For custom, payment_timing, payment_frequency_type, payment_frequency_value are already in $contractData
             
-            BuildingContract::create($contractData);
+            $contract = BuildingContract::create($contractData);
+            
+            // Generate services for all months in the contract period
+            $contract->generateServices();
             
             DB::commit();
             

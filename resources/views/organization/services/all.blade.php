@@ -482,6 +482,11 @@
                             <option value="">انتخاب سال</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="add_service_amount">مبلغ سرویس <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="add_service_amount" name="amount" min="0" step="0.01" placeholder="0.00" required>
+                        <small class="form-text text-muted">مبلغ سرویس را به ریال وارد کنید</small>
+                    </div>
                     <div class="alert alert-danger" id="add-service-error" style="display: none; border-radius: 8px; margin-top: 15px;"></div>
                 </div>
                 <div class="modal-footer">
@@ -1236,6 +1241,7 @@ window.onCancelService = function(id) {
             const buildingId = $('#add_building_id').val();
             const serviceMonth = $('#add_service_month').val();
             const serviceYear = $('#add_service_year').val();
+            const amount = $('#add_service_amount').val();
             
             if (!buildingId) {
                 $('#add-service-error').text('لطفاً ساختمان را انتخاب کنید').show();
@@ -1249,6 +1255,11 @@ window.onCancelService = function(id) {
             
             if (!serviceYear) {
                 $('#add-service-error').text('لطفاً سال را انتخاب کنید').show();
+                return false;
+            }
+            
+            if (!amount || parseFloat(amount) <= 0) {
+                $('#add-service-error').text('لطفاً مبلغ سرویس را وارد کنید').show();
                 return false;
             }
             
@@ -1269,7 +1280,8 @@ window.onCancelService = function(id) {
                 data: {
                     building_id: buildingId,
                     service_month: serviceMonth,
-                    service_year: serviceYear
+                    service_year: serviceYear,
+                    amount: amount
                 },
                 headers: {
                     'Authorization': 'Bearer ' + token

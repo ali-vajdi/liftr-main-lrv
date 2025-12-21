@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Organization;
 use App\Http\Controllers\Controller;
 use App\Models\Building;
 use App\Models\BuildingContract;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -136,6 +137,9 @@ class BuildingContractController extends Controller
             
             $data['status'] = BuildingContract::STATUS_ACTIVE;
             $contract = BuildingContract::create($data);
+
+            // Generate services for all months in the contract period
+            $contract->generateServices();
 
             DB::commit();
 
@@ -269,14 +273,37 @@ class BuildingContractController extends Controller
             ], 422);
         }
 
-        $contract->status = $request->status === 'finished' ? BuildingContract::STATUS_FINISHED : BuildingContract::STATUS_CANCELLED;
-        $contract->save();
+        DB::beginTransaction();
+        try {
+            $contract->status = $request->status === 'finished' ? BuildingContract::STATUS_FINISHED : BuildingContract::STATUS_CANCELLED;
+            $contract->save();
 
-        return response()->json([
-            'success' => true,
-            'message' => $request->status === 'finished' ? 'قرارداد به عنوان تمام شده ثبت شد' : 'قرارداد لغو شد',
-            'data' => $contract
-        ]);
+            // If contract is cancelled, cancel all pending services for this contract
+            if ($request->status === 'cancelled') {
+                Service::where('building_contract_id', $contract->id)
+                    ->whereIn('status', [Service::STATUS_PENDING, Service::STATUS_ASSIGNED])
+                    ->update([
+                        'status' => Service::STATUS_CANCELLED,
+                        'technician_id' => null,
+                        'assigned_at' => null,
+                    ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => $request->status === 'finished' ? 'قرارداد به عنوان تمام شده ثبت شد' : 'قرارداد لغو شد',
+                'data' => $contract
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'خطا در به‌روزرسانی وضعیت قرارداد',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

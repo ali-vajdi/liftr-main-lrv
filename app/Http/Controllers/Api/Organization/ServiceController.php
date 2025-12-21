@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Service;
 use App\Models\ServiceView;
 use App\Models\Building;
+use App\Models\BuildingContract;
 use App\Models\Technician;
 use App\Models\Message;
 use App\Models\Organization;
@@ -30,8 +31,10 @@ class ServiceController extends Controller
         $this->smsService = $smsService;
     }
     /**
-     * Check if a service is locked (building support period has ended)
-     * A service is locked if the service month/year is >= building's service_end_date
+     * Check if a service is locked (contract period has ended or contract is cancelled/finished)
+     * A service is locked if:
+     * - Contract is cancelled or finished
+     * - Service month/year is >= contract's contract_end_date (only for active contracts)
      * Manual services (is_manual = true) should not be locked
      */
     private function isServiceLocked($service)
@@ -41,19 +44,43 @@ class ServiceController extends Controller
             return false;
         }
 
-        if (!$service->building || !$service->building->service_end_date) {
-            return false;
+        // If service has a contract, check contract status
+        if ($service->buildingContract) {
+            // If contract is cancelled or finished, services are locked
+            if (in_array($service->buildingContract->status, [
+                BuildingContract::STATUS_CANCELLED,
+                BuildingContract::STATUS_FINISHED
+            ])) {
+                return true;
+            }
+
+            // For active contracts, check if service month/year is >= contract end date
+            if ($service->buildingContract->status === BuildingContract::STATUS_ACTIVE 
+                && $service->buildingContract->contract_end_date) {
+                $endDateJalali = Jalalian::forge($service->buildingContract->contract_end_date);
+                $endYear = $endDateJalali->getYear();
+                $endMonth = $endDateJalali->getMonth();
+
+                // Check if service month/year is >= end date month/year
+                if ($service->service_year > $endYear) {
+                    return true;
+                } elseif ($service->service_year == $endYear && $service->service_month >= $endMonth) {
+                    return true;
+                }
+            }
         }
 
-        $endDateJalali = Jalalian::forge($service->building->service_end_date);
-        $endYear = $endDateJalali->getYear();
-        $endMonth = $endDateJalali->getMonth();
+        // Fallback to building service_end_date for legacy services without contracts
+        if (!$service->buildingContract && $service->building && $service->building->service_end_date) {
+            $endDateJalali = Jalalian::forge($service->building->service_end_date);
+            $endYear = $endDateJalali->getYear();
+            $endMonth = $endDateJalali->getMonth();
 
-        // Check if service month/year is >= end date month/year
-        if ($service->service_year > $endYear) {
-            return true;
-        } elseif ($service->service_year == $endYear && $service->service_month >= $endMonth) {
-            return true;
+            if ($service->service_year > $endYear) {
+                return true;
+            } elseif ($service->service_year == $endYear && $service->service_month >= $endMonth) {
+                return true;
+            }
         }
 
         return false;
@@ -61,35 +88,28 @@ class ServiceController extends Controller
 
     /**
      * Generate missing services for buildings
-     * Generates one service per month for each building
-     * Checks existing services and their statuses
-     * service_end_date is only checked to prevent generation after contract ends (but allows generation for the end month)
+     * DISABLED: Services are now generated automatically from contracts
+     * This method is kept for backward compatibility but does nothing
+     * Services are now created when contracts are created via BuildingContract::generateServices()
      */
     private function generateMissingServices($organizationId)
     {
-        // Get all active buildings
-        $buildings = Building::where('organization_id', $organizationId)
-            ->where('status', true)
-            ->get();
-
+        // Services are now generated from contracts, not automatically per building
+        // This method is disabled to prevent automatic service generation
+        // Only expire old services that don't have a contract
         $currentJalali = Jalalian::now();
         $currentYear = $currentJalali->getYear();
         $currentMonth = $currentJalali->getMonth();
 
-        // FIRST: Mark expired services for ALL buildings in the organization at once
-        // This must happen BEFORE generating new services
-        // Expire services where service month/year is BEFORE current month/year
-        // NOTE: Only expire system-generated services (is_manual = false), not user-created ones
-        // When expiring, also remove technician assignment
+        // Mark expired services for services without contracts (legacy services)
         Service::whereHas('building', function ($q) use ($organizationId) {
                 $q->where('organization_id', $organizationId);
             })
+            ->whereNull('building_contract_id') // Only expire services without contracts
             ->whereIn('status', [Service::STATUS_PENDING, Service::STATUS_ASSIGNED])
-            ->where('is_manual', false) // Only expire system-generated services
+            ->where('is_manual', false)
             ->where(function ($query) use ($currentYear, $currentMonth) {
-                // Services from previous years
                 $query->where('service_year', '<', $currentYear)
-                    // OR services from current year but previous months
                     ->orWhere(function ($q) use ($currentYear, $currentMonth) {
                         $q->where('service_year', $currentYear)
                           ->where('service_month', '<', $currentMonth);
@@ -100,69 +120,6 @@ class ServiceController extends Controller
                 'technician_id' => null,
                 'assigned_at' => null,
             ]);
-
-        foreach ($buildings as $building) {
-            try {
-
-                // Get all existing services for this building (including expired and cancelled for checking, but excluding for latest calculation)
-                // We need to check ALL services (including expired and cancelled) to see if a month already has a service
-                // But we only use non-expired and non-cancelled services to determine the latest service
-                $allServices = Service::where('building_id', $building->id)
-                    ->orderBy('service_year', 'asc')
-                    ->orderBy('service_month', 'asc')
-                    ->get();
-
-                // Get non-expired and non-cancelled services to find the latest
-                $existingServices = $allServices->whereNotIn('status', [Service::STATUS_EXPIRED, Service::STATUS_CANCELLED])->values();
-
-                // Check service_end_date - if contract has ended, don't generate beyond that month
-                $endYear = null;
-                $endMonth = null;
-                if ($building->service_end_date) {
-                    $endDateJalali = Jalalian::forge($building->service_end_date);
-                    $endYear = $endDateJalali->getYear();
-                    $endMonth = $endDateJalali->getMonth();
-                    // Allow generation for the end month itself
-                }
-
-                // Only generate service for the CURRENT month (not all missing months)
-                // This ensures services are created once per month when that month arrives
-                $currentMonthService = Service::where('building_id', $building->id)
-                    ->where('service_month', $currentMonth)
-                    ->where('service_year', $currentYear)
-                    ->first();
-
-                if (!$currentMonthService) {
-                    // Check if we should generate (not past end date)
-                    $shouldGenerate = true;
-                    if ($endYear !== null && $endMonth !== null) {
-                        if ($currentYear > $endYear || ($currentYear == $endYear && $currentMonth > $endMonth)) {
-                            $shouldGenerate = false;
-                        }
-                    }
-
-                    if ($shouldGenerate) {
-                        // Only create service for current month
-                        Service::create([
-                            'building_id' => $building->id,
-                            'service_month' => $currentMonth,
-                            'service_year' => $currentYear,
-                            'status' => Service::STATUS_PENDING,
-                            'is_manual' => false,
-                        ]);
-                    }
-                } else if ($currentMonthService->status === Service::STATUS_EXPIRED && $currentMonthService->is_manual == false) {
-                    // If current month service exists but is expired (and system-generated), reactivate it
-                    // Note: Cancelled services and manual services should NOT be reactivated
-                    $currentMonthService->update(['status' => Service::STATUS_PENDING]);
-                }
-                // If current month service is cancelled or manual, do nothing - leave it as is
-            } catch (\Exception $e) {
-                // Skip building if there's an error
-                Log::warning("Error generating services for building {$building->id}: " . $e->getMessage());
-                continue;
-            }
-        }
     }
 
     /**
@@ -184,7 +141,7 @@ class ServiceController extends Controller
         $currentYear = $currentJalali->getYear();
         $currentMonth = $currentJalali->getMonth();
 
-        $query = Service::with(['building.province', 'building.city', 'building.elevators'])
+        $query = Service::with(['building.province', 'building.city', 'building.elevators', 'buildingContract'])
             ->whereHas('building', function ($q) use ($organizationId) {
                 $q->where('organization_id', $organizationId);
             })
@@ -309,7 +266,7 @@ class ServiceController extends Controller
         // Generate missing services before fetching (in case new buildings were added)
         $this->generateMissingServices($organizationId);
 
-        $query = Service::with(['building.province', 'building.city', 'building.elevators', 'technician'])
+        $query = Service::with(['building.province', 'building.city', 'building.elevators', 'buildingContract', 'technician'])
             ->whereHas('building', function ($q) use ($organizationId) {
                 $q->where('organization_id', $organizationId);
             })
@@ -419,7 +376,7 @@ class ServiceController extends Controller
             ], 422);
         }
 
-        $service = Service::with(['building'])
+        $service = Service::with(['building', 'buildingContract'])
             ->whereHas('building', function ($q) use ($user) {
                 $q->where('organization_id', $user->organization_id);
             })
@@ -557,7 +514,7 @@ class ServiceController extends Controller
             ], 422);
         }
 
-        $service = Service::with(['building'])
+        $service = Service::with(['building', 'buildingContract'])
             ->whereHas('building', function ($q) use ($user) {
                 $q->where('organization_id', $user->organization_id);
             })
@@ -698,7 +655,7 @@ class ServiceController extends Controller
             ], 422);
         }
 
-        $service = Service::with(['building'])
+        $service = Service::with(['building', 'buildingContract'])
             ->whereHas('building', function ($q) use ($user) {
                 $q->where('organization_id', $user->organization_id);
             })
@@ -790,7 +747,7 @@ class ServiceController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $service = Service::with(['building'])
+        $service = Service::with(['building', 'buildingContract'])
             ->whereHas('building', function ($q) use ($user) {
                 $q->where('organization_id', $user->organization_id);
             })
@@ -867,7 +824,7 @@ class ServiceController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $service = Service::with(['building'])
+        $service = Service::with(['building', 'buildingContract'])
             ->whereHas('building', function ($q) use ($user) {
                 $q->where('organization_id', $user->organization_id);
             })
@@ -901,7 +858,7 @@ class ServiceController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $service = Service::with(['building'])
+        $service = Service::with(['building', 'buildingContract'])
             ->whereHas('building', function ($q) use ($user) {
                 $q->where('organization_id', $user->organization_id);
             })
@@ -949,7 +906,7 @@ class ServiceController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $service = Service::with(['building'])
+        $service = Service::with(['building', 'buildingContract'])
             ->whereHas('building', function ($q) use ($user) {
                 $q->where('organization_id', $user->organization_id);
             })
@@ -1378,6 +1335,7 @@ class ServiceController extends Controller
             'building_id' => 'required|exists:buildings,id',
             'service_month' => 'required|integer|min:1|max:12',
             'service_year' => 'required|integer|min:1400|max:1500',
+            'amount' => 'required|numeric|min:0',
         ], [
             'building_id.required' => 'انتخاب ساختمان الزامی است',
             'building_id.exists' => 'ساختمان انتخاب شده معتبر نیست',
@@ -1389,6 +1347,9 @@ class ServiceController extends Controller
             'service_year.integer' => 'سال باید عدد باشد',
             'service_year.min' => 'سال باید معتبر باشد',
             'service_year.max' => 'سال باید معتبر باشد',
+            'amount.required' => 'مبلغ سرویس الزامی است',
+            'amount.numeric' => 'مبلغ باید عدد باشد',
+            'amount.min' => 'مبلغ باید بیشتر از صفر باشد',
         ]);
 
         if ($validator->fails()) {
@@ -1402,6 +1363,7 @@ class ServiceController extends Controller
         $buildingId = $request->building_id;
         $serviceMonth = (int) $request->service_month;
         $serviceYear = (int) $request->service_year;
+        $amount = $request->amount;
 
         // Verify building belongs to the organization
         $building = Building::where('id', $buildingId)
@@ -1414,6 +1376,7 @@ class ServiceController extends Controller
             'building_id' => $buildingId,
             'service_month' => $serviceMonth,
             'service_year' => $serviceYear,
+            'monthly_amount' => $amount,
             'status' => Service::STATUS_PENDING,
             'is_manual' => true, // Mark as user-created to prevent automatic expiration
         ]);
@@ -1440,7 +1403,7 @@ class ServiceController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $service = Service::with(['building'])
+        $service = Service::with(['building', 'buildingContract'])
             ->whereHas('building', function ($q) use ($user) {
                 $q->where('organization_id', $user->organization_id);
             })
@@ -1542,7 +1505,7 @@ class ServiceController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $service = Service::with(['building'])
+        $service = Service::with(['building', 'buildingContract'])
             ->whereHas('building', function ($q) use ($user) {
                 $q->where('organization_id', $user->organization_id);
             })
@@ -1609,9 +1572,9 @@ class ServiceController extends Controller
     {
         // Handle route model binding - $service might be Service model or ID
         if (!$service instanceof Service) {
-            $service = Service::with(['building'])->findOrFail($service);
+            $service = Service::with(['building', 'buildingContract'])->findOrFail($service);
         } else {
-            $service->load('building');
+            $service->load(['building', 'buildingContract']);
         }
 
         // Only allow completed services

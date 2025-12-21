@@ -12,11 +12,13 @@ class Service extends Model
 
     protected $fillable = [
         'building_id',
+        'building_contract_id',
         'technician_id',
         'service_month',
         'service_year',
         'status',
         'is_manual',
+        'monthly_amount',
         'notes',
         'organization_note',
         'user_note',
@@ -32,6 +34,7 @@ class Service extends Model
         'service_month' => 'integer',
         'service_year' => 'integer',
         'is_manual' => 'boolean',
+        'monthly_amount' => 'decimal:2',
         'assigned_at' => 'datetime',
         'completed_at' => 'datetime',
         'visit_date' => 'date',
@@ -48,6 +51,11 @@ class Service extends Model
     public function building()
     {
         return $this->belongsTo(Building::class);
+    }
+
+    public function buildingContract()
+    {
+        return $this->belongsTo(BuildingContract::class);
     }
 
     public function technician()
