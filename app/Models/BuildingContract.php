@@ -19,7 +19,6 @@ class BuildingContract extends Model
         'payment_timing',
         'payment_frequency_type',
         'payment_frequency_value',
-        'is_custom_payment_method',
         'previous_debt',
         'status',
     ];
@@ -30,7 +29,6 @@ class BuildingContract extends Model
         'monthly_amount' => 'decimal:2',
         'annual_amount' => 'decimal:2',
         'previous_debt' => 'decimal:2',
-        'is_custom_payment_method' => 'boolean',
         'payment_frequency_value' => 'integer',
     ];
 

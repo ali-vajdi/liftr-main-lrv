@@ -30,9 +30,9 @@ class BuildingContractController extends Controller
             'contract_end_date' => 'required|string',
             'monthly_amount' => 'required|numeric|min:0',
             'payment_method' => 'required|in:1,2,3,4,5,6,custom',
-            'payment_timing' => 'required_if:payment_method,custom|in:after_service,before_service,at_contract_time',
-            'payment_frequency_type' => 'required_if:payment_method,custom|in:monthly,yearly',
-            'payment_frequency_value' => 'required_if:payment_method,custom|integer|min:1',
+            'payment_timing' => 'required|in:after_service,before_service,at_contract_time',
+            'payment_frequency_type' => 'required|in:monthly,yearly',
+            'payment_frequency_value' => 'required|integer|min:1',
             'previous_debt' => 'nullable|numeric|min:0',
         ]);
 
@@ -73,15 +73,13 @@ class BuildingContractController extends Controller
         $data['annual_amount'] = $data['monthly_amount'] * 12;
 
         // Map payment method to database fields
+        // Payment fields are already in $data (auto-filled by frontend for predefined options)
         $paymentMethod = $data['payment_method'];
         unset($data['payment_method']);
 
-        if ($paymentMethod === 'custom') {
-            $data['is_custom_payment_method'] = true;
-            // payment_timing, payment_frequency_type, payment_frequency_value are already in $data
-        } else {
-            $data['is_custom_payment_method'] = false;
-            // Map predefined options
+        // If not custom, ensure fields are set from predefined mapping
+        if ($paymentMethod !== 'custom') {
+            // Map predefined options (frontend should have already filled these, but ensure they're correct)
             switch ($paymentMethod) {
                 case '1': // ماهانه بعد از انجام سرویس
                     $data['payment_timing'] = 'after_service';
@@ -115,6 +113,7 @@ class BuildingContractController extends Controller
                     break;
             }
         }
+        // For custom, payment_timing, payment_frequency_type, payment_frequency_value are already in $data
 
         $data['previous_debt'] = $data['previous_debt'] ?? 0;
         $data['building_id'] = $building->id;
@@ -282,27 +281,25 @@ class BuildingContractController extends Controller
 
     /**
      * Map database fields to payment method selection
+     * Determines if contract matches a predefined option or is custom
      */
     private function mapPaymentMethod($contract)
     {
-        if (!$contract->is_custom_payment_method) {
-            // Determine which predefined option matches
-            if ($contract->payment_timing === 'after_service' && $contract->payment_frequency_type === 'monthly' && $contract->payment_frequency_value == 1) {
-                $contract->payment_method = '1';
-            } elseif ($contract->payment_timing === 'after_service' && $contract->payment_frequency_type === 'monthly' && $contract->payment_frequency_value == 2) {
-                $contract->payment_method = '2';
-            } elseif ($contract->payment_timing === 'after_service' && $contract->payment_frequency_type === 'monthly' && $contract->payment_frequency_value == 3) {
-                $contract->payment_method = '3';
-            } elseif ($contract->payment_timing === 'before_service' && $contract->payment_frequency_type === 'monthly' && $contract->payment_frequency_value == 3) {
-                $contract->payment_method = '4';
-            } elseif ($contract->payment_timing === 'before_service' && $contract->payment_frequency_type === 'monthly' && $contract->payment_frequency_value == 6) {
-                $contract->payment_method = '5';
-            } elseif ($contract->payment_timing === 'at_contract_time' && $contract->payment_frequency_type === 'yearly' && $contract->payment_frequency_value == 1) {
-                $contract->payment_method = '6';
-            } else {
-                $contract->payment_method = 'custom';
-            }
+        // Determine which predefined option matches based on field values
+        if ($contract->payment_timing === 'after_service' && $contract->payment_frequency_type === 'monthly' && $contract->payment_frequency_value == 1) {
+            $contract->payment_method = '1';
+        } elseif ($contract->payment_timing === 'after_service' && $contract->payment_frequency_type === 'monthly' && $contract->payment_frequency_value == 2) {
+            $contract->payment_method = '2';
+        } elseif ($contract->payment_timing === 'after_service' && $contract->payment_frequency_type === 'monthly' && $contract->payment_frequency_value == 3) {
+            $contract->payment_method = '3';
+        } elseif ($contract->payment_timing === 'before_service' && $contract->payment_frequency_type === 'monthly' && $contract->payment_frequency_value == 3) {
+            $contract->payment_method = '4';
+        } elseif ($contract->payment_timing === 'before_service' && $contract->payment_frequency_type === 'monthly' && $contract->payment_frequency_value == 6) {
+            $contract->payment_method = '5';
+        } elseif ($contract->payment_timing === 'at_contract_time' && $contract->payment_frequency_type === 'yearly' && $contract->payment_frequency_value == 1) {
+            $contract->payment_method = '6';
         } else {
+            // Doesn't match any predefined option, so it's custom
             $contract->payment_method = 'custom';
         }
         

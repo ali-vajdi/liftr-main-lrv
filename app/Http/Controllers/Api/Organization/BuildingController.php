@@ -171,9 +171,9 @@ class BuildingController extends Controller
             'contract_end_date' => 'required|string',
             'contract_monthly_amount' => 'required|numeric|min:0',
             'payment_method' => 'required|in:1,2,3,4,5,6,custom',
-            'payment_timing' => 'required_if:payment_method,custom|in:after_service,before_service,at_contract_time',
-            'payment_frequency_type' => 'required_if:payment_method,custom|in:monthly,yearly',
-            'payment_frequency_value' => 'required_if:payment_method,custom|integer|min:1',
+            'payment_timing' => 'required|in:after_service,before_service,at_contract_time',
+            'payment_frequency_type' => 'required|in:monthly,yearly',
+            'payment_frequency_value' => 'required|integer|min:1',
             'previous_debt' => 'nullable|numeric|min:0',
         ]);
 
@@ -192,19 +192,17 @@ class BuildingController extends Controller
         $data['elevators_count'] = $data['elevators_count'] ?? 0;
 
         // Extract contract data
+        // Payment fields are always included (auto-filled by frontend for predefined options)
         $contractData = [
             'contract_start_date' => $data['contract_start_date'],
             'contract_end_date' => $data['contract_end_date'],
             'monthly_amount' => $data['contract_monthly_amount'],
             'payment_method' => $data['payment_method'],
+            'payment_timing' => $data['payment_timing'],
+            'payment_frequency_type' => $data['payment_frequency_type'],
+            'payment_frequency_value' => $data['payment_frequency_value'],
             'previous_debt' => $data['previous_debt'] ?? 0,
         ];
-        
-        if ($data['payment_method'] === 'custom') {
-            $contractData['payment_timing'] = $data['payment_timing'];
-            $contractData['payment_frequency_type'] = $data['payment_frequency_type'];
-            $contractData['payment_frequency_value'] = $data['payment_frequency_value'];
-        }
         
         // Remove contract fields from building data
         unset($data['contract_start_date'], $data['contract_end_date'], $data['contract_monthly_amount'], 
@@ -268,14 +266,12 @@ class BuildingController extends Controller
             $contractData['annual_amount'] = $contractData['monthly_amount'] * 12;
             
             // Map payment method to database fields
+            // Payment fields are already in $contractData (auto-filled by frontend for predefined options)
             $paymentMethod = $contractData['payment_method'];
             unset($contractData['payment_method']);
-            
-            if ($paymentMethod === 'custom') {
-                $contractData['is_custom_payment_method'] = true;
-            } else {
-                $contractData['is_custom_payment_method'] = false;
-                // Map predefined options
+
+            // If not custom, ensure fields are set from predefined mapping (frontend should have already filled these, but ensure they're correct)
+            if ($paymentMethod !== 'custom') {
                 switch ($paymentMethod) {
                     case '1':
                         $contractData['payment_timing'] = 'after_service';
@@ -309,6 +305,7 @@ class BuildingController extends Controller
                         break;
                 }
             }
+            // For custom, payment_timing, payment_frequency_type, payment_frequency_value are already in $contractData
             
             BuildingContract::create($contractData);
             

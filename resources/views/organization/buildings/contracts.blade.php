@@ -284,9 +284,39 @@ function getPaymentMethodText(contract) {
             '3': '3 ماه یکبار بعد از انجام سرویس',
             '4': '3 ماه یکبار قبل از انجام سرویس',
             '5': '6ماه یکبار قبل از انجام سرویس',
-            '6': 'یکساله زمان عقد قرارداد',
-            'custom': 'سفارشی'
+            '6': 'یکساله زمان عقد قرارداد'
         };
+        
+        if (contract.payment_method === 'custom') {
+            // Build custom payment method text from fields
+            const timingTexts = {
+                'after_service': 'بعد از انجام سرویس',
+                'before_service': 'قبل از انجام سرویس',
+                'at_contract_time': 'زمان عقد قرارداد'
+            };
+            
+            const timing = timingTexts[contract.payment_timing] || contract.payment_timing;
+            const frequencyType = contract.payment_frequency_type;
+            const frequencyValue = parseInt(contract.payment_frequency_value) || 0;
+            
+            if (frequencyType === 'monthly') {
+                if (frequencyValue == 1) {
+                    return `ماهانه ${timing}`;
+                } else {
+                    return `${frequencyValue} ماه یکبار ${timing}`;
+                }
+            } else if (frequencyType === 'yearly') {
+                if (frequencyValue == 1) {
+                    return `یکساله ${timing}`;
+                } else {
+                    return `${frequencyValue} سال یکبار ${timing}`;
+                }
+            }
+            
+            // Fallback if frequency type is unknown
+            return `${timing} - ${frequencyType} - ${frequencyValue}`;
+        }
+        
         return methods[contract.payment_method] || 'نامشخص';
     }
     return 'نامشخص';
@@ -388,6 +418,16 @@ $('#contract_monthly_amount').on('input', function() {
     $('#contract_annual_amount').val(annualAmount.toFixed(2));
 });
 
+// Payment method mappings
+const paymentMethodMappings = {
+    '1': { payment_timing: 'after_service', payment_frequency_type: 'monthly', payment_frequency_value: 1 },
+    '2': { payment_timing: 'after_service', payment_frequency_type: 'monthly', payment_frequency_value: 2 },
+    '3': { payment_timing: 'after_service', payment_frequency_type: 'monthly', payment_frequency_value: 3 },
+    '4': { payment_timing: 'before_service', payment_frequency_type: 'monthly', payment_frequency_value: 3 },
+    '5': { payment_timing: 'before_service', payment_frequency_type: 'monthly', payment_frequency_value: 6 },
+    '6': { payment_timing: 'at_contract_time', payment_frequency_type: 'yearly', payment_frequency_value: 1 }
+};
+
 // Handle payment method change
 $('#payment_method').on('change', function() {
     const value = $(this).val();
@@ -396,11 +436,30 @@ $('#payment_method').on('change', function() {
         $('#payment_timing').prop('required', true);
         $('#payment_frequency_type').prop('required', true);
         $('#payment_frequency_value').prop('required', true);
-    } else {
+        // Clear fields for custom input
+        $('#payment_timing').val('');
+        $('#payment_frequency_type').val('');
+        $('#payment_frequency_value').val('');
+    } else if (value && paymentMethodMappings[value]) {
+        // Auto-fill fields for predefined options
+        const mapping = paymentMethodMappings[value];
+        $('#payment_timing').val(mapping.payment_timing);
+        $('#payment_frequency_type').val(mapping.payment_frequency_type);
+        $('#payment_frequency_value').val(mapping.payment_frequency_value);
+        // Hide custom fields but keep values filled
         $('#custom_payment_method_fields').hide();
         $('#payment_timing').prop('required', false);
         $('#payment_frequency_type').prop('required', false);
         $('#payment_frequency_value').prop('required', false);
+    } else {
+        // No selection or invalid option
+        $('#custom_payment_method_fields').hide();
+        $('#payment_timing').prop('required', false);
+        $('#payment_frequency_type').prop('required', false);
+        $('#payment_frequency_value').prop('required', false);
+        $('#payment_timing').val('');
+        $('#payment_frequency_type').val('');
+        $('#payment_frequency_value').val('');
     }
 });
 
@@ -414,6 +473,7 @@ $('#saveContract').on('click', function() {
         previous_debt: $('#previous_debt').val() || 0
     };
     
+    // Always include payment fields (they're filled automatically for predefined options)
     if (formData.payment_method === 'custom') {
         formData.payment_timing = $('#payment_timing').val();
         formData.payment_frequency_type = $('#payment_frequency_type').val();
@@ -428,6 +488,12 @@ $('#saveContract').on('click', function() {
             });
             return;
         }
+    } else if (formData.payment_method && paymentMethodMappings[formData.payment_method]) {
+        // Auto-fill from mapping for predefined options
+        const mapping = paymentMethodMappings[formData.payment_method];
+        formData.payment_timing = mapping.payment_timing;
+        formData.payment_frequency_type = mapping.payment_frequency_type;
+        formData.payment_frequency_value = mapping.payment_frequency_value;
     }
     
     if (!formData.contract_start_date || !formData.contract_end_date || !formData.monthly_amount || !formData.payment_method) {
