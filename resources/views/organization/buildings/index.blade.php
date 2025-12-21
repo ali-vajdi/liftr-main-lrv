@@ -810,6 +810,8 @@ $(document).ready(function() {
         useDropDownYears: true,
         container: 'body',
         zIndex: 10000,
+        maxDate: "attr"
+        // No maxDate restriction - allows any future date
     });
     
     // Calculate annual amount from monthly amount (in building form)
