@@ -13,6 +13,7 @@ class Service extends Model
     protected $fillable = [
         'building_id',
         'building_contract_id',
+        'payment_period_id',
         'technician_id',
         'service_month',
         'service_year',
@@ -56,6 +57,11 @@ class Service extends Model
     public function buildingContract()
     {
         return $this->belongsTo(BuildingContract::class);
+    }
+
+    public function paymentPeriod()
+    {
+        return $this->belongsTo(PaymentPeriod::class);
     }
 
     public function technician()

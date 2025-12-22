@@ -103,6 +103,11 @@
                                 html += \'<button type="button" class="btn btn-sm btn-info contracts-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" data-slug="\' + (item.slug || item.id) + \'" title="مدیریت قراردادها">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>\';
                                 html += \'</button>\';
+                                
+                                // Financial Dashboard button
+                                html += \'<button type="button" class="btn btn-sm btn-success financial-dashboard-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" data-slug="\' + (item.slug || item.id) + \'" title="داشبورد مالی">\';
+                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>\';
+                                html += \'</button>\';
                             ',
                             'actionHandlers' => '
                                 // Handle show button click
@@ -133,6 +138,12 @@
                                 $(".contracts-btn").on("click", function() {
                                     const slug = $(this).data("slug") || $(this).data("id");
                                     window.location.href = `/buildings/${slug}/contracts`;
+                                });
+                                
+                                // Handle financial dashboard button click
+                                $(".financial-dashboard-btn").on("click", function() {
+                                    const slug = $(this).data("slug") || $(this).data("id");
+                                    window.location.href = `/buildings/${slug}/financial-dashboard`;
                                 });
                             ',
                         ])
@@ -283,23 +294,13 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="payment_frequency_type">نوع فرکانس <span class="text-danger">*</span></label>
-                                        <select class="form-control" id="payment_frequency_type" name="payment_frequency_type">
-                                            <option value="">انتخاب کنید</option>
-                                            <option value="monthly">ماهانه</option>
-                                            <option value="yearly">سالانه</option>
-                                        </select>
-                                    </div>
-                                </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label for="payment_frequency_value">مقدار فرکانس <span class="text-danger">*</span></label>
-                                        <input type="number" class="form-control" id="payment_frequency_value" name="payment_frequency_value" min="1" placeholder="مثال: 3 (برای 3 ماه یکبار)">
-                                        <small class="form-text text-muted">تعداد ماه یا سال را وارد کنید</small>
+                                        <label for="payment_frequency_value">تعداد سرویس در هر دوره <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="payment_frequency_value" name="payment_frequency_value" min="1" placeholder="مثال: 3 (برای 3 سرویس در هر دوره)">
+                                        <small class="form-text text-muted">تعداد سرویس‌هایی که در یک دوره پرداخت قرار می‌گیرند</small>
                                     </div>
                                 </div>
                             </div>
@@ -630,21 +631,14 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="payment_frequency_type">نوع فرکانس <span class="text-danger">*</span></label>
-                                    <select class="form-control" id="payment_frequency_type" name="payment_frequency_type">
-                                        <option value="">انتخاب کنید</option>
-                                        <option value="monthly">ماهانه</option>
-                                        <option value="yearly">سالانه</option>
-                                    </select>
-                                </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label for="payment_frequency_value">مقدار فرکانس <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" id="payment_frequency_value" name="payment_frequency_value" min="1" placeholder="مثال: 3 (برای 3 ماه یکبار)">
-                                    <small class="form-text text-muted">تعداد ماه یا سال را وارد کنید</small>
+                                    <label for="payment_frequency_value">تعداد سرویس در هر دوره <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="payment_frequency_value" name="payment_frequency_value" min="1" placeholder="مثال: 3 (برای 3 سرویس در هر دوره)">
+                                    <small class="form-text text-muted">تعداد سرویس‌هایی که در یک دوره پرداخت قرار می‌گیرند</small>
                                 </div>
                             </div>
                         </div>
@@ -823,12 +817,12 @@ $(document).ready(function() {
     
     // Payment method mappings
     const paymentMethodMappings = {
-        '1': { payment_timing: 'after_service', payment_frequency_type: 'monthly', payment_frequency_value: 1 },
-        '2': { payment_timing: 'after_service', payment_frequency_type: 'monthly', payment_frequency_value: 2 },
-        '3': { payment_timing: 'after_service', payment_frequency_type: 'monthly', payment_frequency_value: 3 },
-        '4': { payment_timing: 'before_service', payment_frequency_type: 'monthly', payment_frequency_value: 3 },
-        '5': { payment_timing: 'before_service', payment_frequency_type: 'monthly', payment_frequency_value: 6 },
-        '6': { payment_timing: 'at_contract_time', payment_frequency_type: 'yearly', payment_frequency_value: 1 }
+        '1': { payment_timing: 'after_service', payment_frequency_value: 1 },
+        '2': { payment_timing: 'after_service', payment_frequency_value: 2 },
+        '3': { payment_timing: 'after_service', payment_frequency_value: 3 },
+        '4': { payment_timing: 'before_service', payment_frequency_value: 3 },
+        '5': { payment_timing: 'before_service', payment_frequency_value: 6 },
+        '6': { payment_timing: 'before_service', payment_frequency_value: 12 }
     };
     
     // Handle payment method change (in building form)
@@ -837,31 +831,25 @@ $(document).ready(function() {
         if (value === 'custom') {
             $('#custom_payment_method_fields').show();
             $('#payment_timing').prop('required', true);
-            $('#payment_frequency_type').prop('required', true);
             $('#payment_frequency_value').prop('required', true);
             // Clear fields for custom input
             $('#payment_timing').val('');
-            $('#payment_frequency_type').val('');
             $('#payment_frequency_value').val('');
         } else if (value && paymentMethodMappings[value]) {
             // Auto-fill fields for predefined options
             const mapping = paymentMethodMappings[value];
             $('#payment_timing').val(mapping.payment_timing);
-            $('#payment_frequency_type').val(mapping.payment_frequency_type);
             $('#payment_frequency_value').val(mapping.payment_frequency_value);
             // Hide custom fields but keep values filled
             $('#custom_payment_method_fields').hide();
             $('#payment_timing').prop('required', false);
-            $('#payment_frequency_type').prop('required', false);
             $('#payment_frequency_value').prop('required', false);
         } else {
             // No selection or invalid option
             $('#custom_payment_method_fields').hide();
             $('#payment_timing').prop('required', false);
-            $('#payment_frequency_type').prop('required', false);
             $('#payment_frequency_value').prop('required', false);
             $('#payment_timing').val('');
-            $('#payment_frequency_type').val('');
             $('#payment_frequency_value').val('');
         }
     });
@@ -1988,25 +1976,20 @@ function loadContractData() {
                 if (contract.payment_method === 'custom') {
                     $('#custom_payment_method_fields').show();
                     $('#payment_timing').val(contract.payment_timing || '');
-                    $('#payment_frequency_type').val(contract.payment_frequency_type || '');
                     $('#payment_frequency_value').val(contract.payment_frequency_value || '');
                     $('#payment_timing').prop('required', true);
-                    $('#payment_frequency_type').prop('required', true);
                     $('#payment_frequency_value').prop('required', true);
                 } else if (contract.payment_method && paymentMethodMappingsContract[contract.payment_method]) {
                     // Auto-fill from mapping for predefined options
                     const mapping = paymentMethodMappingsContract[contract.payment_method];
                     $('#payment_timing').val(mapping.payment_timing);
-                    $('#payment_frequency_type').val(mapping.payment_frequency_type);
                     $('#payment_frequency_value').val(mapping.payment_frequency_value);
                     $('#custom_payment_method_fields').hide();
                     $('#payment_timing').prop('required', false);
-                    $('#payment_frequency_type').prop('required', false);
                     $('#payment_frequency_value').prop('required', false);
                 } else {
                     $('#custom_payment_method_fields').hide();
                     $('#payment_timing').prop('required', false);
-                    $('#payment_frequency_type').prop('required', false);
                     $('#payment_frequency_value').prop('required', false);
                 }
             } else {
@@ -2036,12 +2019,12 @@ function loadContractData() {
 // Handle payment method change
 // Payment method mappings (for contract edit modal)
 const paymentMethodMappingsContract = {
-    '1': { payment_timing: 'after_service', payment_frequency_type: 'monthly', payment_frequency_value: 1 },
-    '2': { payment_timing: 'after_service', payment_frequency_type: 'monthly', payment_frequency_value: 2 },
-    '3': { payment_timing: 'after_service', payment_frequency_type: 'monthly', payment_frequency_value: 3 },
-    '4': { payment_timing: 'before_service', payment_frequency_type: 'monthly', payment_frequency_value: 3 },
-    '5': { payment_timing: 'before_service', payment_frequency_type: 'monthly', payment_frequency_value: 6 },
-    '6': { payment_timing: 'at_contract_time', payment_frequency_type: 'yearly', payment_frequency_value: 1 }
+    '1': { payment_timing: 'after_service', payment_frequency_value: 1 },
+    '2': { payment_timing: 'after_service', payment_frequency_value: 2 },
+    '3': { payment_timing: 'after_service', payment_frequency_value: 3 },
+    '4': { payment_timing: 'before_service', payment_frequency_value: 3 },
+    '5': { payment_timing: 'before_service', payment_frequency_value: 6 },
+    '6': { payment_timing: 'before_service', payment_frequency_value: 12 }
 };
 
 $('#payment_method').on('change', function() {
@@ -2049,31 +2032,25 @@ $('#payment_method').on('change', function() {
     if (value === 'custom') {
         $('#custom_payment_method_fields').show();
         $('#payment_timing').prop('required', true);
-        $('#payment_frequency_type').prop('required', true);
         $('#payment_frequency_value').prop('required', true);
         // Clear fields for custom input
         $('#payment_timing').val('');
-        $('#payment_frequency_type').val('');
         $('#payment_frequency_value').val('');
     } else if (value && paymentMethodMappingsContract[value]) {
         // Auto-fill fields for predefined options
         const mapping = paymentMethodMappingsContract[value];
         $('#payment_timing').val(mapping.payment_timing);
-        $('#payment_frequency_type').val(mapping.payment_frequency_type);
         $('#payment_frequency_value').val(mapping.payment_frequency_value);
         // Hide custom fields but keep values filled
         $('#custom_payment_method_fields').hide();
         $('#payment_timing').prop('required', false);
-        $('#payment_frequency_type').prop('required', false);
         $('#payment_frequency_value').prop('required', false);
     } else {
         // No selection or invalid option
         $('#custom_payment_method_fields').hide();
         $('#payment_timing').prop('required', false);
-        $('#payment_frequency_type').prop('required', false);
         $('#payment_frequency_value').prop('required', false);
         $('#payment_timing').val('');
-        $('#payment_frequency_type').val('');
         $('#payment_frequency_value').val('');
     }
 });
@@ -2108,11 +2085,10 @@ $('#saveContract').on('click', function() {
     // Add custom payment method fields if selected
     if (formData.payment_method === 'custom') {
         formData.payment_timing = $('#payment_timing').val();
-        formData.payment_frequency_type = $('#payment_frequency_type').val();
         formData.payment_frequency_value = $('#payment_frequency_value').val();
         
         // Validate custom fields
-        if (!formData.payment_timing || !formData.payment_frequency_type || !formData.payment_frequency_value) {
+        if (!formData.payment_timing || !formData.payment_frequency_value) {
             swal({
                 title: 'خطا',
                 text: 'لطفاً تمام فیلدهای روش پرداخت سفارشی را پر کنید',

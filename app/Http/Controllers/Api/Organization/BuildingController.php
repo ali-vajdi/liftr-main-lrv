@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Organization;
 use App\Http\Controllers\Controller;
 use App\Models\Building;
 use App\Models\BuildingContract;
+use App\Models\BuildingFinancialRecord;
 use App\Models\Elevator;
 use App\Models\Province;
 use App\Models\City;
@@ -172,7 +173,6 @@ class BuildingController extends Controller
             'contract_monthly_amount' => 'required|numeric|min:0',
             'payment_method' => 'required|in:1,2,3,4,5,6,custom',
             'payment_timing' => 'required|in:after_service,before_service,at_contract_time',
-            'payment_frequency_type' => 'required|in:monthly,yearly',
             'payment_frequency_value' => 'required|integer|min:1',
             'previous_debt' => 'nullable|numeric|min:0',
         ]);
@@ -199,14 +199,13 @@ class BuildingController extends Controller
             'monthly_amount' => $data['contract_monthly_amount'],
             'payment_method' => $data['payment_method'],
             'payment_timing' => $data['payment_timing'],
-            'payment_frequency_type' => $data['payment_frequency_type'],
             'payment_frequency_value' => $data['payment_frequency_value'],
             'previous_debt' => $data['previous_debt'] ?? 0,
         ];
         
         // Remove contract fields from building data
         unset($data['contract_start_date'], $data['contract_end_date'], $data['contract_monthly_amount'], 
-              $data['payment_method'], $data['payment_timing'], $data['payment_frequency_type'], 
+              $data['payment_method'], $data['payment_timing'], 
               $data['payment_frequency_value'], $data['previous_debt']);
 
         // Extract elevators data (required for new buildings)
@@ -275,42 +274,50 @@ class BuildingController extends Controller
                 switch ($paymentMethod) {
                     case '1':
                         $contractData['payment_timing'] = 'after_service';
-                        $contractData['payment_frequency_type'] = 'monthly';
                         $contractData['payment_frequency_value'] = 1;
                         break;
                     case '2':
                         $contractData['payment_timing'] = 'after_service';
-                        $contractData['payment_frequency_type'] = 'monthly';
                         $contractData['payment_frequency_value'] = 2;
                         break;
                     case '3':
                         $contractData['payment_timing'] = 'after_service';
-                        $contractData['payment_frequency_type'] = 'monthly';
                         $contractData['payment_frequency_value'] = 3;
                         break;
                     case '4':
                         $contractData['payment_timing'] = 'before_service';
-                        $contractData['payment_frequency_type'] = 'monthly';
                         $contractData['payment_frequency_value'] = 3;
                         break;
                     case '5':
                         $contractData['payment_timing'] = 'before_service';
-                        $contractData['payment_frequency_type'] = 'monthly';
                         $contractData['payment_frequency_value'] = 6;
                         break;
                     case '6':
-                        $contractData['payment_timing'] = 'at_contract_time';
-                        $contractData['payment_frequency_type'] = 'yearly';
-                        $contractData['payment_frequency_value'] = 1;
+                        $contractData['payment_timing'] = 'before_service';
+                        $contractData['payment_frequency_value'] = 12;
                         break;
                 }
             }
-            // For custom, payment_timing, payment_frequency_type, payment_frequency_value are already in $contractData
+            // For custom, payment_timing and payment_frequency_value are already in $contractData
             
             $contract = BuildingContract::create($contractData);
             
             // Generate services for all months in the contract period
             $contract->generateServices();
+
+            // Create financial record for previous_debt if exists
+            if ($contract->previous_debt && $contract->previous_debt > 0) {
+                BuildingFinancialRecord::create([
+                    'building_id' => $building->id,
+                    'building_contract_id' => $contract->id,
+                    'type' => BuildingFinancialRecord::TYPE_DEBIT,
+                    'amount' => $contract->previous_debt,
+                    'transaction_type' => BuildingFinancialRecord::TRANSACTION_PREVIOUS_DEBT,
+                    'description' => 'بدهی قبلی - ' . ($contract->contract_start_date ? Jalalian::forge($contract->contract_start_date)->format('Y/m/d') : ''),
+                    'is_pending' => false, // Previous debt is not pending, it's already owed
+                    'transaction_date' => now(),
+                ]);
+            }
             
             DB::commit();
             

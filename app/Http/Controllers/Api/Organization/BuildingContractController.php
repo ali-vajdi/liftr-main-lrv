@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Organization;
 use App\Http\Controllers\Controller;
 use App\Models\Building;
 use App\Models\BuildingContract;
+use App\Models\BuildingFinancialRecord;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -32,7 +33,6 @@ class BuildingContractController extends Controller
             'monthly_amount' => 'required|numeric|min:0',
             'payment_method' => 'required|in:1,2,3,4,5,6,custom',
             'payment_timing' => 'required|in:after_service,before_service,at_contract_time',
-            'payment_frequency_type' => 'required|in:monthly,yearly',
             'payment_frequency_value' => 'required|integer|min:1',
             'previous_debt' => 'nullable|numeric|min:0',
         ]);
@@ -84,37 +84,31 @@ class BuildingContractController extends Controller
             switch ($paymentMethod) {
                 case '1': // ماهانه بعد از انجام سرویس
                     $data['payment_timing'] = 'after_service';
-                    $data['payment_frequency_type'] = 'monthly';
                     $data['payment_frequency_value'] = 1;
                     break;
                 case '2': // 2ماه یکبار بعد از انجام سرویس
                     $data['payment_timing'] = 'after_service';
-                    $data['payment_frequency_type'] = 'monthly';
                     $data['payment_frequency_value'] = 2;
                     break;
                 case '3': // 3 ماه یکبار بعد از انجام سرویس
                     $data['payment_timing'] = 'after_service';
-                    $data['payment_frequency_type'] = 'monthly';
                     $data['payment_frequency_value'] = 3;
                     break;
                 case '4': // 3 ماه یکبار قبل از انجام سرویس
                     $data['payment_timing'] = 'before_service';
-                    $data['payment_frequency_type'] = 'monthly';
                     $data['payment_frequency_value'] = 3;
                     break;
                 case '5': // 6ماه یکبار قبل از انجام سرویس
                     $data['payment_timing'] = 'before_service';
-                    $data['payment_frequency_type'] = 'monthly';
                     $data['payment_frequency_value'] = 6;
                     break;
                 case '6': // یکساله زمان عقد قرارداد
-                    $data['payment_timing'] = 'at_contract_time';
-                    $data['payment_frequency_type'] = 'yearly';
-                    $data['payment_frequency_value'] = 1;
+                    $data['payment_timing'] = 'before_service';
+                    $data['payment_frequency_value'] = 12;
                     break;
             }
         }
-        // For custom, payment_timing, payment_frequency_type, payment_frequency_value are already in $data
+        // For custom, payment_timing and payment_frequency_value are already in $data
 
         $data['previous_debt'] = $data['previous_debt'] ?? 0;
         $data['building_id'] = $building->id;
@@ -140,6 +134,20 @@ class BuildingContractController extends Controller
 
             // Generate services for all months in the contract period
             $contract->generateServices();
+
+            // Create financial record for previous_debt if exists
+            if ($contract->previous_debt && $contract->previous_debt > 0) {
+                BuildingFinancialRecord::create([
+                    'building_id' => $building->id,
+                    'building_contract_id' => $contract->id,
+                    'type' => BuildingFinancialRecord::TYPE_DEBIT,
+                    'amount' => $contract->previous_debt,
+                    'transaction_type' => BuildingFinancialRecord::TRANSACTION_PREVIOUS_DEBT,
+                    'description' => 'بدهی قبلی - ' . ($contract->contract_start_date ? Jalalian::forge($contract->contract_start_date)->format('Y/m/d') : ''),
+                    'is_pending' => false, // Previous debt is not pending, it's already owed
+                    'transaction_date' => now(),
+                ]);
+            }
 
             DB::commit();
 
@@ -313,17 +321,17 @@ class BuildingContractController extends Controller
     private function mapPaymentMethod($contract)
     {
         // Determine which predefined option matches based on field values
-        if ($contract->payment_timing === 'after_service' && $contract->payment_frequency_type === 'monthly' && $contract->payment_frequency_value == 1) {
+        if ($contract->payment_timing === 'after_service' && $contract->payment_frequency_value == 1) {
             $contract->payment_method = '1';
-        } elseif ($contract->payment_timing === 'after_service' && $contract->payment_frequency_type === 'monthly' && $contract->payment_frequency_value == 2) {
+        } elseif ($contract->payment_timing === 'after_service' && $contract->payment_frequency_value == 2) {
             $contract->payment_method = '2';
-        } elseif ($contract->payment_timing === 'after_service' && $contract->payment_frequency_type === 'monthly' && $contract->payment_frequency_value == 3) {
+        } elseif ($contract->payment_timing === 'after_service' && $contract->payment_frequency_value == 3) {
             $contract->payment_method = '3';
-        } elseif ($contract->payment_timing === 'before_service' && $contract->payment_frequency_type === 'monthly' && $contract->payment_frequency_value == 3) {
+        } elseif ($contract->payment_timing === 'before_service' && $contract->payment_frequency_value == 3) {
             $contract->payment_method = '4';
-        } elseif ($contract->payment_timing === 'before_service' && $contract->payment_frequency_type === 'monthly' && $contract->payment_frequency_value == 6) {
+        } elseif ($contract->payment_timing === 'before_service' && $contract->payment_frequency_value == 6) {
             $contract->payment_method = '5';
-        } elseif ($contract->payment_timing === 'at_contract_time' && $contract->payment_frequency_type === 'yearly' && $contract->payment_frequency_value == 1) {
+        } elseif ($contract->payment_timing === 'before_service' && $contract->payment_frequency_value == 12) {
             $contract->payment_method = '6';
         } else {
             // Doesn't match any predefined option, so it's custom

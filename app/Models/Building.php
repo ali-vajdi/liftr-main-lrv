@@ -79,6 +79,11 @@ class Building extends Model
         return $this->hasOne(BuildingContract::class)->where('status', BuildingContract::STATUS_ACTIVE);
     }
 
+    public function financialRecords()
+    {
+        return $this->hasMany(BuildingFinancialRecord::class);
+    }
+
     // Accessors
     public function getBuildingTypeTextAttribute()
     {

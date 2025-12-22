@@ -7,6 +7,8 @@ use App\Models\Service;
 use App\Models\ServiceView;
 use App\Models\Building;
 use App\Models\BuildingContract;
+use App\Models\BuildingFinancialRecord;
+use App\Models\PaymentPeriod;
 use App\Models\Technician;
 use App\Models\Message;
 use App\Models\Organization;
@@ -780,6 +782,12 @@ class ServiceController extends Controller
             'assigned_at' => null,
         ]);
 
+        // Reload service with relationships
+        $service->load(['buildingContract', 'paymentPeriod']);
+
+        // Handle financial records based on contract payment timing
+        $this->handleServiceFinancialRecord($service);
+
         // Send message to technician if one was assigned
         if ($technicianId) {
             $service->load(['building']);
@@ -1370,10 +1378,16 @@ class ServiceController extends Controller
             ->where('organization_id', $user->organization_id)
             ->firstOrFail();
 
+        // Check if building has an active contract
+        $activeContract = BuildingContract::where('building_id', $buildingId)
+            ->where('status', BuildingContract::STATUS_ACTIVE)
+            ->first();
+
         // Create the service (user-created, so is_manual = true)
         // Multiple services can now be created for the same building/month/year
         $service = Service::create([
             'building_id' => $buildingId,
+            'building_contract_id' => $activeContract ? $activeContract->id : null,
             'service_month' => $serviceMonth,
             'service_year' => $serviceYear,
             'monthly_amount' => $amount,
@@ -1381,7 +1395,12 @@ class ServiceController extends Controller
             'is_manual' => true, // Mark as user-created to prevent automatic expiration
         ]);
 
-        $service->load(['building.province', 'building.city', 'building.elevators']);
+        // If service has a contract, regenerate payment periods to link this service
+        if ($activeContract) {
+            $activeContract->generatePaymentPeriods();
+        }
+
+        $service->load(['building.province', 'building.city', 'building.elevators', 'buildingContract']);
         $service->status_text = $service->status_text;
         $service->status_badge_class = $service->status_badge_class;
         $service->service_date_text = $service->service_date_text;
@@ -1694,5 +1713,149 @@ class ServiceController extends Controller
         $filename = implode(' ', $filenameParts) . '.pdf';
         
         return $pdf->download($filename);
+    }
+
+    /**
+     * Handle financial record creation when service is completed or cancelled
+     * Uses payment periods for dynamic record creation
+     */
+    private function handleServiceFinancialRecord(Service $service)
+    {
+        // Reload service to ensure we have the latest data
+        $service->refresh();
+        
+        // Reload relationships
+        $service->load(['buildingContract', 'paymentPeriod']);
+        
+        if (!$service->buildingContract || !$service->paymentPeriod) {
+            // If service doesn't have a payment period, try to regenerate periods
+            if ($service->buildingContract) {
+                $service->buildingContract->generatePaymentPeriods();
+                $service->refresh();
+                $service->load(['buildingContract', 'paymentPeriod']);
+                
+                if (!$service->paymentPeriod) {
+                    return; // Still no payment period, skip
+                }
+            } else {
+                return; // No contract, skip
+            }
+        }
+
+        $contract = $service->buildingContract;
+        $paymentPeriod = $service->paymentPeriod;
+        
+        // Refresh payment period to get latest data
+        $paymentPeriod->refresh();
+        
+        // Check if service is expired - expired services should not create financial records
+        if ($service->status === Service::STATUS_EXPIRED) {
+            return;
+        }
+
+        // Get all non-expired services in this payment period (fresh query)
+        $allServicesInPeriod = $paymentPeriod->services()
+            ->where('status', '!=', Service::STATUS_EXPIRED)
+            ->get();
+        
+        if ($allServicesInPeriod->isEmpty()) {
+            return; // No non-expired services in period
+        }
+
+        // Check if all non-expired services in this payment period are completed or cancelled
+        $allFinished = $allServicesInPeriod->every(function ($s) {
+            return in_array($s->status, [Service::STATUS_COMPLETED, Service::STATUS_CANCELLED]);
+        });
+
+        if (!$allFinished) {
+            return; // Wait until all non-expired services in the period are finished
+        }
+
+        if ($contract->payment_timing === 'after_service') {
+            // For after_service: Create financial record for current period when all services are finished
+            $this->handleAfterServicePeriod($service, $contract, $paymentPeriod, $allServicesInPeriod);
+        } elseif ($contract->payment_timing === 'before_service') {
+            // For before_service: When current period is finished, create financial record for NEXT period
+            $this->handleBeforeServicePeriod($service, $contract, $paymentPeriod);
+        }
+    }
+
+    /**
+     * Handle after_service payment timing - create record for current period
+     */
+    private function handleAfterServicePeriod(Service $service, $contract, $paymentPeriod, $allServicesInPeriod)
+    {
+        // Calculate total amount for completed services only (not cancelled)
+        $completedServices = $allServicesInPeriod->filter(function ($s) {
+            return $s->status === Service::STATUS_COMPLETED;
+        });
+
+        $totalAmount = $completedServices->sum('monthly_amount');
+
+        if ($totalAmount <= 0) {
+            return; // No amount to record
+        }
+
+        // Update payment period amount
+        $paymentPeriod->calculateAmount();
+
+        // Check if financial record already exists for this period
+        $existingRecord = BuildingFinancialRecord::where('building_id', $service->building_id)
+            ->where('building_contract_id', $contract->id)
+            ->where('payment_period_id', $paymentPeriod->id)
+            ->where('transaction_type', BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT)
+            ->first();
+
+        // Get first service in period for date reference
+        $firstService = $allServicesInPeriod->sortBy(function ($s) {
+            return $s->service_year * 12 + $s->service_month;
+        })->first();
+
+        if ($existingRecord) {
+            // Update existing record
+            $existingRecord->update([
+                'amount' => $totalAmount,
+                'is_pending' => true,
+                'payment_period_id' => $paymentPeriod->id,
+                'service_id' => $firstService ? $firstService->id : null,
+                'service_month' => $firstService ? $firstService->service_month : null,
+                'service_year' => $firstService ? $firstService->service_year : null,
+            ]);
+        } else {
+            // Create new financial record (debit - building owes money)
+            BuildingFinancialRecord::create([
+                'building_id' => $service->building_id,
+                'building_contract_id' => $contract->id,
+                'payment_period_id' => $paymentPeriod->id,
+                'service_id' => $firstService ? $firstService->id : null,
+                'type' => BuildingFinancialRecord::TYPE_DEBIT,
+                'amount' => $totalAmount,
+                'transaction_type' => BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT,
+                'description' => "پرداخت بابت دوره {$paymentPeriod->period_number} - بعد از انجام سرویس",
+                'service_month' => $firstService ? $firstService->service_month : null,
+                'service_year' => $firstService ? $firstService->service_year : null,
+                'is_pending' => true,
+                'transaction_date' => now(),
+            ]);
+        }
+    }
+
+    /**
+     * Handle before_service payment timing - sync all pending periods
+     * When a period's services are completed, we need to ensure the next period has a record
+     */
+    private function handleBeforeServicePeriod(Service $service, $contract, $paymentPeriod)
+    {
+        // Reload contract with payment periods and services to ensure fresh data
+        $contract->refresh();
+        $contract->load(['paymentPeriods.services']);
+        
+        // Reload the payment period with services
+        $paymentPeriod->refresh();
+        $paymentPeriod->load('services');
+        
+        // For before_service, we sync all periods that should be pending
+        // This ensures when a period finishes, the next period gets a financial record
+        $contract->syncBeforeServiceFinancialRecords();
     }
 }

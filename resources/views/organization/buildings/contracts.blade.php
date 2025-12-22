@@ -117,23 +117,13 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="payment_frequency_type">نوع فرکانس <span class="text-danger">*</span></label>
-                                    <select class="form-control" id="payment_frequency_type" name="payment_frequency_type">
-                                        <option value="">انتخاب کنید</option>
-                                        <option value="monthly">ماهانه</option>
-                                        <option value="yearly">سالانه</option>
-                                    </select>
-                                </div>
-                            </div>
                         </div>
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label for="payment_frequency_value">مقدار فرکانس <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" id="payment_frequency_value" name="payment_frequency_value" min="1" placeholder="مثال: 3 (برای 3 ماه یکبار)">
-                                    <small class="form-text text-muted">تعداد ماه یا سال را وارد کنید</small>
+                                    <label for="payment_frequency_value">تعداد سرویس در هر دوره <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="payment_frequency_value" name="payment_frequency_value" min="1" placeholder="مثال: 3 (برای 3 سرویس در هر دوره)">
+                                    <small class="form-text text-muted">تعداد سرویس‌هایی که در یک دوره پرداخت قرار می‌گیرند</small>
                                 </div>
                             </div>
                         </div>
@@ -296,25 +286,15 @@ function getPaymentMethodText(contract) {
             };
             
             const timing = timingTexts[contract.payment_timing] || contract.payment_timing;
-            const frequencyType = contract.payment_frequency_type;
+            // payment_frequency_type is removed, system always uses monthly (services per period)
             const frequencyValue = parseInt(contract.payment_frequency_value) || 0;
             
-            if (frequencyType === 'monthly') {
-                if (frequencyValue == 1) {
-                    return `ماهانه ${timing}`;
-                } else {
-                    return `${frequencyValue} ماه یکبار ${timing}`;
-                }
-            } else if (frequencyType === 'yearly') {
-                if (frequencyValue == 1) {
-                    return `یکساله ${timing}`;
-                } else {
-                    return `${frequencyValue} سال یکبار ${timing}`;
-                }
+            // System always uses monthly frequency (services per period)
+            if (frequencyValue == 1) {
+                return `ماهانه ${timing}`;
+            } else {
+                return `${frequencyValue} ماه یکبار ${timing}`;
             }
-            
-            // Fallback if frequency type is unknown
-            return `${timing} - ${frequencyType} - ${frequencyValue}`;
         }
         
         return methods[contract.payment_method] || 'نامشخص';
@@ -422,12 +402,12 @@ $('#contract_monthly_amount').on('input', function() {
 
 // Payment method mappings
 const paymentMethodMappings = {
-    '1': { payment_timing: 'after_service', payment_frequency_type: 'monthly', payment_frequency_value: 1 },
-    '2': { payment_timing: 'after_service', payment_frequency_type: 'monthly', payment_frequency_value: 2 },
-    '3': { payment_timing: 'after_service', payment_frequency_type: 'monthly', payment_frequency_value: 3 },
-    '4': { payment_timing: 'before_service', payment_frequency_type: 'monthly', payment_frequency_value: 3 },
-    '5': { payment_timing: 'before_service', payment_frequency_type: 'monthly', payment_frequency_value: 6 },
-    '6': { payment_timing: 'at_contract_time', payment_frequency_type: 'yearly', payment_frequency_value: 1 }
+    '1': { payment_timing: 'after_service', payment_frequency_value: 1 },
+    '2': { payment_timing: 'after_service', payment_frequency_value: 2 },
+    '3': { payment_timing: 'after_service', payment_frequency_value: 3 },
+    '4': { payment_timing: 'before_service', payment_frequency_value: 3 },
+    '5': { payment_timing: 'before_service', payment_frequency_value: 6 },
+    '6': { payment_timing: 'before_service', payment_frequency_value: 12 }
 };
 
 // Handle payment method change
@@ -436,31 +416,25 @@ $('#payment_method').on('change', function() {
     if (value === 'custom') {
         $('#custom_payment_method_fields').show();
         $('#payment_timing').prop('required', true);
-        $('#payment_frequency_type').prop('required', true);
         $('#payment_frequency_value').prop('required', true);
         // Clear fields for custom input
         $('#payment_timing').val('');
-        $('#payment_frequency_type').val('');
         $('#payment_frequency_value').val('');
     } else if (value && paymentMethodMappings[value]) {
         // Auto-fill fields for predefined options
         const mapping = paymentMethodMappings[value];
         $('#payment_timing').val(mapping.payment_timing);
-        $('#payment_frequency_type').val(mapping.payment_frequency_type);
         $('#payment_frequency_value').val(mapping.payment_frequency_value);
         // Hide custom fields but keep values filled
         $('#custom_payment_method_fields').hide();
         $('#payment_timing').prop('required', false);
-        $('#payment_frequency_type').prop('required', false);
         $('#payment_frequency_value').prop('required', false);
     } else {
         // No selection or invalid option
         $('#custom_payment_method_fields').hide();
         $('#payment_timing').prop('required', false);
-        $('#payment_frequency_type').prop('required', false);
         $('#payment_frequency_value').prop('required', false);
         $('#payment_timing').val('');
-        $('#payment_frequency_type').val('');
         $('#payment_frequency_value').val('');
     }
 });
@@ -478,10 +452,9 @@ $('#saveContract').on('click', function() {
     // Always include payment fields (they're filled automatically for predefined options)
     if (formData.payment_method === 'custom') {
         formData.payment_timing = $('#payment_timing').val();
-        formData.payment_frequency_type = $('#payment_frequency_type').val();
         formData.payment_frequency_value = $('#payment_frequency_value').val();
         
-        if (!formData.payment_timing || !formData.payment_frequency_type || !formData.payment_frequency_value) {
+        if (!formData.payment_timing || !formData.payment_frequency_value) {
             swal({
                 title: 'خطا',
                 text: 'لطفاً تمام فیلدهای روش پرداخت سفارشی را پر کنید',
@@ -494,7 +467,6 @@ $('#saveContract').on('click', function() {
         // Auto-fill from mapping for predefined options
         const mapping = paymentMethodMappings[formData.payment_method];
         formData.payment_timing = mapping.payment_timing;
-        formData.payment_frequency_type = mapping.payment_frequency_type;
         formData.payment_frequency_value = mapping.payment_frequency_value;
     }
     

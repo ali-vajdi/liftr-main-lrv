@@ -148,6 +148,15 @@ class ViewController extends Controller
     {
         return view('organization.transactions.index');
     }
+
+    // Financial Dashboard View
+    public function showFinancialDashboard(Building $building)
+    {
+        // Payment periods data will be fetched via API in the view
+        $buildingId = $building->id;
+        $buildingSlug = $building->slug;
+        return view('organization.financial-dashboard.index', compact('buildingId', 'buildingSlug'));
+    }
 }
 
 
