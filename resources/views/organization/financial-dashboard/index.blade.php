@@ -81,18 +81,16 @@
                             <thead>
                                 <tr>
                                     <th>تاریخ</th>
-                                    <th>نوع</th>
-                                    <th>نوع تراکنش</th>
-                                    <th>مبلغ</th>
-                                    <th>توضیحات</th>
-                                    <th>ماه/سال سرویس</th>
-                                    <th>وضعیت</th>
-                                    <th>عملیات</th>
+                                    <th>شرح</th>
+                                    <th>بدهکاری</th>
+                                    <th>بستانکاری</th>
+                                    <th>مانده</th>
+                                    <th>توضیحات بیشتر</th>
                                 </tr>
                             </thead>
                             <tbody id="recordsTableBody">
                                 <tr>
-                                    <td colspan="8" class="text-center">
+                                    <td colspan="6" class="text-center">
                                         <div class="spinner-border text-primary" role="status">
                                             <span class="sr-only">در حال بارگذاری...</span>
                                         </div>
@@ -134,6 +132,10 @@
                     <div class="form-group">
                         <label for="transaction_description">توضیحات</label>
                         <textarea class="form-control" id="transaction_description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="transaction_extra_descriptions">توضیحات بیشتر</label>
+                        <textarea class="form-control" id="transaction_extra_descriptions" name="extra_descriptions" rows="3"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="transaction_date">تاریخ تراکنش</label>
@@ -214,7 +216,7 @@ function loadFinancialDashboard() {
         },
         error: function(xhr) {
             console.error('Error loading financial dashboard:', xhr);
-            $('#recordsTableBody').html('<tr><td colspan="8" class="text-center text-danger">خطا در بارگذاری داده‌ها</td></tr>');
+            $('#recordsTableBody').html('<tr><td colspan="6" class="text-center text-danger">خطا در بارگذاری داده‌ها</td></tr>');
         }
     });
 }
@@ -225,92 +227,29 @@ function renderRecordsTable(records) {
     tbody.empty();
     
     if (records.length === 0) {
-        tbody.html('<tr><td colspan="8" class="text-center">هیچ تراکنش مالی یافت نشد</td></tr>');
+        tbody.html('<tr><td colspan="6" class="text-center">هیچ تراکنش مالی یافت نشد</td></tr>');
         return;
     }
     
+    // Records come from API with balance already calculated (newest first)
     records.forEach(function(record) {
-        const typeBadge = record.type === 'debit' 
-            ? '<span class="badge badge-danger">بدهکار</span>'
-            : '<span class="badge badge-success">بستانکار</span>';
-        const pendingBadge = record.is_pending
-            ? '<span class="badge badge-warning">در انتظار</span>'
-            : '<span class="badge badge-success">پرداخت شده</span>';
-        const amountClass = record.type === 'debit' ? 'text-danger' : 'text-success';
-        const amountSign = record.type === 'debit' ? '-' : '+';
+        const debitAmount = record.debit !== null ? formatCurrency(record.debit) : '-';
+        const creditAmount = record.credit !== null ? formatCurrency(record.credit) : '-';
+        const balanceAmount = record.balance || 0;
+        const balanceClass = balanceAmount < 0 ? 'text-danger' : (balanceAmount > 0 ? 'text-success' : '');
+        const balanceText = balanceAmount < 0 ? '(بدهکار)' : (balanceAmount > 0 ? '(بستانکار)' : '(صفر)');
         
         const row = `
             <tr>
-                <td>${record.transaction_date_jalali || record.created_at_jalali || '-'}</td>
-                <td>${typeBadge}</td>
-                <td>${record.transaction_type_text}</td>
-                <td class="${amountClass}">${amountSign} ${formatCurrency(record.amount)}</td>
+                <td>${record.transaction_date_jalali || '-'}</td>
                 <td>${record.description || '-'}</td>
-                <td>${record.service_date_text || '-'}</td>
-                <td>${pendingBadge}</td>
-                <td>
-                    ${record.is_pending ? `
-                        <button type="button" class="btn btn-sm btn-primary mark-paid-btn" data-record-id="${record.id}" title="علامت‌گذاری به عنوان پرداخت شده">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                        </button>
-                    ` : ''}
-                </td>
+                <td class="text-danger">${debitAmount}</td>
+                <td class="text-success">${creditAmount}</td>
+                <td class="${balanceClass}">${formatCurrency(Math.abs(balanceAmount))} ${balanceText}</td>
+                <td>${record.extra_descriptions || '-'}</td>
             </tr>
         `;
         tbody.append(row);
-    });
-    
-    // Attach event handlers
-    $('.mark-paid-btn').on('click', function() {
-        const recordId = $(this).data('record-id');
-        markRecordAsPaid(recordId);
-    });
-}
-
-// Mark record as paid
-function markRecordAsPaid(recordId) {
-    swal({
-        title: 'آیا مطمئن هستید؟',
-        text: 'این تراکنش به عنوان پرداخت شده علامت‌گذاری خواهد شد',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'بله',
-        cancelButtonText: 'خیر',
-        padding: '2em'
-    }).then((result) => {
-        if (result.value) {
-            $.ajax({
-                url: `/api/organization/financial-records/${recordId}/pending-status`,
-                type: 'POST',
-                data: { is_pending: false },
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
-                },
-                success: function(response) {
-                    if (response.success) {
-                        swal({
-                            title: 'موفقیت',
-                            text: response.message,
-                            type: 'success',
-                            padding: '2em',
-                            timer: 2000
-                        });
-                        loadFinancialDashboard();
-                    }
-                },
-                error: function(xhr) {
-                    const response = xhr.responseJSON;
-                    swal({
-                        title: 'خطا',
-                        text: response?.message || 'خطا در به‌روزرسانی وضعیت',
-                        type: 'error',
-                        padding: '2em'
-                    });
-                }
-            });
-        }
     });
 }
 
@@ -327,6 +266,7 @@ $('#addTransactionForm').on('submit', function(e) {
     const transactionType = $('#transaction_type').val();
     const amount = parseFloat($('#transaction_amount').val());
     const description = $('#transaction_description').val();
+    const extraDescriptions = $('#transaction_extra_descriptions').val();
     const transactionDate = $('#transaction_date').val();
     
     // Determine type based on transaction_type
@@ -337,6 +277,7 @@ $('#addTransactionForm').on('submit', function(e) {
         amount: amount,
         transaction_type: transactionType,
         description: description,
+        extra_descriptions: extraDescriptions,
         transaction_date: transactionDate || null,
     };
     

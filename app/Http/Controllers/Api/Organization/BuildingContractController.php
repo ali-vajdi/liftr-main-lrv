@@ -144,7 +144,6 @@ class BuildingContractController extends Controller
                     'amount' => $contract->previous_debt,
                     'transaction_type' => BuildingFinancialRecord::TRANSACTION_PREVIOUS_DEBT,
                     'description' => 'بدهی قبلی - ' . ($contract->contract_start_date ? Jalalian::forge($contract->contract_start_date)->format('Y/m/d') : ''),
-                    'is_pending' => false, // Previous debt is not pending, it's already owed
                     'transaction_date' => now(),
                 ]);
             }

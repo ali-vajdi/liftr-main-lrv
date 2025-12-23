@@ -25,47 +25,47 @@ class FinancialDashboardController extends Controller
         $building = \App\Models\Building::where('organization_id', $user->organization_id)
             ->findOrFail($building);
 
-        // Get all financial records for this building
+        // Get all financial records for this building, ordered by transaction_date (or created_at) ascending for balance calculation
         $records = BuildingFinancialRecord::where('building_id', $building->id)
-            ->with(['buildingContract', 'service'])
-            ->orderBy('created_at', 'desc')
+            ->orderByRaw('COALESCE(transaction_date, created_at) ASC')
+            ->orderBy('id', 'ASC')
             ->get();
 
-        // Calculate balance
-        $balance = BuildingFinancialRecord::calculateBalance($building->id);
-        $pendingAmount = BuildingFinancialRecord::calculatePendingAmount($building->id);
+        // Calculate cumulative balance
+        $cumulativeBalance = 0;
+        $formattedRecords = $records->map(function ($record) use (&$cumulativeBalance) {
+            // Calculate balance: debit (بدهکاری) is negative, credit (بستانکاری) is positive
+            if ($record->type === BuildingFinancialRecord::TYPE_DEBIT) {
+                $cumulativeBalance -= $record->amount;
+            } else {
+                $cumulativeBalance += $record->amount;
+            }
 
-        // Format records
-        $formattedRecords = $records->map(function ($record) {
+            // Get transaction date (prefer transaction_date, fallback to created_at)
+            $transactionDate = $record->transaction_date ?? $record->created_at;
+
             return [
                 'id' => $record->id,
-                'type' => $record->type,
-                'type_text' => $record->type_text,
-                'amount' => $record->amount,
-                'transaction_type' => $record->transaction_type,
-                'transaction_type_text' => $record->transaction_type_text,
+                'transaction_date' => $transactionDate ? $transactionDate->toIso8601String() : null,
+                'transaction_date_jalali' => $transactionDate ? Jalalian::forge($transactionDate)->format('Y/m/d H:i:s') : null,
                 'description' => $record->description,
-                'service_month' => $record->service_month,
-                'service_year' => $record->service_year,
-                'service_date_text' => $record->service_month && $record->service_year 
-                    ? $this->getServiceDateText($record->service_month, $record->service_year) 
-                    : null,
-                'is_pending' => $record->is_pending,
-                'transaction_date' => $record->transaction_date ? $record->transaction_date->toIso8601String() : null,
-                'transaction_date_jalali' => $record->transaction_date ? Jalalian::forge($record->transaction_date)->format('Y/m/d H:i:s') : null,
-                'contract_id' => $record->building_contract_id,
-                'service_id' => $record->service_id,
-                'created_at' => $record->created_at->toIso8601String(),
-                'created_at_jalali' => Jalalian::forge($record->created_at)->format('Y/m/d H:i:s'),
+                'debit' => $record->type === BuildingFinancialRecord::TYPE_DEBIT ? $record->amount : null,
+                'credit' => $record->type === BuildingFinancialRecord::TYPE_CREDIT ? $record->amount : null,
+                'balance' => $cumulativeBalance,
+                'extra_descriptions' => $record->extra_descriptions,
             ];
         });
+
+        // Reverse to show newest first in the table
+        $formattedRecords = $formattedRecords->reverse()->values();
+
+        // Calculate balance (for summary)
+        $balance = BuildingFinancialRecord::calculateBalance($building->id);
+        $pendingAmount = BuildingFinancialRecord::calculatePendingAmount($building->id);
 
         // Calculate totals
         $totalDebits = $records->where('type', BuildingFinancialRecord::TYPE_DEBIT)->sum('amount');
         $totalCredits = $records->where('type', BuildingFinancialRecord::TYPE_CREDIT)->sum('amount');
-        $totalPendingDebits = $records->where('type', BuildingFinancialRecord::TYPE_DEBIT)
-            ->where('is_pending', true)
-            ->sum('amount');
 
         return response()->json([
             'success' => true,
@@ -112,6 +112,7 @@ class FinancialDashboardController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'transaction_type' => 'required|in:manual_income,manual_payment',
             'description' => 'nullable|string|max:1000',
+            'extra_descriptions' => 'nullable|string|max:2000',
             'transaction_date' => 'nullable|date',
         ], [
             'type.required' => 'نوع تراکنش الزامی است',
@@ -141,7 +142,7 @@ class FinancialDashboardController extends Controller
             'amount' => $request->amount,
             'transaction_type' => $request->transaction_type,
             'description' => $request->description ?? ($request->type === 'credit' ? 'دریافت وجه از ساختمان' : 'پرداخت به ساختمان'),
-            'is_pending' => false, // Manual transactions are not pending
+            'extra_descriptions' => $request->extra_descriptions,
             'transaction_date' => $transactionDate,
         ]);
 
@@ -150,46 +151,6 @@ class FinancialDashboardController extends Controller
             'message' => 'تراکنش مالی با موفقیت ثبت شد',
             'data' => $record
         ], 201);
-    }
-
-    /**
-     * Update pending status of a financial record (mark as paid)
-     */
-    public function updatePendingStatus(Request $request, $recordId)
-    {
-        $user = auth('organization_api')->user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }
-
-        $record = BuildingFinancialRecord::whereHas('building', function ($q) use ($user) {
-                $q->where('organization_id', $user->organization_id);
-            })
-            ->findOrFail($recordId);
-
-        $validator = Validator::make($request->all(), [
-            'is_pending' => 'required|boolean',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $record->is_pending = $request->is_pending;
-        if (!$request->is_pending) {
-            $record->transaction_date = now();
-        }
-        $record->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => $request->is_pending ? 'وضعیت به در انتظار پرداخت تغییر یافت' : 'وضعیت به پرداخت شده تغییر یافت',
-            'data' => $record
-        ]);
     }
 
     /**

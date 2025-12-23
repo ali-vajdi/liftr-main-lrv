@@ -13,23 +13,16 @@ class BuildingFinancialRecord extends Model
     protected $fillable = [
         'building_id',
         'building_contract_id',
-        'service_id',
-        'payment_period_id',
         'type',
         'amount',
         'transaction_type',
         'description',
-        'service_month',
-        'service_year',
-        'is_pending',
+        'extra_descriptions',
         'transaction_date',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
-        'service_month' => 'integer',
-        'service_year' => 'integer',
-        'is_pending' => 'boolean',
         'transaction_date' => 'datetime',
     ];
 
@@ -55,15 +48,6 @@ class BuildingFinancialRecord extends Model
         return $this->belongsTo(BuildingContract::class);
     }
 
-    public function service()
-    {
-        return $this->belongsTo(Service::class);
-    }
-
-    public function paymentPeriod()
-    {
-        return $this->belongsTo(PaymentPeriod::class);
-    }
 
     // Accessors
     public function getTypeTextAttribute()
@@ -86,17 +70,16 @@ class BuildingFinancialRecord extends Model
 
     /**
      * Calculate building balance
+     * All records are considered paid (no pending status)
      */
     public static function calculateBalance($buildingId)
     {
         $debits = self::where('building_id', $buildingId)
             ->where('type', self::TYPE_DEBIT)
-            ->where('is_pending', false)
             ->sum('amount');
         
         $credits = self::where('building_id', $buildingId)
             ->where('type', self::TYPE_CREDIT)
-            ->where('is_pending', false)
             ->sum('amount');
         
         return $credits - $debits; // Positive means building owes, negative means building has credit
@@ -104,14 +87,10 @@ class BuildingFinancialRecord extends Model
 
     /**
      * Calculate pending amount
+     * Since is_pending is removed, this always returns 0
      */
     public static function calculatePendingAmount($buildingId)
     {
-        $pendingDebits = self::where('building_id', $buildingId)
-            ->where('type', self::TYPE_DEBIT)
-            ->where('is_pending', true)
-            ->sum('amount');
-        
-        return $pendingDebits;
+        return 0;
     }
 }

@@ -280,11 +280,11 @@ function getPaymentMethodText(contract) {
         if (contract.payment_method === 'custom') {
             // Build custom payment method text from fields
             const timingTexts = {
-                'after_service': 'بعد از انجام سرویس',
-                'before_service': 'قبل از انجام سرویس',
-                'at_contract_time': 'زمان عقد قرارداد'
-            };
-            
+        'after_service': 'بعد از انجام سرویس',
+        'before_service': 'قبل از انجام سرویس',
+        'at_contract_time': 'زمان عقد قرارداد'
+    };
+    
             const timing = timingTexts[contract.payment_timing] || contract.payment_timing;
             // payment_frequency_type is removed, system always uses monthly (services per period)
             const frequencyValue = parseInt(contract.payment_frequency_value) || 0;
@@ -292,9 +292,9 @@ function getPaymentMethodText(contract) {
             // System always uses monthly frequency (services per period)
             if (frequencyValue == 1) {
                 return `ماهانه ${timing}`;
-            } else {
+        } else {
                 return `${frequencyValue} ماه یکبار ${timing}`;
-            }
+        }
         }
         
         return methods[contract.payment_method] || 'نامشخص';

@@ -210,11 +210,16 @@ class BuildingContract extends Model
      */
     public function createFinancialRecordForPeriod(PaymentPeriod $period)
     {
+        // Create description for the period
+        $description = $period->payment_timing === 'before_service' 
+            ? "پرداخت بابت دوره {$period->period_number} - قبل از انجام سرویس"
+            : "پرداخت بابت دوره {$period->period_number} - بعد از انجام سرویس";
+
         // Check if financial record already exists for this period
         $existingRecord = BuildingFinancialRecord::where('building_id', $this->building_id)
             ->where('building_contract_id', $this->id)
-            ->where('payment_period_id', $period->id)
             ->where('transaction_type', BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT)
+            ->where('description', $description)
             ->first();
 
         // Calculate amount excluding expired services
@@ -285,10 +290,14 @@ class BuildingContract extends Model
             }
 
             // Check if this period already has a financial record
+            $description = $period->payment_timing === 'before_service' 
+                ? "پرداخت بابت دوره {$period->period_number} - قبل از انجام سرویس"
+                : "پرداخت بابت دوره {$period->period_number} - بعد از انجام سرویس";
+            
             $hasRecord = BuildingFinancialRecord::where('building_id', $this->building_id)
                 ->where('building_contract_id', $this->id)
-                ->where('payment_period_id', $period->id)
                 ->where('transaction_type', BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT)
+                ->where('description', $description)
                 ->exists();
             
             if ($hasRecord) {
@@ -324,10 +333,14 @@ class BuildingContract extends Model
         // Find the last period that has a financial record
         $lastPeriodWithRecord = null;
         foreach ($allPeriods as $period) {
+            $description = $period->payment_timing === 'before_service' 
+                ? "پرداخت بابت دوره {$period->period_number} - قبل از انجام سرویس"
+                : "پرداخت بابت دوره {$period->period_number} - بعد از انجام سرویس";
+            
             $hasRecord = BuildingFinancialRecord::where('building_id', $this->building_id)
                 ->where('building_contract_id', $this->id)
-                ->where('payment_period_id', $period->id)
                 ->where('transaction_type', BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT)
+                ->where('description', $description)
                 ->exists();
             
             if ($hasRecord) {
@@ -381,10 +394,14 @@ class BuildingContract extends Model
                 }
 
                 // Check if this period already has a record
+                $description = $period->payment_timing === 'before_service' 
+                    ? "پرداخت بابت دوره {$period->period_number} - قبل از انجام سرویس"
+                    : "پرداخت بابت دوره {$period->period_number} - بعد از انجام سرویس";
+                
                 $nextHasRecord = BuildingFinancialRecord::where('building_id', $this->building_id)
                     ->where('building_contract_id', $this->id)
-                    ->where('payment_period_id', $period->id)
                     ->where('transaction_type', BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT)
+                    ->where('description', $description)
                     ->exists();
                 
                 if ($nextHasRecord) {

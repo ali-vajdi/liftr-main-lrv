@@ -730,39 +730,24 @@ class ServiceController extends Controller
         // Check if financial record already exists for this period
         $existingRecord = BuildingFinancialRecord::where('building_id', $service->building_id)
             ->where('building_contract_id', $contract->id)
-            ->where('payment_period_id', $paymentPeriod->id)
             ->where('transaction_type', BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT)
+            ->where('description', 'like', "%دوره {$paymentPeriod->period_number}%")
             ->first();
-
-        // Get first service in period for date reference
-        $firstService = $allServicesInPeriod->sortBy(function ($s) {
-            return $s->service_year * 12 + $s->service_month;
-        })->first();
 
         if ($existingRecord) {
             // Update existing record
             $existingRecord->update([
                 'amount' => $totalAmount,
-                'is_pending' => true,
-                'payment_period_id' => $paymentPeriod->id,
-                'service_id' => $firstService ? $firstService->id : null,
-                'service_month' => $firstService ? $firstService->service_month : null,
-                'service_year' => $firstService ? $firstService->service_year : null,
             ]);
         } else {
             // Create new financial record (debit - building owes money)
             BuildingFinancialRecord::create([
                 'building_id' => $service->building_id,
                 'building_contract_id' => $contract->id,
-                'payment_period_id' => $paymentPeriod->id,
-                'service_id' => $firstService ? $firstService->id : null,
                 'type' => BuildingFinancialRecord::TYPE_DEBIT,
                 'amount' => $totalAmount,
                 'transaction_type' => BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT,
                 'description' => "پرداخت بابت دوره {$paymentPeriod->period_number} - بعد از انجام سرویس",
-                'service_month' => $firstService ? $firstService->service_month : null,
-                'service_year' => $firstService ? $firstService->service_year : null,
-                'is_pending' => true,
                 'transaction_date' => now(),
             ]);
         }

@@ -167,7 +167,6 @@ Route::prefix('organization')->name('organization.')->group(function () {
         // Financial Dashboard API
         Route::get('buildings/{building}/financial-dashboard', [\App\Http\Controllers\Api\Organization\FinancialDashboardController::class, 'index']);
         Route::post('buildings/{building}/financial-transactions', [\App\Http\Controllers\Api\Organization\FinancialDashboardController::class, 'addTransaction']);
-        Route::post('financial-records/{record}/pending-status', [\App\Http\Controllers\Api\Organization\FinancialDashboardController::class, 'updatePendingStatus']);
         
         // Organization Elevators API
         Route::apiResource('buildings.elevators', OrgElevatorController::class);
