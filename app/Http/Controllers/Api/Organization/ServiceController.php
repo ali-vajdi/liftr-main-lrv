@@ -104,7 +104,7 @@ class ServiceController extends Controller
         $currentMonth = $currentJalali->getMonth();
 
         // Mark expired services for services without contracts (legacy services)
-        Service::whereHas('building', function ($q) use ($organizationId) {
+        $expiredServices = Service::whereHas('building', function ($q) use ($organizationId) {
                 $q->where('organization_id', $organizationId);
             })
             ->whereNull('building_contract_id') // Only expire services without contracts
@@ -117,11 +117,20 @@ class ServiceController extends Controller
                           ->where('service_month', '<', $currentMonth);
                     });
             })
-            ->update([
+            ->get();
+
+        foreach ($expiredServices as $service) {
+            $service->update([
                 'status' => Service::STATUS_EXPIRED,
                 'technician_id' => null,
                 'assigned_at' => null,
             ]);
+            
+            // Create financial record for expired service (only if has contract)
+            if ($service->building_contract_id) {
+                $this->createFinancialRecordForExpiredOrCancelledService($service, 'expired');
+            }
+        }
     }
 
     /**
@@ -784,6 +793,11 @@ class ServiceController extends Controller
 
         // Reload service with relationships
         $service->load(['buildingContract', 'paymentPeriod']);
+
+        // Create financial record for cancelled service
+        if ($service->building_contract_id) {
+            $this->createFinancialRecordForExpiredOrCancelledService($service, 'cancelled');
+        }
 
         // Handle financial records based on contract payment timing
         $this->handleServiceFinancialRecord($service);
@@ -1781,29 +1795,136 @@ class ServiceController extends Controller
     }
 
     /**
+     * Get Persian month name
+     */
+    private function getMonthName($month)
+    {
+        $monthNames = [
+            1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
+            5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
+            9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
+        ];
+        return $monthNames[$month] ?? $month;
+    }
+
+    /**
+     * Create description from services (for periods)
+     */
+    private function createDescriptionFromServices($services)
+    {
+        $serviceDescriptions = $services->map(function ($s) {
+            $monthName = $this->getMonthName($s->service_month);
+            return "{$monthName} {$s->service_year}";
+        })->unique()->sort()->values();
+
+        if ($serviceDescriptions->isEmpty()) {
+            return 'از بابت سرویس';
+        }
+
+        return 'از بابت سرویس ' . $serviceDescriptions->implode('، ');
+    }
+
+    /**
+     * Create financial record for expired or cancelled service
+     */
+    private function createFinancialRecordForExpiredOrCancelledService(Service $service, $type = 'expired')
+    {
+        if (!$service->building_contract_id) {
+            return; // Only for services with contracts
+        }
+
+        $monthName = $this->getMonthName($service->service_month);
+        $description = "از بابت سرویس {$monthName}";
+        
+        $extraDescriptions = $type === 'expired' 
+            ? 'از بابت مراجعه نکردن به سرویس و گذشت سررسید مراجعه'
+            : "از بابت کنسل کردن سرویس {$monthName}";
+
+        // Check if record already exists
+        $existingRecord = BuildingFinancialRecord::where('building_id', $service->building_id)
+            ->where('building_contract_id', $service->building_contract_id)
+            ->where('transaction_type', BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT)
+            ->where('description', $description)
+            ->where('amount', 0)
+            ->where('extra_descriptions', $extraDescriptions)
+            ->first();
+
+        if (!$existingRecord) {
+            BuildingFinancialRecord::create([
+                'building_id' => $service->building_id,
+                'building_contract_id' => $service->building_contract_id,
+                'type' => BuildingFinancialRecord::TYPE_DEBIT,
+                'amount' => 0,
+                'transaction_type' => BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT,
+                'description' => $description,
+                'extra_descriptions' => $extraDescriptions,
+                'transaction_date' => now(),
+            ]);
+        }
+    }
+
+    /**
      * Handle after_service payment timing - create record for current period
      */
     private function handleAfterServicePeriod(Service $service, $contract, $paymentPeriod, $allServicesInPeriod)
     {
-        // Calculate total amount for completed services only (not cancelled)
+        // Separate services by status
         $completedServices = $allServicesInPeriod->filter(function ($s) {
             return $s->status === Service::STATUS_COMPLETED;
         });
 
+        $cancelledServices = $allServicesInPeriod->filter(function ($s) {
+            return $s->status === Service::STATUS_CANCELLED;
+        });
+
+        // Create records for cancelled services with zero amount
+        foreach ($cancelledServices as $cancelledService) {
+            $monthName = $this->getMonthName($cancelledService->service_month);
+            $description = "از بابت سرویس {$monthName}";
+            $extraDescriptions = "از بابت کنسل کردن سرویس {$monthName}";
+
+            $existingRecord = BuildingFinancialRecord::where('building_id', $service->building_id)
+                ->where('building_contract_id', $contract->id)
+                ->where('transaction_type', BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT)
+                ->where('description', $description)
+                ->where('amount', 0)
+                ->where('extra_descriptions', $extraDescriptions)
+                ->first();
+
+            if (!$existingRecord) {
+                BuildingFinancialRecord::create([
+                    'building_id' => $service->building_id,
+                    'building_contract_id' => $contract->id,
+                    'type' => BuildingFinancialRecord::TYPE_DEBIT,
+                    'amount' => 0,
+                    'transaction_type' => BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT,
+                    'description' => $description,
+                    'extra_descriptions' => $extraDescriptions,
+                    'transaction_date' => now(),
+                ]);
+            }
+        }
+
+        // Calculate total amount for completed services only
         $totalAmount = $completedServices->sum('monthly_amount');
 
         if ($totalAmount <= 0) {
             return; // No amount to record
         }
 
-        // Update payment period amount
-        $paymentPeriod->calculateAmount();
+        // Create description from all services (completed + cancelled) for the period
+        $allServicesForDescription = $allServicesInPeriod->filter(function ($s) {
+            return in_array($s->status, [Service::STATUS_COMPLETED, Service::STATUS_CANCELLED]);
+        });
+        
+        $description = $this->createDescriptionFromServices($allServicesForDescription);
 
         // Check if financial record already exists for this period
         $existingRecord = BuildingFinancialRecord::where('building_id', $service->building_id)
             ->where('building_contract_id', $contract->id)
             ->where('transaction_type', BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT)
-            ->where('description', 'like', "%دوره {$paymentPeriod->period_number}%")
+            ->where('description', $description)
+            ->where('amount', '>', 0)
             ->first();
 
         if ($existingRecord) {
@@ -1819,7 +1940,7 @@ class ServiceController extends Controller
                 'type' => BuildingFinancialRecord::TYPE_DEBIT,
                 'amount' => $totalAmount,
                 'transaction_type' => BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT,
-                'description' => "پرداخت بابت دوره {$paymentPeriod->period_number} - بعد از انجام سرویس",
+                'description' => $description,
                 'transaction_date' => now(),
             ]);
         }

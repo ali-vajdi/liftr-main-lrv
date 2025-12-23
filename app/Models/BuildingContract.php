@@ -108,6 +108,8 @@ class BuildingContract extends Model
                 // Update existing service expiration status if needed
                 if ($isExpired && $existingService->status !== Service::STATUS_EXPIRED) {
                     $existingService->update(['status' => Service::STATUS_EXPIRED]);
+                    // Create financial record for expired service
+                    $this->createFinancialRecordForExpiredOrCancelledService($existingService, 'expired');
                 }
             }
 
@@ -206,66 +208,159 @@ class BuildingContract extends Model
     }
 
     /**
+     * Get Persian month name
+     */
+    private function getMonthName($month)
+    {
+        $monthNames = [
+            1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
+            5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
+            9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
+        ];
+        return $monthNames[$month] ?? $month;
+    }
+
+    /**
+     * Create description from services (for periods)
+     */
+    private function createDescriptionFromServices($services)
+    {
+        $serviceDescriptions = $services->map(function ($s) {
+            $monthName = $this->getMonthName($s->service_month);
+            return "{$monthName} {$s->service_year}";
+        })->unique()->sort()->values();
+
+        if ($serviceDescriptions->isEmpty()) {
+            return 'از بابت سرویس';
+        }
+
+        return 'از بابت سرویس ' . $serviceDescriptions->implode('، ');
+    }
+
+    /**
      * Create financial record for a payment period
      */
     public function createFinancialRecordForPeriod(PaymentPeriod $period)
     {
-        // Create description for the period
-        $description = $period->payment_timing === 'before_service' 
-            ? "پرداخت بابت دوره {$period->period_number} - قبل از انجام سرویس"
-            : "پرداخت بابت دوره {$period->period_number} - بعد از انجام سرویس";
+        // Get all services in period (excluding expired)
+        $nonExpiredServices = $period->services()->where('status', '!=', Service::STATUS_EXPIRED)->get();
+        
+        // Separate completed and cancelled services
+        $completedServices = $nonExpiredServices->filter(function ($s) {
+            return $s->status === Service::STATUS_COMPLETED;
+        });
+        
+        $cancelledServices = $nonExpiredServices->filter(function ($s) {
+            return $s->status === Service::STATUS_CANCELLED;
+        });
+
+        // Create records for cancelled services with zero amount
+        foreach ($cancelledServices as $cancelledService) {
+            $monthName = $this->getMonthName($cancelledService->service_month);
+            $description = "از بابت سرویس {$monthName}";
+            $extraDescriptions = "از بابت کنسل کردن سرویس {$monthName}";
+
+            $existingRecord = BuildingFinancialRecord::where('building_id', $this->building_id)
+                ->where('building_contract_id', $this->id)
+                ->where('transaction_type', BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT)
+                ->where('description', $description)
+                ->where('amount', 0)
+                ->where('extra_descriptions', $extraDescriptions)
+                ->first();
+
+            if (!$existingRecord) {
+                BuildingFinancialRecord::create([
+                    'building_id' => $this->building_id,
+                    'building_contract_id' => $this->id,
+                    'type' => BuildingFinancialRecord::TYPE_DEBIT,
+                    'amount' => 0,
+                    'transaction_type' => BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT,
+                    'description' => $description,
+                    'extra_descriptions' => $extraDescriptions,
+                    'transaction_date' => now(),
+                ]);
+            }
+        }
+
+        // Calculate amount from completed services only
+        $amount = $completedServices->sum('monthly_amount');
+
+        if ($amount <= 0) {
+            return null; // No amount to record
+        }
+
+        // Create description from all services (completed + cancelled) for the period
+        $allServicesForDescription = $nonExpiredServices->filter(function ($s) {
+            return in_array($s->status, [Service::STATUS_COMPLETED, Service::STATUS_CANCELLED]);
+        });
+        
+        $description = $this->createDescriptionFromServices($allServicesForDescription);
 
         // Check if financial record already exists for this period
         $existingRecord = BuildingFinancialRecord::where('building_id', $this->building_id)
             ->where('building_contract_id', $this->id)
             ->where('transaction_type', BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT)
             ->where('description', $description)
+            ->where('amount', '>', 0)
             ->first();
-
-        // Calculate amount excluding expired services
-        $nonExpiredServices = $period->services()->where('status', '!=', Service::STATUS_EXPIRED)->get();
-        $amount = $nonExpiredServices->sum('monthly_amount');
-
-        if ($amount <= 0) {
-            return null; // No amount to record
-        }
-
-        // Get first non-expired service in period for date reference
-        $firstService = $nonExpiredServices->sortBy(function ($s) {
-            return $s->service_year * 12 + $s->service_month;
-        })->first();
 
         if ($existingRecord) {
             // Update existing record
             $existingRecord->update([
                 'amount' => $amount,
-                'is_pending' => $period->payment_timing === 'before_service' ? true : false,
-                'service_id' => $firstService ? $firstService->id : null,
-                'service_month' => $firstService ? $firstService->service_month : null,
-                'service_year' => $firstService ? $firstService->service_year : null,
             ]);
             return $existingRecord;
         }
 
         // Create new financial record
-        $description = $period->payment_timing === 'before_service' 
-            ? "پرداخت بابت دوره {$period->period_number} - قبل از انجام سرویس"
-            : "پرداخت بابت دوره {$period->period_number} - بعد از انجام سرویس";
-
         return BuildingFinancialRecord::create([
             'building_id' => $this->building_id,
             'building_contract_id' => $this->id,
-            'payment_period_id' => $period->id,
-            'service_id' => $firstService ? $firstService->id : null,
             'type' => BuildingFinancialRecord::TYPE_DEBIT,
             'amount' => $amount,
             'transaction_type' => BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT,
             'description' => $description,
-            'service_month' => $firstService ? $firstService->service_month : null,
-            'service_year' => $firstService ? $firstService->service_year : null,
-            'is_pending' => $period->payment_timing === 'before_service' ? true : false,
             'transaction_date' => now(),
         ]);
+    }
+
+    /**
+     * Create financial record for expired or cancelled service
+     */
+    private function createFinancialRecordForExpiredOrCancelledService(Service $service, $type = 'expired')
+    {
+        if (!$service->building_contract_id) {
+            return; // Only for services with contracts
+        }
+
+        $monthName = $this->getMonthName($service->service_month);
+        $description = "از بابت سرویس {$monthName}";
+        
+        $extraDescriptions = $type === 'expired' 
+            ? 'از بابت مراجعه نکردن به سرویس و گذشت سررسید مراجعه'
+            : "از بابت کنسل کردن سرویس {$monthName}";
+
+        // Check if record already exists
+        $existingRecord = BuildingFinancialRecord::where('building_id', $service->building_id)
+            ->where('building_contract_id', $service->building_contract_id)
+            ->where('transaction_type', BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT)
+            ->where('description', $description)
+            ->where('amount', 0)
+            ->where('extra_descriptions', $extraDescriptions)
+            ->first();
+
+        if (!$existingRecord) {
+            BuildingFinancialRecord::create([
+                'building_id' => $service->building_id,
+                'building_contract_id' => $service->building_contract_id,
+                'type' => BuildingFinancialRecord::TYPE_DEBIT,
+                'amount' => 0,
+                'transaction_type' => BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT,
+                'description' => $description,
+                'extra_descriptions' => $extraDescriptions,
+                'transaction_date' => now(),
+            ]);
+        }
     }
 
     /**
@@ -290,9 +385,12 @@ class BuildingContract extends Model
             }
 
             // Check if this period already has a financial record
-            $description = $period->payment_timing === 'before_service' 
-                ? "پرداخت بابت دوره {$period->period_number} - قبل از انجام سرویس"
-                : "پرداخت بابت دوره {$period->period_number} - بعد از انجام سرویس";
+            // Create description from services in this period
+            $allServicesForDescription = $nonExpiredServices->filter(function ($s) {
+                return in_array($s->status, [Service::STATUS_COMPLETED, Service::STATUS_CANCELLED, Service::STATUS_PENDING, Service::STATUS_ASSIGNED]);
+            });
+            
+            $description = $this->createDescriptionFromServices($allServicesForDescription);
             
             $hasRecord = BuildingFinancialRecord::where('building_id', $this->building_id)
                 ->where('building_contract_id', $this->id)
@@ -333,9 +431,16 @@ class BuildingContract extends Model
         // Find the last period that has a financial record
         $lastPeriodWithRecord = null;
         foreach ($allPeriods as $period) {
-            $description = $period->payment_timing === 'before_service' 
-                ? "پرداخت بابت دوره {$period->period_number} - قبل از انجام سرویس"
-                : "پرداخت بابت دوره {$period->period_number} - بعد از انجام سرویس";
+            // Create description from services in this period
+            $nonExpiredServices = $period->services->filter(function ($s) {
+                return $s->status !== Service::STATUS_EXPIRED;
+            });
+            
+            $allServicesForDescription = $nonExpiredServices->filter(function ($s) {
+                return in_array($s->status, [Service::STATUS_COMPLETED, Service::STATUS_CANCELLED, Service::STATUS_PENDING, Service::STATUS_ASSIGNED]);
+            });
+            
+            $description = $this->createDescriptionFromServices($allServicesForDescription);
             
             $hasRecord = BuildingFinancialRecord::where('building_id', $this->building_id)
                 ->where('building_contract_id', $this->id)
@@ -394,9 +499,16 @@ class BuildingContract extends Model
                 }
 
                 // Check if this period already has a record
-                $description = $period->payment_timing === 'before_service' 
-                    ? "پرداخت بابت دوره {$period->period_number} - قبل از انجام سرویس"
-                    : "پرداخت بابت دوره {$period->period_number} - بعد از انجام سرویس";
+                // Create description from services in this period
+                $nextNonExpiredServices = $period->services->filter(function ($s) {
+                    return $s->status !== Service::STATUS_EXPIRED;
+                });
+                
+                $allServicesForDescription = $nextNonExpiredServices->filter(function ($s) {
+                    return in_array($s->status, [Service::STATUS_COMPLETED, Service::STATUS_CANCELLED, Service::STATUS_PENDING, Service::STATUS_ASSIGNED]);
+                });
+                
+                $description = $this->createDescriptionFromServices($allServicesForDescription);
                 
                 $nextHasRecord = BuildingFinancialRecord::where('building_id', $this->building_id)
                     ->where('building_contract_id', $this->id)
