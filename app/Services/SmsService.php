@@ -978,6 +978,57 @@ class SmsService
     }
 
     /**
+     * Send organization user welcome SMS with credentials (new pattern)
+     *
+     * @param Organization $organization
+     * @param string $phoneNumber
+     * @param string $userName
+     * @param string $username Username (typically phone number)
+     * @param string $password
+     * @param bool $queue Whether to queue the SMS sending
+     * @return array
+     */
+    public function sendOrganizationUserWelcomeNewSms(Organization $organization, string $phoneNumber, string $userName, string $username, string $password, bool $queue = false): array
+    {
+        $patternKey = 'organization_user_welcome_new';
+        $pattern = SmsPattern::getPattern($patternKey);
+        
+        if (!$pattern) {
+            return [
+                'success' => false,
+                'message' => 'الگوی پیامک یافت نشد',
+                'error' => 'Organization user welcome new pattern not found'
+            ];
+        }
+
+        $patternCode = SmsPattern::getPatternCode($patternKey);
+        if (!$patternCode) {
+            return [
+                'success' => false,
+                'message' => 'کد الگوی پیامک یافت نشد',
+                'error' => 'Pattern code not found'
+            ];
+        }
+        
+        $fillData = [
+            'user_name' => $userName,
+            'organization_name' => $organization->name,
+            'username' => $username,
+            'password' => $password,
+        ];
+
+        // Use internal pattern key for proper lookup in sendPatternSms
+        return $this->sendPatternSmsWithKey(
+            $organization,
+            $patternKey,
+            $patternCode,
+            $fillData,
+            $phoneNumber,
+            $queue
+        );
+    }
+
+    /**
      * Send technician welcome SMS without password
      *
      * @param Organization $organization

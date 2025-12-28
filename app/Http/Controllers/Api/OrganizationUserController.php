@@ -5,13 +5,21 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\OrganizationUser;
 use App\Models\Organization;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Morilog\Jalali\Jalalian;
 
 class OrganizationUserController extends Controller
 {
+    protected $smsService;
+
+    public function __construct(SmsService $smsService)
+    {
+        $this->smsService = $smsService;
+    }
 
     public function index(Request $request, $organizationId)
     {
@@ -108,7 +116,30 @@ class OrganizationUserController extends Controller
         $data['moderator_id'] = Auth::id();
         $data['status'] = $data['status'] === 'true' || $data['status'] === true;
 
+        // Store plain password before hashing (for SMS)
+        $plainPassword = $data['password'] ?? null;
+
         $user = OrganizationUser::create($data);
+
+        // Send SMS with user credentials if password is provided
+        if ($plainPassword) {
+            $smsResult = $this->smsService->sendOrganizationUserWelcomeNewSms(
+                $organization,
+                $user->phone_number,
+                $user->name,
+                $user->phone_number, // Using phone_number as username
+                $plainPassword,
+                true // Use queue
+            );
+
+            if (!$smsResult['success']) {
+                Log::error('Organization user welcome SMS failed', [
+                    'user_id' => $user->id,
+                    'phone_number' => $user->phone_number,
+                    'error' => $smsResult['error'] ?? 'Unknown error',
+                ]);
+            }
+        }
 
         return response()->json([
             'message' => 'کاربر شرکت با موفقیت ایجاد شد',

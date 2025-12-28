@@ -149,6 +149,13 @@ class SmsPattern
             'description' => 'اعلام تکمیل چک لیست سرویس به مدیر ساختمان',
             'required_fields' => ['building_name', 'date_value', 'organization_name', 'url_value'],
         ],
+        'organization_user_welcome_new' => [
+            'code' => 'id006kyqrukh0xm',
+            'farazsms_code' => 'id006kyqrukh0xm',
+            'text' => 'همكار گرامي {user_name}' . "\n\n" . 'به خانواده ليفتر خوش آمديد.' . "\n\n" . 'ثبت نام شركت {organization_name} تاييد گرديد.' . "\n\n" . 'اكنون مي توانيد با مراجعه به لينك زير وارد حساب كاربري خود شويد .' . "\n\n" . 'نام کاربری:{username}' . "\n\n" . 'رمزعبور:{password}' . "\n\n" . 'app.liftr.ir',
+            'description' => 'خوش‌آمدگویی کاربر سازمان جدید',
+            'required_fields' => ['user_name', 'organization_name', 'username', 'password'],
+        ],
     ];
 
     /**
