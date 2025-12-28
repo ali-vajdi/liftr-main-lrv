@@ -1176,10 +1176,12 @@ class ServiceController extends Controller
             });
         }
 
+        $perPage = $request->has('per_page') ? (int)$request->per_page : 10;
+        
         $services = $query->orderBy('service_year', 'desc')
             ->orderBy('service_month', 'desc')
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate($perPage);
 
         // Add formatted data with full details
         $items = collect($services->items())->map(function ($service) {
