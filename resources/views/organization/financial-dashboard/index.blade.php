@@ -11,12 +11,19 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">داشبورد مالی</h5>
                         <div>
-                            <button type="button" class="btn btn-success btn-sm mr-2" id="addTransactionBtn">
+                            <button type="button" class="btn btn-success btn-sm mr-2" id="addPaymentBtn">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="12" y1="5" x2="12" y2="19"></line>
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                افزودن تراکنش
+                                فرم پرداختی های ساختمان
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm mr-2" id="addExpenseBtn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                فرم هزینه قطعات و خرابی ها
                             </button>
                             <a href="{{ route('organization.buildings.view') }}" class="btn btn-primary btn-sm">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -114,47 +121,76 @@
     </div>
 </div>
 
-<!-- Add Transaction Modal -->
-<div class="modal fade" id="addTransactionModal" tabindex="-1" role="dialog">
+<!-- Add Payment Modal (Credit) -->
+<div class="modal fade" id="addPaymentModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">افزودن تراکنش مالی</h5>
+                <h5 class="modal-title">فرم پرداختی های ساختمان</h5>
                 <button type="button" class="close" data-dismiss="modal">
                     <span>&times;</span>
                 </button>
             </div>
-            <form id="addTransactionForm">
+            <form id="addPaymentForm">
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="transaction_type">نوع تراکنش <span class="text-danger">*</span></label>
-                        <select class="form-control" id="transaction_type" name="transaction_type" required>
-                            <option value="">انتخاب کنید</option>
-                            <option value="manual_income">درآمد دستی (پرداخت از ساختمان)</option>
-                            <option value="manual_payment">پرداخت دستی (پرداخت به ساختمان)</option>
-                        </select>
+                        <label for="payment_date">تاریخ <span class="text-danger">*</span></label>
+                        <input data-jdp-only-date="true" type="text" class="form-control" id="payment_date" name="transaction_date" required>
                     </div>
                     <div class="form-group">
-                        <label for="transaction_amount">مبلغ <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="transaction_amount" name="amount" min="0.01" step="0.01" required>
+                        <label for="payment_description">شرح <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="payment_description" name="description" required>
                     </div>
                     <div class="form-group">
-                        <label for="transaction_description">توضیحات</label>
-                        <textarea class="form-control" id="transaction_description" name="description" rows="3"></textarea>
+                        <label for="payment_amount">مبلغ پرداختی <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="payment_amount" name="amount" min="0.01" step="0.01" required>
                     </div>
                     <div class="form-group">
-                        <label for="transaction_extra_descriptions">توضیحات بیشتر</label>
-                        <textarea class="form-control" id="transaction_extra_descriptions" name="extra_descriptions" rows="3"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="transaction_date">تاریخ تراکنش</label>
-                        <input type="date" class="form-control" id="transaction_date" name="transaction_date">
-                        <small class="form-text text-muted">در صورت خالی بودن، تاریخ امروز استفاده می‌شود</small>
+                        <label for="payment_extra_descriptions">توضیحات اضافه</label>
+                        <textarea class="form-control" id="payment_extra_descriptions" name="extra_descriptions" rows="3"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
-                    <button type="submit" class="btn btn-primary">ذخیره</button>
+                    <button type="submit" class="btn btn-success">ذخیره</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Expense Modal (Debit) -->
+<div class="modal fade" id="addExpenseModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">فرم هزینه قطعات و خرابی ها</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form id="addExpenseForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="expense_date">تاریخ <span class="text-danger">*</span></label>
+                        <input data-jdp-only-date="true" type="text" class="form-control" id="expense_date" name="transaction_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expense_description">شرح <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="expense_description" name="description" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expense_amount">مبلغ هزینه <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="expense_amount" name="amount" min="0.01" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expense_extra_descriptions">توضیحات اضافه</label>
+                        <textarea class="form-control" id="expense_extra_descriptions" name="extra_descriptions" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
+                    <button type="submit" class="btn btn-danger">ذخیره</button>
                 </div>
             </form>
         </div>
@@ -209,9 +245,9 @@ function loadFinancialDashboard() {
                 const balance = data.balance || 0;
                 $('#balance').text(formatCurrency(Math.abs(balance)));
                 if (balance > 0) {
-                    $('#balanceNote').text('(بدهکار)').removeClass('text-white').addClass('text-warning');
-                } else if (balance < 0) {
                     $('#balanceNote').text('(بستانکار)').removeClass('text-white').addClass('text-success');
+                } else if (balance < 0) {
+                    $('#balanceNote').text('(بدهکار)').removeClass('text-white').addClass('text-warning');
                 } else {
                     $('#balanceNote').text('(صفر)').removeClass('text-white text-warning text-success');
                 }
@@ -298,8 +334,8 @@ function renderRecordsTable(records) {
         const debitAmount = record.debit !== null ? formatCurrency(record.debit) : '-';
         const creditAmount = record.credit !== null ? formatCurrency(record.credit) : '-';
         const balanceAmount = record.balance || 0;
-        const balanceClass = balanceAmount < 0 ? 'text-danger' : (balanceAmount > 0 ? 'text-success' : '');
-        const balanceText = balanceAmount < 0 ? '(بدهکار)' : (balanceAmount > 0 ? '(بستانکار)' : '(صفر)');
+        // Red for بدهکار (negative/debtor), black for بستانکار (positive/creditor)
+        const balanceClass = balanceAmount < 0 ? 'text-danger' : '';
         
         const row = `
             <tr>
@@ -307,7 +343,7 @@ function renderRecordsTable(records) {
                 <td>${record.description || '-'}</td>
                 <td class="text-danger">${debitAmount}</td>
                 <td class="text-success">${creditAmount}</td>
-                <td class="${balanceClass}">${formatCurrency(Math.abs(balanceAmount))} ${balanceText}</td>
+                <td class="${balanceClass}">${formatCurrency(Math.abs(balanceAmount))}</td>
                 <td>${record.extra_descriptions || '-'}</td>
             </tr>
         `;
@@ -315,32 +351,95 @@ function renderRecordsTable(records) {
     });
 }
 
-// Handle add transaction button
-$('#addTransactionBtn').on('click', function() {
-    $('#addTransactionForm')[0].reset();
-    $('#addTransactionModal').modal('show');
+// Initialize Jalali DatePicker for payment form
+jalaliDatepicker.startWatch({
+    selector: '#payment_date',
+    date: true,
+    time: false,
+    hasSecond: false,
+    showSelectTimeBtnAlways: false,
+    format: 'YYYY/MM/DD',
+    separatorChars: {
+        date: '/',
+        between: ' ',
+    },
+    persianDigits: false,
+    autoShow: true,
+    autoHide: true,
+    hideAfterChange: true,
+    showTodayBtn: true,
+    showEmptyBtn: true,
+    showCloseBtn: true,
+    useDropDownYears: true,
+    container: 'body',
+    zIndex: 10000,
 });
 
-// Handle add transaction form submission
-$('#addTransactionForm').on('submit', function(e) {
+// Initialize Jalali DatePicker for expense form
+jalaliDatepicker.startWatch({
+    selector: '#expense_date',
+    date: true,
+    time: false,
+    hasSecond: false,
+    showSelectTimeBtnAlways: false,
+    format: 'YYYY/MM/DD',
+    separatorChars: {
+        date: '/',
+        between: ' ',
+    },
+    persianDigits: false,
+    autoShow: true,
+    autoHide: true,
+    hideAfterChange: true,
+    showTodayBtn: true,
+    showEmptyBtn: true,
+    showCloseBtn: true,
+    useDropDownYears: true,
+    container: 'body',
+    zIndex: 10000,
+});
+
+// Handle add payment button (Credit)
+$('#addPaymentBtn').on('click', function() {
+    $('#addPaymentForm')[0].reset();
+    $('#payment_date').val('');
+    $('#addPaymentModal').modal('show');
+});
+
+// Handle add expense button (Debit)
+$('#addExpenseBtn').on('click', function() {
+    $('#addExpenseForm')[0].reset();
+    $('#expense_date').val('');
+    $('#addExpenseModal').modal('show');
+});
+
+// Handle add payment form submission (Credit)
+$('#addPaymentForm').on('submit', function(e) {
     e.preventDefault();
     
-    const transactionType = $('#transaction_type').val();
-    const amount = parseFloat($('#transaction_amount').val());
-    const description = $('#transaction_description').val();
-    const extraDescriptions = $('#transaction_extra_descriptions').val();
-    const transactionDate = $('#transaction_date').val();
+    const transactionDate = $('#payment_date').val();
+    const description = $('#payment_description').val();
+    const amount = parseFloat($('#payment_amount').val());
+    const extraDescriptions = $('#payment_extra_descriptions').val();
     
-    // Determine type based on transaction_type
-    const type = transactionType === 'manual_income' ? 'credit' : 'debit';
+    if (!transactionDate || !description || !amount) {
+        swal({
+            title: 'خطا',
+            text: 'لطفاً فیلدهای الزامی را پر کنید',
+            type: 'error',
+            padding: '2em'
+        });
+        return;
+    }
     
+    // Send Jalali date string directly - backend will convert it
     const formData = {
-        type: type,
+        type: 'credit', // Credit for building payments
         amount: amount,
-        transaction_type: transactionType,
+        transaction_type: 'manual_income',
         description: description,
         extra_descriptions: extraDescriptions,
-        transaction_date: transactionDate || null,
+        transaction_date: transactionDate, // Send Jalali date string (Y/m/d format)
     };
     
     $.ajax({
@@ -352,7 +451,75 @@ $('#addTransactionForm').on('submit', function(e) {
         },
         success: function(response) {
             if (response.success) {
-                $('#addTransactionModal').modal('hide');
+                $('#addPaymentModal').modal('hide');
+                swal({
+                    title: 'موفقیت',
+                    text: response.message,
+                    type: 'success',
+                    padding: '2em',
+                    timer: 2000
+                });
+                loadFinancialDashboard();
+            }
+        },
+        error: function(xhr) {
+            const response = xhr.responseJSON;
+            let errorMessage = 'خطا در ثبت تراکنش';
+            if (response?.errors) {
+                const errors = Object.values(response.errors).flat();
+                errorMessage = errors.join('\n');
+            } else if (response?.message) {
+                errorMessage = response.message;
+            }
+            swal({
+                title: 'خطا',
+                text: errorMessage,
+                type: 'error',
+                padding: '2em'
+            });
+        }
+    });
+});
+
+// Handle add expense form submission (Debit)
+$('#addExpenseForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    const transactionDate = $('#expense_date').val();
+    const description = $('#expense_description').val();
+    const amount = parseFloat($('#expense_amount').val());
+    const extraDescriptions = $('#expense_extra_descriptions').val();
+    
+    if (!transactionDate || !description || !amount) {
+        swal({
+            title: 'خطا',
+            text: 'لطفاً فیلدهای الزامی را پر کنید',
+            type: 'error',
+            padding: '2em'
+        });
+        return;
+    }
+    
+    // Send Jalali date string directly - backend will convert it
+    const formData = {
+        type: 'debit', // Debit for expenses
+        amount: amount,
+        transaction_type: 'manual_payment',
+        description: description,
+        extra_descriptions: extraDescriptions,
+        transaction_date: transactionDate, // Send Jalali date string (Y/m/d format)
+    };
+    
+    $.ajax({
+        url: `/api/organization/buildings/${buildingId}/financial-transactions`,
+        type: 'POST',
+        data: formData,
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
+        },
+        success: function(response) {
+            if (response.success) {
+                $('#addExpenseModal').modal('hide');
                 swal({
                     title: 'موفقیت',
                     text: response.message,

@@ -163,9 +163,9 @@ class FinancialDashboardController extends Controller
             'type' => 'required|in:debit,credit',
             'amount' => 'required|numeric|min:0.01',
             'transaction_type' => 'required|in:manual_income,manual_payment',
-            'description' => 'nullable|string|max:1000',
+            'description' => 'required|string|max:1000',
             'extra_descriptions' => 'nullable|string|max:2000',
-            'transaction_date' => 'nullable|date',
+            'transaction_date' => 'required|string',
         ], [
             'type.required' => 'نوع تراکنش الزامی است',
             'type.in' => 'نوع تراکنش نامعتبر است',
@@ -174,6 +174,8 @@ class FinancialDashboardController extends Controller
             'amount.min' => 'مبلغ باید بیشتر از 0 باشد',
             'transaction_type.required' => 'نوع تراکنش مالی الزامی است',
             'transaction_type.in' => 'نوع تراکنش مالی نامعتبر است',
+            'description.required' => 'شرح الزامی است',
+            'transaction_date.required' => 'تاریخ الزامی است',
         ]);
 
         if ($validator->fails()) {
@@ -184,9 +186,26 @@ class FinancialDashboardController extends Controller
             ], 422);
         }
 
-        $transactionDate = $request->transaction_date 
-            ? \Carbon\Carbon::parse($request->transaction_date) 
-            : now();
+        // Convert Jalali date to Gregorian
+        $transactionDate = now();
+        if ($request->transaction_date) {
+            try {
+                // Try to parse as Jalali date (Y/m/d format)
+                $jalaliDate = Jalalian::fromFormat('Y/m/d', $request->transaction_date);
+                $transactionDate = $jalaliDate->toCarbon();
+            } catch (\Exception $e) {
+                // If Jalali parsing fails, try to parse as Gregorian date
+                try {
+                    $transactionDate = Carbon::parse($request->transaction_date);
+                } catch (\Exception $e2) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'فرمت تاریخ نامعتبر است',
+                        'errors' => ['transaction_date' => ['فرمت تاریخ نامعتبر است']]
+                    ], 422);
+                }
+            }
+        }
 
         $record = BuildingFinancialRecord::create([
             'building_id' => $building->id,

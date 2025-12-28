@@ -82,7 +82,7 @@ class BuildingFinancialRecord extends Model
             ->where('type', self::TYPE_CREDIT)
             ->sum('amount');
         
-        return $credits - $debits; // Positive means building owes, negative means building has credit
+        return $credits - $debits; // Positive means building has credit (بستانکار), negative means building owes (بدهکار)
     }
 
     /**
