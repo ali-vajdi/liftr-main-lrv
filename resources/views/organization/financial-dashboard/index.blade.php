@@ -38,6 +38,15 @@
                         </div>
                     </div>
 
+                    <!-- Contract Info -->
+                    <div id="contract-info" class="mb-4 p-3 bg-info text-white rounded" style="display: none;">
+                        <div class="text-center">
+                            <div class="spinner-border text-white" role="status">
+                                <span class="sr-only">در حال بارگذاری...</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Summary Cards -->
                     <div class="row mb-4" id="summaryCards">
                         <div class="col-md-3">
@@ -210,6 +219,9 @@ function loadFinancialDashboard() {
                 $('#totalDebits').text(formatCurrency(data.total_debits || 0));
                 $('#totalCredits').text(formatCurrency(data.total_credits || 0));
                 
+                // Render contract info
+                renderContractInfo(data.contract);
+                
                 // Render records table
                 renderRecordsTable(data.records || []);
             }
@@ -219,6 +231,56 @@ function loadFinancialDashboard() {
             $('#recordsTableBody').html('<tr><td colspan="6" class="text-center text-danger">خطا در بارگذاری داده‌ها</td></tr>');
         }
     });
+}
+
+// Render contract info
+function renderContractInfo(contract) {
+    const contractInfoDiv = $('#contract-info');
+    
+    if (!contract) {
+        contractInfoDiv.hide();
+        return;
+    }
+    
+    const paymentMethodTexts = {
+        '1': 'بعد از هر سرویس (ماهانه)',
+        '2': 'بعد از هر 2 سرویس',
+        '3': 'بعد از هر 3 سرویس',
+        '4': 'قبل از هر 3 سرویس',
+        '5': 'قبل از هر 6 سرویس',
+        '6': 'قبل از هر 12 سرویس (سالانه)',
+        'custom': 'سفارشی'
+    };
+    
+    const statusBadge = contract.is_active 
+        ? '<span class="badge badge-success">فعال</span>' 
+        : (contract.status === 'finished' 
+            ? '<span class="badge badge-warning">تمام شده</span>' 
+            : '<span class="badge badge-danger">لغو شده</span>');
+    
+    const contractTitle = contract.contract_number 
+        ? `قرارداد شماره ${contract.contract_number}` 
+        : 'قرارداد';
+    
+    const paymentMethodText = paymentMethodTexts[contract.payment_method] || 'نامشخص';
+    
+    let html = `
+        <h6 class="mb-3">${contractTitle} ${statusBadge}</h6>
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-2"><strong>تاریخ شروع:</strong> ${contract.contract_start_date_jalali || '-'}</p>
+                <p class="mb-2"><strong>تاریخ پایان:</strong> ${contract.contract_end_date_jalali || '-'}</p>
+                <p class="mb-2"><strong>مبلغ ماهیانه:</strong> ${formatCurrency(contract.monthly_amount || 0)}</p>
+            </div>
+            <div class="col-md-6">
+                <p class="mb-2"><strong>مبلغ سالیانه:</strong> ${formatCurrency(contract.annual_amount || 0)}</p>
+                <p class="mb-2"><strong>بدهی قبلی:</strong> ${formatCurrency(contract.previous_debt || 0)}</p>
+                <p class="mb-2"><strong>روش پرداخت:</strong> ${paymentMethodText}</p>
+            </div>
+        </div>
+    `;
+    
+    contractInfoDiv.html(html).show();
 }
 
 // Render records table
