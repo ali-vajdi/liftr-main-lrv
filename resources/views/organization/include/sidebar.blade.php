@@ -236,6 +236,35 @@
                 </a>
             </li>
 
+            <li class="menu {{ request()->routeIs('organization.financial.*') ? 'active' : '' }}">
+                <a href="#financial" data-toggle="collapse"
+                    aria-expanded="{{ request()->routeIs('organization.financial.*') ? 'true' : 'false' }}"
+                    class="dropdown-toggle">
+                    <div class="">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-dollar-sign">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                        <span>مالی</span>
+                    </div>
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-chevron-right">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </a>
+                <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.financial.*') ? 'show' : '' }}"
+                    id="financial" data-parent="#accordionExample">
+                    <li class="{{ request()->routeIs('organization.financial.all-debts') ? 'active' : '' }}">
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.financial.all-debts') }}">کل بدهی‌ها</a>
+                    </li>
+                </ul>
+            </li>
+
             <li class="menu {{ request()->routeIs('organization.profile') ? 'active' : '' }}">
                 <a href="{{ route('organization.profile') }}"
                     aria-expanded="{{ request()->routeIs('organization.profile') ? 'true' : 'false' }}"

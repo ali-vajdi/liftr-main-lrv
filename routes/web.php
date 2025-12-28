@@ -51,6 +51,7 @@ Route::get('/messages', [OrganizationViewController::class, 'showMessages'])->na
 Route::get('/messages/sent', [OrganizationViewController::class, 'showSentMessages'])->name('organization.messages.sent');
 Route::get('/transactions', [OrganizationViewController::class, 'showTransactions'])->name('organization.transactions.view');
 Route::get('/buildings/{building}/financial-dashboard', [OrganizationViewController::class, 'showFinancialDashboard'])->name('organization.buildings.financial-dashboard.view');
+Route::get('/financial/all-debts', [OrganizationViewController::class, 'showAllDebts'])->name('organization.financial.all-debts');
 
 // Public Routes for Buildings
 Route::get('/buildings/{building}/services', [PublicBuildingController::class, 'showServices'])->name('public.buildings.services');

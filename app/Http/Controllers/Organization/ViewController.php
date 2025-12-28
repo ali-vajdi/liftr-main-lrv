@@ -157,6 +157,12 @@ class ViewController extends Controller
         $buildingSlug = $building->slug;
         return view('organization.financial-dashboard.index', compact('buildingId', 'buildingSlug'));
     }
+
+    // All Debts View
+    public function showAllDebts()
+    {
+        return view('organization.financial.all-debts');
+    }
 }
 
 

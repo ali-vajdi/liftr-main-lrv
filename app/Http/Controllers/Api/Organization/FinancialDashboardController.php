@@ -225,6 +225,59 @@ class FinancialDashboardController extends Controller
     }
 
     /**
+     * Get all buildings with their financial summary
+     */
+    public function getAllBuildingsFinancialSummary(Request $request)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Get all buildings for this organization
+        $buildings = \App\Models\Building::where('organization_id', $user->organization_id)
+            ->orderBy('name')
+            ->get();
+
+        $buildingsData = $buildings->map(function ($building) {
+            // Calculate financial summary for each building
+            $totalDebits = BuildingFinancialRecord::where('building_id', $building->id)
+                ->where('type', BuildingFinancialRecord::TYPE_DEBIT)
+                ->sum('amount');
+
+            $totalCredits = BuildingFinancialRecord::where('building_id', $building->id)
+                ->where('type', BuildingFinancialRecord::TYPE_CREDIT)
+                ->sum('amount');
+
+            $balance = BuildingFinancialRecord::calculateBalance($building->id);
+
+            // Get building status (active contract or not)
+            $activeContract = BuildingContract::where('building_id', $building->id)
+                ->where('status', BuildingContract::STATUS_ACTIVE)
+                ->first();
+
+            $status = $activeContract ? 'فعال' : 'غیرفعال';
+
+            return [
+                'id' => $building->id,
+                'slug' => $building->slug,
+                'name' => $building->name,
+                'manager_name' => $building->manager_name,
+                'manager_phone' => $building->manager_phone,
+                'status' => $status,
+                'total_debits' => $totalDebits,
+                'total_credits' => $totalCredits,
+                'balance' => $balance,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $buildingsData
+        ]);
+    }
+
+    /**
      * Get service date text
      */
     private function getServiceDateText($month, $year)
