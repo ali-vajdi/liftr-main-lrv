@@ -120,10 +120,10 @@
                                     'formatter' => 'function(value) { return value ? value.name : "-"; }',
                                 ],
                                 [
-                                    'field' => 'service_end_date_jalali',
+                                    'field' => 'contract_end_date_jalali',
                                     'label' => 'تاریخ پایان قرارداد',
                                     'formatter' => 'function(value, row) { 
-                                        if (!value || !row.service_end_date) return "-";
+                                        if (!value || !row.contract || !row.contract.contract_end_date) return "-";
                                         if (row.days_remaining !== null && row.days_remaining !== undefined) {
                                             let badgeClass = "badge-success";
                                             if (row.days_remaining <= 7) {
@@ -157,9 +157,9 @@
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map-pin"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>\';
                                 html += \'</button>\';
                                 
-                                // Edit dates button
-                                html += \'<button type="button" class="btn btn-sm btn-primary edit-dates-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="ویرایش تاریخ قرارداد">\';
-                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>\';
+                                // Edit contract button
+                                html += \'<button type="button" class="btn btn-sm btn-primary edit-contract-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="ویرایش قرارداد">\';
+                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>\';
                                 html += \'</button>\';
                                 
                                 // Toggle status button
@@ -187,10 +187,10 @@
                                     window.onShowLocation(id);
                                 });
                                 
-                                // Handle edit dates button click
-                                $(".edit-dates-btn").on("click", function() {
+                                // Handle edit contract button click
+                                $(".edit-contract-btn").on("click", function() {
                                     const id = $(this).data("id");
-                                    window.onEditDates(id);
+                                    window.onEditContract(id);
                                 });
                                 
                                 // Handle toggle status button click
@@ -307,31 +307,115 @@
     </div>
 </div>
 
-<!-- Edit Dates Modal -->
-<div class="modal fade" id="editDatesModal" tabindex="-1" role="dialog" aria-labelledby="editDatesModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<!-- Add Contract Modal -->
+<div class="modal fade" id="addContractModal" tabindex="-1" role="dialog" aria-labelledby="addContractModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editDatesModalLabel">ویرایش تاریخ قرارداد</h5>
+                <h5 class="modal-title" id="addContractModalLabel">افزودن قرارداد جدید</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form id="editDatesForm">
-                <div class="modal-body">
-                    <input type="hidden" id="editDatesBuildingId" name="building_id">
-                    <div class="form-group">
-                        <label for="editServiceStartDate">تاریخ شروع قرارداد <span class="text-danger">*</span></label>
-                        <input data-jdp-only-date="true" type="text" class="form-control" id="editServiceStartDate" name="service_start_date" required>
+            <form id="addContractForm">
+                <div class="modal-body" style="max-height: calc(100vh - 200px); overflow-y: auto;">
+                    <input type="hidden" id="addContractBuildingId" name="building_id">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="addManagerName">نام مدیر ساختمان <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="addManagerName" name="manager_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="addManagerPhone">شماره تماس مدیر ساختمان <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="addManagerPhone" name="manager_phone" required>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="editServiceEndDate">تاریخ پایان قرارداد <span class="text-danger">*</span></label>
-                        <input data-jdp-only-date="true" type="text" class="form-control" id="editServiceEndDate" name="service_end_date" required>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="addContractStartDate">تاریخ شروع قرارداد <span class="text-danger">*</span></label>
+                                <input data-jdp-only-date="true" type="text" class="form-control" id="addContractStartDate" name="contract_start_date" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="addContractEndDate">تاریخ پایان قرارداد <span class="text-danger">*</span></label>
+                                <input data-jdp-only-date="true" type="text" class="form-control" id="addContractEndDate" name="contract_end_date" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="addContractMonthlyAmount">مبلغ ماهیانه قرارداد <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="addContractMonthlyAmount" name="monthly_amount" min="0" step="0.01" placeholder="0.00" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="addContractAnnualAmount">مبلغ سالیانه قرارداد</label>
+                                <input type="number" class="form-control" id="addContractAnnualAmount" name="annual_amount" readonly disabled>
+                                <small class="form-text text-muted">محاسبه خودکار (مبلغ ماهیانه × 12)</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="addPaymentMethod">نحوه دریافت مبلغ قرارداد <span class="text-danger">*</span></label>
+                                <select class="form-control" id="addPaymentMethod" name="payment_method" required>
+                                    <option value="">انتخاب کنید</option>
+                                    <option value="1">ماهانه بعد از انجام سرویس</option>
+                                    <option value="2">2ماه یکبار بعد از انجام سرویس</option>
+                                    <option value="3">3 ماه یکبار بعد از انجام سرویس</option>
+                                    <option value="4">3 ماه یکبار قبل از انجام سرویس</option>
+                                    <option value="5">6ماه یکبار قبل از انجام سرویس</option>
+                                    <option value="6">یکساله زمان عقد قرارداد</option>
+                                    <option value="custom">وارد کردن</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="addCustomPaymentMethodFields" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="addPaymentTiming">زمان دریافت <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="addPaymentTiming" name="payment_timing">
+                                        <option value="">انتخاب کنید</option>
+                                        <option value="after_service">بعد از انجام سرویس</option>
+                                        <option value="before_service">قبل از انجام سرویس</option>
+                                        <option value="at_contract_time">زمان عقد قرارداد</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="addPaymentFrequencyValue">تعداد سرویس در هر دوره <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="addPaymentFrequencyValue" name="payment_frequency_value" min="1" placeholder="مثال: 3 (برای 3 سرویس در هر دوره)">
+                                    <small class="form-text text-muted">تعداد سرویس‌هایی که در یک دوره پرداخت قرار می‌گیرند</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="addPreviousDebt">بدهی قبلی</label>
+                                <input type="number" class="form-control" id="addPreviousDebt" name="previous_debt" min="0" step="0.01" placeholder="0.00" value="0">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
-                    <button type="submit" class="btn btn-primary">ذخیره</button>
+                    <button type="button" class="btn btn-primary" id="saveNewContract">ذخیره</button>
                 </div>
             </form>
         </div>
@@ -371,8 +455,8 @@ window.onShow = function(id) {
                 $('#detailProvince').text(data.province ? data.province.name : '-');
                 $('#detailCity').text(data.city ? data.city.name : '-');
                 $('#detailAddress').text(data.address);
-                $('#detailServiceStartDate').text(data.service_start_date_jalali || '-');
-                $('#detailServiceEndDate').text(data.service_end_date_jalali || '-');
+                $('#detailServiceStartDate').text(data.contract_start_date_jalali || (data.contract && data.contract.contract_start_date_jalali) || '-');
+                $('#detailServiceEndDate').text(data.contract_end_date_jalali || (data.contract && data.contract.contract_end_date_jalali) || '-');
                 $('#detailLocation').text(
                     data.selected_latitude && data.selected_longitude 
                         ? `${data.selected_latitude}, ${data.selected_longitude}`
@@ -452,86 +536,166 @@ getOrganizationData(function(org, error) {
     }
 });
 
-// Edit dates function
-window.onEditDates = function(id) {
+// Edit contract function - check for active contract and pending services first
+window.onEditContract = function(id) {
+    // Check for active contract and pending services
     $.ajax({
-        url: `/api/organization/buildings/${id}`,
+        url: `/api/organization/buildings/${id}/contracts/check-pending`,
         type: 'GET',
         headers: {
             'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
         },
         success: function(response) {
             if (response.success) {
-                const data = response.data;
-                $('#editDatesBuildingId').val(id);
-                $('#editServiceStartDate').val(data.service_start_date_jalali || '');
-                $('#editServiceEndDate').val(data.service_end_date_jalali || '');
-                
-                // Initialize date pickers
-                if (typeof jalaliDatepicker !== 'undefined') {
-                    jalaliDatepicker.startWatch({
-                        selector: '#editServiceStartDate',
-                        date: true,
-                        time: false,
-                        hasSecond: false,
-                        format: 'YYYY/MM/DD',
-                        showSelectTimeBtnAlways: false,
-                        separatorChars: {
-                            date: '/',
-                            between: ' ',
-                        },
-                        persianDigits: false,
-                        autoShow: true,
-                        autoHide: true,
-                        hideAfterChange: true,
-                        showTodayBtn: true,
-                        showEmptyBtn: true,
-                        showCloseBtn: true,
-                        useDropDownYears: true,
-                        container: 'body',
-                        zIndex: 10000,
-                        maxDate: 'today'
-                    });
+                if (response.data.has_active_contract) {
+                    // There's an active contract - ask what to do
+                    let message = 'قرارداد فعالی برای این ساختمان وجود دارد.';
+                    if (response.data.has_pending_services && response.data.pending_count > 0) {
+                        message += `<br>این قرارداد دارای ${response.data.pending_count} سرویس در انتظار است.`;
+                    }
+                    message += '<br>آیا می‌خواهید قرارداد قبلی را تمام شده کنید؟';
                     
-                    jalaliDatepicker.startWatch({
-                        selector: '#editServiceEndDate',
-                        date: true,
-                        time: false,
-                        hasSecond: false,
-                        showSelectTimeBtnAlways: false,
-                        format: 'YYYY/MM/DD',
-                        separatorChars: {
-                            date: '/',
-                            between: ' ',
-                        },
-                        persianDigits: false,
-                        autoShow: true,
-                        autoHide: true,
-                        hideAfterChange: true,
-                        showTodayBtn: true,
-                        showEmptyBtn: true,
-                        showCloseBtn: true,
-                        useDropDownYears: true,
-                        container: 'body',
-                        zIndex: 10000,
-                        maxDate: "attr"
+                    const options = {
+                        title: 'هشدار',
+                        html: message,
+                        type: 'warning',
+                        showCancelButton: true,
+                        cancelButtonText: 'انصراف',
+                        padding: '2em'
+                    };
+                    
+                    if (response.data.has_pending_services && response.data.pending_count > 0) {
+                        // Show options for canceling services
+                        options.showDenyButton = true;
+                        options.confirmButtonText = 'تمام کردن قرارداد و لغو سرویس‌ها';
+                        options.denyButtonText = 'تمام کردن قرارداد بدون لغو سرویس‌ها';
+                    } else {
+                        options.confirmButtonText = 'بله، تمام کردن قرارداد';
+                    }
+                    
+                    swal(options).then((result) => {
+                        if (result.value) {
+                            // Finish contract and cancel services
+                            finishOldContractAndOpenModal(id, response.data.contract_id, true);
+                        } else if (result.dismiss === swal.DismissReason.deny) {
+                            // Finish contract without canceling services
+                            finishOldContractAndOpenModal(id, response.data.contract_id, false);
+                        }
                     });
+                } else {
+                    // No active contract, proceed directly
+                    openAddContractModal(id);
                 }
-                
-                $('#editDatesModal').modal('show');
             }
         },
         error: function(xhr) {
-            console.error('Error loading building dates:', xhr);
+            console.error('Error checking pending services:', xhr);
+            // If endpoint doesn't exist or error, proceed anyway
+            openAddContractModal(id);
+        }
+    });
+};
+
+// Finish old contract and open modal
+function finishOldContractAndOpenModal(buildingId, contractId, cancelServices) {
+    // This will be handled when creating the new contract
+    // Store the decision in a global variable
+    window.pendingContractAction = {
+        cancelPendingServices: cancelServices
+    };
+    openAddContractModal(buildingId);
+}
+
+// Cancel pending services
+function cancelPendingServices(buildingId, contractId, callback) {
+    $.ajax({
+        url: `/api/organization/buildings/${buildingId}/contracts/${contractId}/cancel-pending-services`,
+        type: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
+        },
+        success: function(response) {
+            if (response.success) {
+                swal({
+                    title: 'موفقیت',
+                    text: response.message || 'سرویس‌های در انتظار لغو شدند',
+                    type: 'success',
+                    padding: '2em',
+                    timer: 2000
+                });
+                if (callback) callback();
+            }
+        },
+        error: function(xhr) {
             swal({
                 title: 'خطا',
-                text: 'خطا در بارگذاری اطلاعات',
+                text: 'خطا در لغو سرویس‌های در انتظار',
                 type: 'error',
                 padding: '2em'
             });
         }
     });
-};
+}
+
+// Open add contract modal
+function openAddContractModal(buildingId) {
+    $('#addContractBuildingId').val(buildingId);
+    const form = $('#addContractForm');
+    if (form.length > 0 && form[0]) {
+        form[0].reset();
+    }
+    $('#addCustomPaymentMethodFields').hide();
+    
+    // Load building data to populate manager fields
+    $.ajax({
+        url: `/api/organization/buildings/${buildingId}`,
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
+        },
+        success: function(response) {
+            if (response.success) {
+                const building = response.data;
+                $('#addManagerName').val(building.manager_name || '');
+                $('#addManagerPhone').val(building.manager_phone || '');
+            }
+        },
+        error: function(xhr) {
+            console.error('Error loading building data:', xhr);
+        }
+    });
+    
+    $('#addContractModal').modal('show');
+    
+    // Initialize date pickers
+    jalaliDatepicker.startWatch({
+        selector: '#addContractStartDate',
+        date: true,
+        time: false,
+        format: 'YYYY/MM/DD',
+        separatorChars: { date: '/' },
+        persianDigits: false,
+        autoShow: true,
+        autoHide: true,
+        container: 'body',
+        zIndex: 10000,
+    });
+
+    jalaliDatepicker.startWatch({
+        selector: '#addContractEndDate',
+        date: true,
+        time: false,
+        format: 'YYYY/MM/DD',
+        separatorChars: { date: '/' },
+        persianDigits: false,
+        autoShow: true,
+        autoHide: true,
+        container: 'body',
+        zIndex: 10000,
+        maxDate: "attr"
+        // No maxDate restriction - allows any future date
+    });
+}
 
 // Toggle status function
 window.onToggleStatus = function(id, currentStatus) {
@@ -566,8 +730,8 @@ window.onToggleStatus = function(id, currentStatus) {
                             province_id: building.province_id,
                             city_id: building.city_id,
                             address: building.address,
-                            service_start_date: building.service_start_date_jalali || '',
-                            service_end_date: building.service_end_date_jalali || '',
+                            service_start_date: building.contract_start_date_jalali || (building.contract && building.contract.contract_start_date_jalali) || '',
+                            service_end_date: building.contract_end_date_jalali || (building.contract && building.contract.contract_end_date_jalali) || '',
                             status: newStatus ? 'true' : 'false',
                             elevators_count: building.elevators_count || 0,
                             monthly_amount: building.monthly_amount || '',
@@ -634,99 +798,141 @@ window.onToggleStatus = function(id, currentStatus) {
     });
 };
 
-// Handle edit dates form submit
-$('#editDatesForm').on('submit', function(e) {
-    e.preventDefault();
-    
-    const buildingId = $('#editDatesBuildingId').val();
+// Payment method mappings
+const paymentMethodMappings = {
+    '1': { payment_timing: 'after_service', payment_frequency_value: 1 },
+    '2': { payment_timing: 'after_service', payment_frequency_value: 2 },
+    '3': { payment_timing: 'after_service', payment_frequency_value: 3 },
+    '4': { payment_timing: 'before_service', payment_frequency_value: 3 },
+    '5': { payment_timing: 'before_service', payment_frequency_value: 6 },
+    '6': { payment_timing: 'before_service', payment_frequency_value: 12 }
+};
+
+// Handle payment method change
+$('#addPaymentMethod').on('change', function() {
+    const value = $(this).val();
+    if (value === 'custom') {
+        $('#addCustomPaymentMethodFields').show();
+        $('#addPaymentTiming').prop('required', true);
+        $('#addPaymentFrequencyValue').prop('required', true);
+        $('#addPaymentTiming').val('');
+        $('#addPaymentFrequencyValue').val('');
+    } else if (value && paymentMethodMappings[value]) {
+        const mapping = paymentMethodMappings[value];
+        $('#addPaymentTiming').val(mapping.payment_timing);
+        $('#addPaymentFrequencyValue').val(mapping.payment_frequency_value);
+        $('#addCustomPaymentMethodFields').hide();
+        $('#addPaymentTiming').prop('required', false);
+        $('#addPaymentFrequencyValue').prop('required', false);
+    } else {
+        $('#addCustomPaymentMethodFields').hide();
+        $('#addPaymentTiming').prop('required', false);
+        $('#addPaymentFrequencyValue').prop('required', false);
+        $('#addPaymentTiming').val('');
+        $('#addPaymentFrequencyValue').val('');
+    }
+});
+
+// Calculate annual amount
+$('#addContractMonthlyAmount').on('input', function() {
+    const monthlyAmount = parseFloat($(this).val()) || 0;
+    const annualAmount = monthlyAmount * 12;
+    $('#addContractAnnualAmount').val(annualAmount.toFixed(2));
+});
+
+// Handle save new contract
+$('#saveNewContract').on('click', function() {
+    const buildingId = $('#addContractBuildingId').val();
     const formData = {
-        service_start_date: $('#editServiceStartDate').val(),
-        service_end_date: $('#editServiceEndDate').val(),
-        _method: 'PUT'
+        manager_name: $('#addManagerName').val(),
+        manager_phone: $('#addManagerPhone').val(),
+        contract_start_date: $('#addContractStartDate').val(),
+        contract_end_date: $('#addContractEndDate').val(),
+        monthly_amount: $('#addContractMonthlyAmount').val(),
+        payment_method: $('#addPaymentMethod').val(),
+        previous_debt: $('#addPreviousDebt').val() || 0
     };
     
-    // Get current building data first
+    // Add finish old contract and cancel services flags if set
+    if (window.pendingContractAction) {
+        formData.finish_old_contract = true;
+        formData.cancel_pending_services = window.pendingContractAction.cancelPendingServices;
+        // Clear the action after using it
+        delete window.pendingContractAction;
+    }
+    
+    // Always include payment fields
+    if (formData.payment_method === 'custom') {
+        formData.payment_timing = $('#addPaymentTiming').val();
+        formData.payment_frequency_value = $('#addPaymentFrequencyValue').val();
+        
+        if (!formData.payment_timing || !formData.payment_frequency_value) {
+            swal({
+                title: 'خطا',
+                text: 'لطفاً تمام فیلدهای روش پرداخت سفارشی را پر کنید',
+                type: 'error',
+                padding: '2em'
+            });
+            return;
+        }
+    } else if (formData.payment_method && paymentMethodMappings[formData.payment_method]) {
+        const mapping = paymentMethodMappings[formData.payment_method];
+        formData.payment_timing = mapping.payment_timing;
+        formData.payment_frequency_value = mapping.payment_frequency_value;
+    }
+    
+    if (!formData.manager_name || !formData.manager_phone || !formData.contract_start_date || !formData.contract_end_date || !formData.monthly_amount || !formData.payment_method) {
+        swal({
+            title: 'خطا',
+            text: 'لطفاً تمام فیلدهای الزامی را پر کنید',
+            type: 'error',
+            padding: '2em'
+        });
+        return;
+    }
+    
     $.ajax({
-        url: `/api/organization/buildings/${buildingId}`,
-        type: 'GET',
+        url: `/api/organization/buildings/${buildingId}/contracts`,
+        type: 'POST',
+        data: formData,
         headers: {
             'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
         },
         success: function(response) {
             if (response.success) {
-                const building = response.data;
-                // Merge with existing data
-                const updateData = {
-                    name: building.name,
-                    manager_name: building.manager_name,
-                    manager_phone: building.manager_phone,
-                    building_type: building.building_type,
-                    province_id: building.province_id,
-                    city_id: building.city_id,
-                    address: building.address,
-                    service_start_date: formData.service_start_date,
-                    service_end_date: formData.service_end_date,
-                    status: building.status ? 'true' : 'false',
-                    elevators_count: building.elevators_count || 0,
-                    monthly_amount: building.monthly_amount || '',
-                    selected_latitude: building.selected_latitude,
-                    selected_longitude: building.selected_longitude,
-                    _method: 'PUT'
-                };
-                
-                $.ajax({
-                    url: `/api/organization/buildings/${buildingId}`,
-                    type: 'PUT',
-                    data: updateData,
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
-                    },
-                    success: function(updateResponse) {
-                        if (updateResponse.success) {
-                            $('#editDatesModal').modal('hide');
-                            swal({
-                                title: 'موفقیت',
-                                text: 'تاریخ قرارداد با موفقیت به‌روزرسانی شد',
-                                type: 'success',
-                                padding: '2em',
-                                timer: 2000
-                            });
-                            // Reload datatable
-                            $('.refresh-button').click();
-                        }
-                    },
-                    error: function(xhr) {
-                        if (xhr.status === 422) {
-                            const errors = xhr.responseJSON.errors;
-                            let errorMessage = 'خطاهای اعتبارسنجی:\n';
-                            for (const field in errors) {
-                                errorMessage += errors[field][0] + '\n';
-                            }
-                            swal({
-                                title: 'خطا',
-                                text: errorMessage,
-                                type: 'error',
-                                padding: '2em'
-                            });
-                        } else {
-                            swal({
-                                title: 'خطا',
-                                text: 'خطا در به‌روزرسانی تاریخ قرارداد',
-                                type: 'error',
-                                padding: '2em'
-                            });
-                        }
-                    }
+                $('#addContractModal').modal('hide');
+                swal({
+                    title: 'موفقیت',
+                    text: response.message || 'قرارداد با موفقیت ایجاد شد',
+                    type: 'success',
+                    padding: '2em',
+                    timer: 2000
                 });
+                // Reload datatable
+                $('.refresh-button').click();
             }
         },
         error: function(xhr) {
-            swal({
-                title: 'خطا',
-                text: 'خطا در بارگذاری اطلاعات ساختمان',
-                type: 'error',
-                padding: '2em'
-            });
+            if (xhr.status === 422) {
+                const errors = xhr.responseJSON.errors;
+                let errorMessage = 'خطاهای اعتبارسنجی:\n';
+                for (const field in errors) {
+                    errorMessage += errors[field][0] + '\n';
+                }
+                swal({
+                    title: 'خطا',
+                    text: errorMessage,
+                    type: 'error',
+                    padding: '2em'
+                });
+            } else {
+                swal({
+                    title: 'خطا',
+                    text: xhr.responseJSON?.message || 'خطا در ایجاد قرارداد',
+                    type: 'error',
+                    padding: '2em'
+                });
+            }
         }
     });
 });

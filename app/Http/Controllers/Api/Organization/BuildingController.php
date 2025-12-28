@@ -77,12 +77,21 @@ class BuildingController extends Controller
             // Note: We can't order by contract_end_date directly, so we'll order by created_at
             $query->orderBy('created_at', 'desc');
         } 
-        // Filter expired contracts (contract_end_date is in the past)
+        // Filter expired contracts (contract_end_date is in the past OR status is finished)
+        // Only show contracts that are truly expired/finished, not active ones
         elseif ($request->has('expired') && $request->expired === 'true') {
             $today = Carbon::today();
-            $query->whereHas('contract', function($q) use ($today) {
-                $q->whereNotNull('contract_end_date')
-                  ->where('contract_end_date', '<', $today);
+            $query->whereHas('contracts', function($q) use ($today) {
+                $q->where(function($subQ) use ($today) {
+                    // Contract ended by date (past end date)
+                    $subQ->where(function($dateQ) use ($today) {
+                        $dateQ->whereNotNull('contract_end_date')
+                              ->where('contract_end_date', '<', $today)
+                              ->where('status', '!=', BuildingContract::STATUS_ACTIVE);
+                    })
+                    // OR contract was manually finished
+                    ->orWhere('status', BuildingContract::STATUS_FINISHED);
+                });
             });
             $query->orderBy('created_at', 'desc');
         } 
@@ -90,21 +99,41 @@ class BuildingController extends Controller
             $query->orderBy('created_at', 'desc');
         }
 
-        $buildings = $query->with('contract')->paginate(10);
+        // Load contracts based on filter type
+        if ($request->has('expired') && $request->expired === 'true') {
+            // For expired, load the most recent expired or finished contract
+            $buildings = $query->with(['contracts' => function($q) {
+                $q->orderBy('contract_end_date', 'desc')
+                  ->orderBy('created_at', 'desc')
+                  ->limit(1);
+            }])->paginate(10);
+        } else {
+            // For expiring and normal list, load active contract
+            $buildings = $query->with('contract')->paginate(10);
+        }
         
         $today = Carbon::today();
         
         // Add Jalali formatted dates and calculate days difference from contract
-        $items = collect($buildings->items())->map(function ($building) use ($today) {
-            if ($building->contract) {
-                if ($building->contract->contract_start_date) {
-                    $building->contract_start_date_jalali = Jalalian::forge($building->contract->contract_start_date)->format('Y/m/d');
+        $items = collect($buildings->items())->map(function ($building) use ($today, $request) {
+            // For expired contracts, use the first contract from contracts relationship
+            // For others, use the contract relationship
+            $contract = null;
+            if ($request->has('expired') && $request->expired === 'true') {
+                $contract = $building->contracts->first();
+            } else {
+                $contract = $building->contract;
+            }
+            
+            if ($contract) {
+                if ($contract->contract_start_date) {
+                    $building->contract_start_date_jalali = Jalalian::forge($contract->contract_start_date)->format('Y/m/d');
                 }
-                if ($building->contract->contract_end_date) {
-                    $building->contract_end_date_jalali = Jalalian::forge($building->contract->contract_end_date)->format('Y/m/d');
+                if ($contract->contract_end_date) {
+                    $building->contract_end_date_jalali = Jalalian::forge($contract->contract_end_date)->format('Y/m/d');
                     
                     // Calculate days difference
-                    $endDate = Carbon::parse($building->contract->contract_end_date);
+                    $endDate = Carbon::parse($contract->contract_end_date);
                     $diffDays = $today->diffInDays($endDate, false); // false = signed difference
                     
                     if ($diffDays < 0) {
@@ -120,6 +149,8 @@ class BuildingController extends Controller
                     $building->days_remaining = null;
                     $building->days_past = null;
                 }
+                // Attach contract to building for frontend access
+                $building->contract = $contract;
             } else {
                 $building->days_remaining = null;
                 $building->days_past = null;
@@ -264,6 +295,15 @@ class BuildingController extends Controller
             // Calculate annual amount
             $contractData['annual_amount'] = $contractData['monthly_amount'] * 12;
             
+            // Calculate organization-specific contract number
+            // Get all contracts for buildings in this organization
+            $maxContractNumber = BuildingContract::whereHas('building', function($q) use ($building) {
+                $q->where('organization_id', $building->organization_id);
+            })->max('contract_number');
+            
+            // Assign next contract number (starting from 1 if no contracts exist)
+            $contractData['contract_number'] = ($maxContractNumber ?? 0) + 1;
+            
             // Map payment method to database fields
             // Payment fields are already in $contractData (auto-filled by frontend for predefined options)
             $paymentMethod = $contractData['payment_method'];
@@ -347,9 +387,19 @@ class BuildingController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $building = Building::with(['province', 'city', 'organizationUser', 'elevators'])
+        $building = Building::with(['province', 'city', 'organizationUser', 'elevators', 'contract'])
             ->where('organization_id', $user->organization_id)
             ->findOrFail($id);
+
+        // Add Jalali formatted dates from contract
+        if ($building->contract) {
+            if ($building->contract->contract_start_date) {
+                $building->contract_start_date_jalali = Jalalian::forge($building->contract->contract_start_date)->format('Y/m/d');
+            }
+            if ($building->contract->contract_end_date) {
+                $building->contract_end_date_jalali = Jalalian::forge($building->contract->contract_end_date)->format('Y/m/d');
+            }
+        }
 
         return response()->json([
             'success' => true,

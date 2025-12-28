@@ -103,10 +103,10 @@
                                     'formatter' => 'function(value) { return value ? value.name : "-"; }',
                                 ],
                                 [
-                                    'field' => 'service_end_date_jalali',
+                                    'field' => 'contract_end_date_jalali',
                                     'label' => 'تاریخ پایان قرارداد',
                                     'formatter' => 'function(value, row) { 
-                                        if (!value || !row.service_end_date) return "-";
+                                        if (!value || !row.contract || !row.contract.contract_end_date) return "-";
                                         if (row.days_past !== null && row.days_past !== undefined) {
                                             return value + " <span class=\"badge badge-danger\">" + row.days_past + " روز گذشته</span>";
                                         }
@@ -134,11 +134,6 @@
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map-pin"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>\';
                                 html += \'</button>\';
                                 
-                                // Edit dates button
-                                html += \'<button type="button" class="btn btn-sm btn-primary edit-dates-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="ویرایش تاریخ قرارداد">\';
-                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>\';
-                                html += \'</button>\';
-                                
                                 // Toggle status button
                                 const statusIcon = item.status ? "x-circle" : "check-circle";
                                 const statusTitle = item.status ? "غیرفعال کردن" : "فعال کردن";
@@ -162,12 +157,6 @@
                                 $(".location-btn").on("click", function() {
                                     const id = $(this).data("id");
                                     window.onShowLocation(id);
-                                });
-                                
-                                // Handle edit dates button click
-                                $(".edit-dates-btn").on("click", function() {
-                                    const id = $(this).data("id");
-                                    window.onEditDates(id);
                                 });
                                 
                                 // Handle toggle status button click
@@ -348,8 +337,8 @@ window.onShow = function(id) {
                 $('#detailProvince').text(data.province ? data.province.name : '-');
                 $('#detailCity').text(data.city ? data.city.name : '-');
                 $('#detailAddress').text(data.address);
-                $('#detailServiceStartDate').text(data.service_start_date_jalali || '-');
-                $('#detailServiceEndDate').text(data.service_end_date_jalali || '-');
+                $('#detailServiceStartDate').text(data.contract_start_date_jalali || (data.contract && data.contract.contract_start_date_jalali) || '-');
+                $('#detailServiceEndDate').text(data.contract_end_date_jalali || (data.contract && data.contract.contract_end_date_jalali) || '-');
                 $('#detailLocation').text(
                     data.selected_latitude && data.selected_longitude 
                         ? `${data.selected_latitude}, ${data.selected_longitude}`
@@ -429,86 +418,6 @@ getOrganizationData(function(org, error) {
     }
 });
 
-// Edit dates function
-window.onEditDates = function(id) {
-    $.ajax({
-        url: `/api/organization/buildings/${id}`,
-        type: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
-        },
-        success: function(response) {
-            if (response.success) {
-                const data = response.data;
-                $('#editDatesBuildingId').val(id);
-                $('#editServiceStartDate').val(data.service_start_date_jalali || '');
-                $('#editServiceEndDate').val(data.service_end_date_jalali || '');
-                
-                // Initialize date pickers
-                if (typeof jalaliDatepicker !== 'undefined') {
-                    jalaliDatepicker.startWatch({
-                        selector: '#editServiceStartDate',
-                        date: true,
-                        time: false,
-                        hasSecond: false,
-                        format: 'YYYY/MM/DD',
-                        showSelectTimeBtnAlways: false,
-                        separatorChars: {
-                            date: '/',
-                            between: ' ',
-                        },
-                        persianDigits: false,
-                        autoShow: true,
-                        autoHide: true,
-                        hideAfterChange: true,
-                        showTodayBtn: true,
-                        showEmptyBtn: true,
-                        showCloseBtn: true,
-                        useDropDownYears: true,
-                        container: 'body',
-                        zIndex: 10000,
-                        maxDate: 'today'
-                    });
-                    
-                    jalaliDatepicker.startWatch({
-                        selector: '#editServiceEndDate',
-                        date: true,
-                        time: false,
-                        hasSecond: false,
-                        showSelectTimeBtnAlways: false,
-                        format: 'YYYY/MM/DD',
-                        separatorChars: {
-                            date: '/',
-                            between: ' ',
-                        },
-                        persianDigits: false,
-                        autoShow: true,
-                        autoHide: true,
-                        hideAfterChange: true,
-                        showTodayBtn: true,
-                        showEmptyBtn: true,
-                        showCloseBtn: true,
-                        useDropDownYears: true,
-                        container: 'body',
-                        zIndex: 10000,
-                        maxDate: "attr"
-                    });
-                }
-                
-                $('#editDatesModal').modal('show');
-            }
-        },
-        error: function(xhr) {
-            console.error('Error loading building dates:', xhr);
-            swal({
-                title: 'خطا',
-                text: 'خطا در بارگذاری اطلاعات',
-                type: 'error',
-                padding: '2em'
-            });
-        }
-    });
-};
 
 // Toggle status function
 window.onToggleStatus = function(id, currentStatus) {
@@ -543,8 +452,8 @@ window.onToggleStatus = function(id, currentStatus) {
                             province_id: building.province_id,
                             city_id: building.city_id,
                             address: building.address,
-                            service_start_date: building.service_start_date_jalali || '',
-                            service_end_date: building.service_end_date_jalali || '',
+                            service_start_date: building.contract_start_date_jalali || (building.contract && building.contract.contract_start_date_jalali) || '',
+                            service_end_date: building.contract_end_date_jalali || (building.contract && building.contract.contract_end_date_jalali) || '',
                             status: newStatus ? 'true' : 'false',
                             elevators_count: building.elevators_count || 0,
                             monthly_amount: building.monthly_amount || '',
@@ -611,102 +520,6 @@ window.onToggleStatus = function(id, currentStatus) {
     });
 };
 
-// Handle edit dates form submit
-$('#editDatesForm').on('submit', function(e) {
-    e.preventDefault();
-    
-    const buildingId = $('#editDatesBuildingId').val();
-    const formData = {
-        service_start_date: $('#editServiceStartDate').val(),
-        service_end_date: $('#editServiceEndDate').val(),
-        _method: 'PUT'
-    };
-    
-    // Get current building data first
-    $.ajax({
-        url: `/api/organization/buildings/${buildingId}`,
-        type: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
-        },
-        success: function(response) {
-            if (response.success) {
-                const building = response.data;
-                // Merge with existing data
-                const updateData = {
-                    name: building.name,
-                    manager_name: building.manager_name,
-                    manager_phone: building.manager_phone,
-                    building_type: building.building_type,
-                    province_id: building.province_id,
-                    city_id: building.city_id,
-                    address: building.address,
-                    service_start_date: formData.service_start_date,
-                    service_end_date: formData.service_end_date,
-                    status: building.status ? 'true' : 'false',
-                    elevators_count: building.elevators_count || 0,
-                    monthly_amount: building.monthly_amount || '',
-                    selected_latitude: building.selected_latitude,
-                    selected_longitude: building.selected_longitude,
-                    _method: 'PUT'
-                };
-                
-                $.ajax({
-                    url: `/api/organization/buildings/${buildingId}`,
-                    type: 'PUT',
-                    data: updateData,
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
-                    },
-                    success: function(updateResponse) {
-                        if (updateResponse.success) {
-                            $('#editDatesModal').modal('hide');
-                            swal({
-                                title: 'موفقیت',
-                                text: 'تاریخ قرارداد با موفقیت به‌روزرسانی شد',
-                                type: 'success',
-                                padding: '2em',
-                                timer: 2000
-                            });
-                            // Reload datatable
-                            $('.refresh-button').click();
-                        }
-                    },
-                    error: function(xhr) {
-                        if (xhr.status === 422) {
-                            const errors = xhr.responseJSON.errors;
-                            let errorMessage = 'خطاهای اعتبارسنجی:\n';
-                            for (const field in errors) {
-                                errorMessage += errors[field][0] + '\n';
-                            }
-                            swal({
-                                title: 'خطا',
-                                text: errorMessage,
-                                type: 'error',
-                                padding: '2em'
-                            });
-                        } else {
-                            swal({
-                                title: 'خطا',
-                                text: 'خطا در به‌روزرسانی تاریخ قرارداد',
-                                type: 'error',
-                                padding: '2em'
-                            });
-                        }
-                    }
-                });
-            }
-        },
-        error: function(xhr) {
-            swal({
-                title: 'خطا',
-                text: 'خطا در بارگذاری اطلاعات ساختمان',
-                type: 'error',
-                padding: '2em'
-            });
-        }
-    });
-});
 
 // Handle filter changes and update datatable
 $(document).ready(function() {

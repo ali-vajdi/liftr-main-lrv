@@ -221,7 +221,7 @@ function renderContracts(contracts) {
         const contractHtml = `
             <div class="card mb-3 contract-item" data-id="${contract.id}">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0">قرارداد #${contract.id}</h6>
+                    <h6 class="mb-0">قرارداد شماره ${contract.contract_number || contract.id}</h6>
                     ${statusBadge}
                 </div>
                 <div class="card-body">

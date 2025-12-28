@@ -161,8 +161,10 @@ Route::prefix('organization')->name('organization.')->group(function () {
         // Organization Building Contracts API
         Route::get('buildings/{building}/contracts', [\App\Http\Controllers\Api\Organization\BuildingContractController::class, 'index']);
         Route::post('buildings/{building}/contracts', [\App\Http\Controllers\Api\Organization\BuildingContractController::class, 'store']);
+        Route::get('buildings/{building}/contracts/check-pending', [\App\Http\Controllers\Api\Organization\BuildingContractController::class, 'checkPendingServices']);
         Route::get('buildings/{building}/contracts/{contract}', [\App\Http\Controllers\Api\Organization\BuildingContractController::class, 'show']);
         Route::post('buildings/{building}/contracts/{contract}/status', [\App\Http\Controllers\Api\Organization\BuildingContractController::class, 'updateStatus']);
+        Route::post('buildings/{building}/contracts/{contract}/cancel-pending-services', [\App\Http\Controllers\Api\Organization\BuildingContractController::class, 'cancelPendingServices']);
         
         // Financial Dashboard API
         Route::get('buildings/{building}/financial-dashboard', [\App\Http\Controllers\Api\Organization\FinancialDashboardController::class, 'index']);
@@ -177,8 +179,9 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::get('services/assigned', [OrgServiceController::class, 'assigned']);
         Route::get('services/completed', [OrgServiceController::class, 'completed']);
         Route::get('services/all', [OrgServiceController::class, 'all']);
-        Route::get('services/{service}', [OrgServiceController::class, 'show']);
+        Route::get('services/technicians', [OrgServiceController::class, 'getTechnicians']);
         Route::post('services', [OrgServiceController::class, 'store']);
+        Route::get('services/{service}', [OrgServiceController::class, 'show']);
         Route::post('services/{service}/assign-technician', [OrgServiceController::class, 'assignTechnician']);
         Route::post('services/{service}/change-technician', [OrgServiceController::class, 'changeTechnician']);
         Route::post('services/{service}/update-visit', [OrgServiceController::class, 'updateVisit']);
@@ -188,7 +191,6 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::get('services/{service}/building-info', [OrgServiceController::class, 'getBuildingInfo']);
         Route::post('services/{service}/resend-checklist-sms', [OrgServiceController::class, 'resendChecklistSms']);
         Route::get('services/{service}/pdf-download-url', [OrgServiceController::class, 'generatePdfDownloadUrl']);
-        Route::get('services/technicians', [OrgServiceController::class, 'getTechnicians']);
         
         // Organization SMS API
         Route::get('sms/statistics', [\App\Http\Controllers\Api\Organization\SmsController::class, 'statistics']);

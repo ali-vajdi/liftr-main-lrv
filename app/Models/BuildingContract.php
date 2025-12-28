@@ -17,6 +17,7 @@ class BuildingContract extends Model
 
     protected $fillable = [
         'building_id',
+        'contract_number',
         'contract_start_date',
         'contract_end_date',
         'monthly_amount',
