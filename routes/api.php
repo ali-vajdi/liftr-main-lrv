@@ -177,6 +177,7 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::get('services/assigned', [OrgServiceController::class, 'assigned']);
         Route::get('services/completed', [OrgServiceController::class, 'completed']);
         Route::get('services/all', [OrgServiceController::class, 'all']);
+        Route::get('services/{service}', [OrgServiceController::class, 'show']);
         Route::post('services', [OrgServiceController::class, 'store']);
         Route::post('services/{service}/assign-technician', [OrgServiceController::class, 'assignTechnician']);
         Route::post('services/{service}/change-technician', [OrgServiceController::class, 'changeTechnician']);

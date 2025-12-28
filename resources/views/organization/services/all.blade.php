@@ -133,63 +133,55 @@
                             ],
                             'primaryKey' => 'id',
                             'actions' => '
-                                // Check if service is locked (only for pending services where building support period has ended)
-                                if (item.status === "pending" && item.is_locked) {
-                                    // Show lock button that opens modal
-                                    html += \'<button type="button" class="btn btn-sm btn-secondary locked-service-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="پشتیبانی ساختمان به پایان رسیده است">\';
-                                    html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-lock"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>\';
+                                // Show details button
+                                html += \'<button type="button" class="btn btn-sm btn-info show-details-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="مشاهده جزئیات">\';
+                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>\';
+                                html += \'</button>\';
+                                
+                                // Manager page link (for assigned and completed services)
+                                if (item.slug && (item.status === "assigned" || item.status === "completed")) {
+                                    const managerUrl = `/d/${item.slug}`;
+                                    html += \'<a href="\' + managerUrl + \'" target="_blank" class="btn btn-sm btn-secondary manager-page-btn mr-1 bs-tooltip" title="صفحه مدیر ساختمان">\';
+                                    html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>\';
+                                    html += \'</a>\';
+                                }
+                                
+                                // Assign button (only for pending)
+                                if (item.status === "pending") {
+                                    html += \'<button type="button" class="btn btn-sm btn-primary assign-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="اختصاص تکنسین">\';
+                                    html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user-check"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>\';
                                     html += \'</button>\';
-                                } else {
-                                    // Show details button
-                                    html += \'<button type="button" class="btn btn-sm btn-info show-details-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="مشاهده جزئیات">\';
-                                    html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>\';
+                                }
+                                
+                                // Change technician and edit buttons (only for assigned)
+                                if (item.status === "assigned") {
+                                    html += \'<button type="button" class="btn btn-sm btn-primary edit-service-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="ویرایش">\';
+                                    html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>\';
                                     html += \'</button>\';
-                                    
-                                    // Manager page link (for assigned and completed services)
-                                    if (item.slug && (item.status === "assigned" || item.status === "completed")) {
-                                        const managerUrl = `/d/${item.slug}`;
-                                        html += \'<a href="\' + managerUrl + \'" target="_blank" class="btn btn-sm btn-secondary manager-page-btn mr-1 bs-tooltip" title="صفحه مدیر ساختمان">\';
-                                        html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>\';
-                                        html += \'</a>\';
-                                    }
-                                    
-                                    // Assign button (only for pending)
-                                    if (item.status === "pending") {
-                                        html += \'<button type="button" class="btn btn-sm btn-primary assign-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="اختصاص تکنسین">\';
-                                        html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user-check"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>\';
-                                        html += \'</button>\';
-                                    }
-                                    
-                                    // Change technician and edit buttons (only for assigned)
-                                    if (item.status === "assigned") {
-                                        html += \'<button type="button" class="btn btn-sm btn-primary edit-service-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="ویرایش">\';
-                                        html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>\';
-                                        html += \'</button>\';
-                                        html += \'<button type="button" class="btn btn-sm btn-warning change-technician-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="تغییر تکنسین">\';
-                                        html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user-x"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="18" y1="8" x2="23" y2="13"></line><line x1="23" y1="8" x2="18" y2="13"></line></svg>\';
-                                        html += \'</button>\';
-                                    }
-                                    
-                                    // Resend checklist button (for completed services)
-                                    if (item.status === "completed") {
-                                        html += \'<button type="button" class="btn btn-sm btn-success resend-checklist-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="ارسال مجدد برگه سرویس">\';
-                                        html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>\';
-                                        html += \'</button>\';
-                                    }
-                                    
-                                    // Print PDF button (for completed services)
-                                    if (item.status === "completed") {
-                                        html += \'<button type="button" class="btn btn-sm btn-primary print-pdf-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="چاپ PDF">\';
-                                        html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-printer"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>\';
-                                        html += \'</button>\';
-                                    }
-                                    
-                                    // Cancel button (for all services except completed and cancelled)
-                                    if (item.status !== "completed" && item.status !== "cancelled") {
-                                        html += \'<button type="button" class="btn btn-sm btn-danger cancel-service-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="لغو سرویس">\';
-                                        html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x-circle"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>\';
-                                        html += \'</button>\';
-                                    }
+                                    html += \'<button type="button" class="btn btn-sm btn-warning change-technician-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="تغییر تکنسین">\';
+                                    html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user-x"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="18" y1="8" x2="23" y2="13"></line><line x1="23" y1="8" x2="18" y2="13"></line></svg>\';
+                                    html += \'</button>\';
+                                }
+                                
+                                // Resend checklist button (for completed services)
+                                if (item.status === "completed") {
+                                    html += \'<button type="button" class="btn btn-sm btn-success resend-checklist-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="ارسال مجدد برگه سرویس">\';
+                                    html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>\';
+                                    html += \'</button>\';
+                                }
+                                
+                                // Print PDF button (for completed services)
+                                if (item.status === "completed") {
+                                    html += \'<button type="button" class="btn btn-sm btn-primary print-pdf-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="چاپ PDF">\';
+                                    html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-printer"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>\';
+                                    html += \'</button>\';
+                                }
+                                
+                                // Cancel button (for all services except completed and cancelled)
+                                if (item.status !== "completed" && item.status !== "cancelled") {
+                                    html += \'<button type="button" class="btn btn-sm btn-danger cancel-service-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="لغو سرویس">\';
+                                    html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x-circle"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>\';
+                                    html += \'</button>\';
                                 }
                             ',
                             'actionHandlers' => '
@@ -244,17 +236,6 @@
                                     const id = $(this).data("id");
                                     if (id && typeof window.onCancelService === "function") {
                                         window.onCancelService(id);
-                                    }
-                                    return false;
-                                });
-                                
-                                // Handle locked service button click
-                                $(document).off("click", ".locked-service-btn").on("click", ".locked-service-btn", function(e) {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    const id = $(this).data("id");
-                                    if (id) {
-                                        $("#lockedServiceModal").data("service-id", id).modal("show");
                                     }
                                     return false;
                                 });
@@ -540,128 +521,6 @@
     </div>
 </div>
 
-<!-- Locked Service Modal -->
-<div class="modal fade" id="lockedServiceModal" tabindex="-1" role="dialog" aria-labelledby="lockedServiceModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="lockedServiceModalLabel">سرویس قفل شده</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-warning mb-4">
-                    <p class="mb-0">تاریخ پشتیبانی ساختمان برای این سرویس به پایان رسیده است. در صورت تمایل به عدم تولید سرویس برای این ساختمان، وضعیت ساختمان را غیرفعال کنید.</p>
-                </div>
-                
-                <!-- Building Information -->
-                <div id="buildingInfoSection" class="mb-4" style="display: none;">
-                    <div class="card border-info shadow-sm">
-                        <div class="card-header bg-info text-white" style="direction: rtl;">
-                            <h6 class="mb-0">اطلاعات پشتیبانی ساختمان</h6>
-                        </div>
-                        <div class="card-body" style="direction: rtl;">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <strong>نام ساختمان:</strong>
-                                    <div id="info-building-name" class="text-muted">-</div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong>تاریخ شروع قرارداد:</strong>
-                                    <div id="info-service-start-date" class="text-muted">-</div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong>تاریخ پایان قرارداد:</strong>
-                                    <div id="info-service-end-date" class="text-muted">-</div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong>تعداد سرویس‌های انجام شده:</strong>
-                                    <div id="info-completed-count" class="text-muted">-</div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <strong>آخرین سرویس:</strong>
-                                    <div id="info-last-service" class="text-muted">-</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-12 mb-3">
-                        <div class="card border-right-danger shadow-sm" style="border-right: 4px solid #dc3545; cursor: pointer; direction: rtl;" onclick="$('#cancelLockedService').click();">
-                            <div class="card-body p-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="flex-grow-1" style="text-align: right;">
-                                        <h6 class="mb-1 font-weight-bold text-danger" style="text-align: right;">لغو سرویس</h6>
-                                        <p class="mb-0 text-muted small" style="font-size: 0.875rem; line-height: 1.5; text-align: right;">این سرویس لغو شده و دیگر قابل استفاده نخواهد بود.</p>
-                                    </div>
-                                    <div class="ml-3">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x-circle">
-                                            <circle cx="12" cy="12" r="10"></circle>
-                                            <line x1="15" y1="9" x2="9" y2="15"></line>
-                                            <line x1="9" y1="9" x2="15" y2="15"></line>
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-danger btn-block d-none" id="cancelLockedService">لغو سرویس</button>
-                    </div>
-                    
-                    <div class="col-md-12 mb-3">
-                        <div class="card border-right-warning shadow-sm" style="border-right: 4px solid #ffc107; cursor: pointer; direction: rtl;" onclick="$('#revertLockedService').click();">
-                            <div class="card-body p-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="flex-grow-1" style="text-align: right;">
-                                        <h6 class="mb-1 font-weight-bold text-warning" style="text-align: right;">فعال کردن پشتیبانی این سرویس</h6>
-                                        <p class="mb-0 text-muted small" style="font-size: 0.875rem; line-height: 1.5; text-align: right;">این سرویس به حالت دستی تبدیل شده و دیگر قفل نخواهد بود. می‌توانید به صورت دستی برای این سرویس تکنسین اختصاص دهید.</p>
-                                    </div>
-                                    <div class="ml-3">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffc107" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-unlock">
-                                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                            <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-warning btn-block d-none" id="revertLockedService">فعال کردن پشتیبانی این سرویس</button>
-                    </div>
-                    
-                    <div class="col-md-12 mb-3">
-                        <div class="card border-right-secondary shadow-sm" style="border-right: 4px solid #6c757d; cursor: pointer; direction: rtl;" onclick="$('#cancelBuildingAndService').click();">
-                            <div class="card-body p-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="flex-grow-1" style="text-align: right;">
-                                        <h6 class="mb-1 font-weight-bold text-secondary" style="text-align: right;">غیرفعال کردن ساختمان و لغو سرویس</h6>
-                                        <p class="mb-0 text-muted small" style="font-size: 0.875rem; line-height: 1.5; text-align: right;">ساختمان غیرفعال شده و این سرویس لغو می‌شود. دیگر سرویسی برای این ساختمان تولید نخواهد شد.</p>
-                                    </div>
-                                    <div class="ml-3">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-building">
-                                            <path d="M3 21h18"></path>
-                                            <path d="M5 21V7l8-4v18"></path>
-                                            <path d="M19 21V11l-6-4"></path>
-                                            <line x1="9" y1="9" x2="9" y2="9"></line>
-                                            <line x1="9" y1="12" x2="9" y2="12"></line>
-                                            <line x1="9" y1="15" x2="9" y2="15"></line>
-                                            <line x1="9" y1="18" x2="9" y2="18"></line>
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-secondary btn-block d-none" id="cancelBuildingAndService">غیرفعال کردن ساختمان و لغو سرویس</button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection
 
 @section('page-scripts')
@@ -692,30 +551,26 @@ window.onShowDetails = function(id) {
         return;
     }
     
-    // If not found, fetch from API (search all pages)
+    // If not found, fetch from API using dedicated endpoint
     $.ajax({
-        url: `/api/organization/services/all`,
+        url: `/api/organization/services/${id}`,
         type: 'GET',
         headers: {
             'Authorization': 'Bearer ' + token
         },
-        data: {
-            per_page: 1000 // Get more results to find the service
-        },
         success: function(response) {
             if (response.success && response.data) {
-                service = response.data.find(s => s.id == id);
-                if (!service) {
-                    $('#serviceDetailsContent').html('<div class="alert alert-danger">سرویس یافت نشد</div>');
-                    return;
-                }
-                displayServiceDetails(service);
+                displayServiceDetails(response.data);
             } else {
                 $('#serviceDetailsContent').html('<div class="alert alert-danger">خطا در بارگذاری اطلاعات</div>');
             }
         },
         error: function(xhr) {
-            $('#serviceDetailsContent').html('<div class="alert alert-danger">خطا در بارگذاری اطلاعات</div>');
+            if (xhr.status === 404) {
+                $('#serviceDetailsContent').html('<div class="alert alert-danger">سرویس یافت نشد</div>');
+            } else {
+                $('#serviceDetailsContent').html('<div class="alert alert-danger">خطا در بارگذاری اطلاعات</div>');
+            }
         }
     });
 };
@@ -1562,284 +1417,6 @@ window.onCancelService = function(id) {
             return false;
         });
         
-        // Handle locked service modal buttons
-        let currentLockedServiceId = null;
-        
-        $('#lockedServiceModal').on('show.bs.modal', function() {
-            currentLockedServiceId = $(this).data('service-id');
-            
-            // Load building information
-            if (currentLockedServiceId) {
-                const token = localStorage.getItem('organization_token');
-                if (token) {
-                    // Show loading
-                    $('#buildingInfoSection').hide();
-                    
-                    $.ajax({
-                        url: `/api/organization/services/${currentLockedServiceId}/building-info`,
-                        type: 'GET',
-                        headers: {
-                            'Authorization': 'Bearer ' + token
-                        },
-                        success: function(response) {
-                            if (response.success && response.data) {
-                                const data = response.data;
-                                
-                                // Display building information
-                                $('#info-building-name').text(data.building_name || '-');
-                                $('#info-service-start-date').text(data.service_start_date_jalali || '-');
-                                $('#info-service-end-date').text(data.service_end_date_jalali || '-');
-                                $('#info-completed-count').text(data.completed_services_count || '0');
-                                
-                                if (data.last_service_days_ago !== null && data.last_service_days_ago !== undefined) {
-                                    $('#info-last-service').text(data.last_service_date_jalali + ' (' + data.last_service_days_ago + ' روز پیش)');
-                                } else {
-                                    $('#info-last-service').text('-');
-                                }
-                                
-                                $('#buildingInfoSection').show();
-                            }
-                        },
-                        error: function(xhr) {
-                            console.error('Error loading building information:', xhr);
-                            $('#buildingInfoSection').hide();
-                        }
-                    });
-                }
-            }
-        });
-        
-        // Cancel service button
-        $('#cancelLockedService').on('click', function() {
-            if (!currentLockedServiceId) {
-                return;
-            }
-            
-            const token = localStorage.getItem('organization_token');
-            if (!token) {
-                swal({
-                    title: 'خطا',
-                    text: 'لطفاً مجدداً وارد شوید',
-                    type: 'error',
-                    padding: '2em'
-                });
-                return;
-            }
-            
-            swal({
-                title: 'آیا مطمئن هستید؟',
-                text: 'این سرویس لغو خواهد شد.',
-                type: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'بله، لغو کن',
-                cancelButtonText: 'خیر',
-                padding: '2em'
-            }).then(function(result) {
-                if (result.value) {
-                    $.ajax({
-                        url: `/api/organization/services/${currentLockedServiceId}/cancel`,
-                        type: 'POST',
-                        headers: {
-                            'Authorization': 'Bearer ' + token
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                $('#lockedServiceModal').modal('hide');
-                                swal({
-                                    title: 'موفقیت',
-                                    text: response.message,
-                                    type: 'success',
-                                    padding: '2em'
-                                });
-                                
-                                if (typeof window.datatableApi !== 'undefined' && window.datatableApi.refresh) {
-                                    window.datatableApi.refresh();
-                                }
-                            } else {
-                                swal({
-                                    title: 'خطا',
-                                    text: response.message || 'خطا در لغو سرویس',
-                                    type: 'error',
-                                    padding: '2em'
-                                });
-                            }
-                        },
-                        error: function(xhr) {
-                            const response = xhr.responseJSON;
-                            let errorMessage = 'خطا در لغو سرویس';
-                            
-                            if (response && response.message) {
-                                errorMessage = response.message;
-                            }
-                            
-                            swal({
-                                title: 'خطا',
-                                text: errorMessage,
-                                type: 'error',
-                                padding: '2em'
-                            });
-                        }
-                    });
-                }
-            });
-        });
-        
-        // Revert service button (set is_manual to true)
-        $('#revertLockedService').on('click', function() {
-            if (!currentLockedServiceId) {
-                return;
-            }
-            
-            const token = localStorage.getItem('organization_token');
-            if (!token) {
-                swal({
-                    title: 'خطا',
-                    text: 'لطفاً مجدداً وارد شوید',
-                    type: 'error',
-                    padding: '2em'
-                });
-                return;
-            }
-            
-            swal({
-                title: 'آیا مطمئن هستید؟',
-                text: 'پشتیبانی این سرویس فعال شده و به حالت دستی تبدیل خواهد شد. دیگر قفل نخواهد بود و می‌توانید به صورت دستی برای این سرویس تکنسین اختصاص دهید.',
-                type: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'بله، فعال کن',
-                cancelButtonText: 'خیر',
-                padding: '2em'
-            }).then(function(result) {
-                if (result.value) {
-                    $.ajax({
-                        url: `/api/organization/services/${currentLockedServiceId}/revert`,
-                        type: 'POST',
-                        headers: {
-                            'Authorization': 'Bearer ' + token
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                $('#lockedServiceModal').modal('hide');
-                                swal({
-                                    title: 'موفقیت',
-                                    text: response.message,
-                                    type: 'success',
-                                    padding: '2em'
-                                });
-                                
-                                if (typeof window.datatableApi !== 'undefined' && window.datatableApi.refresh) {
-                                    window.datatableApi.refresh();
-                                }
-                            } else {
-                                swal({
-                                    title: 'خطا',
-                                    text: response.message || 'خطا در تبدیل سرویس',
-                                    type: 'error',
-                                    padding: '2em'
-                                });
-                            }
-                        },
-                        error: function(xhr) {
-                            const response = xhr.responseJSON;
-                            let errorMessage = 'خطا در تبدیل سرویس';
-                            
-                            if (response && response.message) {
-                                errorMessage = response.message;
-                            }
-                            
-                            swal({
-                                title: 'خطا',
-                                text: errorMessage,
-                                type: 'error',
-                                padding: '2em'
-                            });
-                        }
-                    });
-                }
-            });
-        });
-        
-        
-        // Cancel building and service button
-        $('#cancelBuildingAndService').on('click', function() {
-            if (!currentLockedServiceId) {
-                return;
-            }
-            
-            const token = localStorage.getItem('organization_token');
-            if (!token) {
-                swal({
-                    title: 'خطا',
-                    text: 'لطفاً مجدداً وارد شوید',
-                    type: 'error',
-                    padding: '2em'
-                });
-                return;
-            }
-            
-            swal({
-                title: 'آیا مطمئن هستید؟',
-                text: 'ساختمان غیرفعال شده و سرویس لغو خواهد شد.',
-                type: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'بله، انجام بده',
-                cancelButtonText: 'خیر',
-                padding: '2em'
-            }).then(function(result) {
-                if (result.value) {
-                    $.ajax({
-                        url: `/api/organization/services/${currentLockedServiceId}/cancel-building`,
-                        type: 'POST',
-                        headers: {
-                            'Authorization': 'Bearer ' + token
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                $('#lockedServiceModal').modal('hide');
-                                swal({
-                                    title: 'موفقیت',
-                                    text: response.message,
-                                    type: 'success',
-                                    padding: '2em'
-                                });
-                                
-                                if (typeof window.datatableApi !== 'undefined' && window.datatableApi.refresh) {
-                                    window.datatableApi.refresh();
-                                }
-                            } else {
-                                swal({
-                                    title: 'خطا',
-                                    text: response.message || 'خطا در انجام عملیات',
-                                    type: 'error',
-                                    padding: '2em'
-                                });
-                            }
-                        },
-                        error: function(xhr) {
-                            const response = xhr.responseJSON;
-                            let errorMessage = 'خطا در انجام عملیات';
-                            
-                            if (response && response.message) {
-                                errorMessage = response.message;
-                            }
-                            
-                            swal({
-                                title: 'خطا',
-                                text: errorMessage,
-                                type: 'error',
-                                padding: '2em'
-                            });
-                        }
-                    });
-                }
-            });
-        });
     });
     
 })(jQuery || window.jQuery || window.$);
