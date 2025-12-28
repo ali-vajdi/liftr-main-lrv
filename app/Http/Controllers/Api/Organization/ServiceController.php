@@ -1442,16 +1442,14 @@ class ServiceController extends Controller
             ->where('organization_id', $user->organization_id)
             ->firstOrFail();
 
-        // Check if building has an active contract
-        $activeContract = BuildingContract::where('building_id', $buildingId)
-            ->where('status', BuildingContract::STATUS_ACTIVE)
-            ->first();
-
+        // Services created from "all services" page should always have building_contract_id = null
+        // (not linked to any contract, even if an active contract exists)
+        
         // Create the service (user-created, so is_manual = true)
         // Multiple services can now be created for the same building/month/year
         $service = Service::create([
             'building_id' => $buildingId,
-            'building_contract_id' => $activeContract ? $activeContract->id : null,
+            'building_contract_id' => null, // Always null for services created from this page
             'service_month' => $serviceMonth,
             'service_year' => $serviceYear,
             'monthly_amount' => $amount,
@@ -1459,10 +1457,8 @@ class ServiceController extends Controller
             'is_manual' => true, // Mark as user-created to prevent automatic expiration
         ]);
 
-        // If service has a contract, regenerate payment periods to link this service
-        if ($activeContract) {
-            $activeContract->generatePaymentPeriods();
-        }
+        // Create financial record for this service (building_contract_id will be null)
+        $this->createServiceFinancialRecordOnCreation($service, $amount);
 
         $service->load(['building.province', 'building.city', 'building.elevators', 'buildingContract']);
         $service->status_text = $service->status_text;
@@ -1856,5 +1852,43 @@ class ServiceController extends Controller
 
         // Create financial record for this service
         $this->createServiceFinancialRecord($service);
+    }
+
+    /**
+     * Create financial record when service is created (works even if building_contract_id is null)
+     */
+    private function createServiceFinancialRecordOnCreation(Service $service, $amount)
+    {
+        $monthName = $this->getMonthName($service->service_month);
+        $description = "از بابت سرویس {$monthName} {$service->service_year}";
+
+        // Check if record already exists
+        $query = BuildingFinancialRecord::where('building_id', $service->building_id)
+            ->where('transaction_type', BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT)
+            ->where('description', $description);
+        
+        // If building_contract_id is null, check for null records; otherwise check for specific contract
+        if ($service->building_contract_id) {
+            $query->where('building_contract_id', $service->building_contract_id);
+        } else {
+            $query->whereNull('building_contract_id');
+        }
+        
+        $existingRecord = $query->first();
+
+        if ($existingRecord) {
+            return; // Already exists
+        }
+
+        // Create financial record with the service amount (debit)
+        BuildingFinancialRecord::create([
+            'building_id' => $service->building_id,
+            'building_contract_id' => $service->building_contract_id, // Can be null
+            'type' => BuildingFinancialRecord::TYPE_DEBIT,
+            'amount' => $amount,
+            'transaction_type' => BuildingFinancialRecord::TRANSACTION_SERVICE_PAYMENT,
+            'description' => $description,
+            'transaction_date' => now(),
+        ]);
     }
 }

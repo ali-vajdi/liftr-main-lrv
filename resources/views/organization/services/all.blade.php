@@ -1127,59 +1127,115 @@ window.onCancelService = function(id) {
             }
             
             const btn = $(this);
-            btn.prop('disabled', true).text('در حال ایجاد...');
+            const originalText = btn.text();
             
+            // Check if building has active contract (informational only)
             $.ajax({
-                url: '/api/organization/services',
-                type: 'POST',
-                data: {
-                    building_id: buildingId,
-                    service_month: serviceMonth,
-                    service_year: serviceYear,
-                    amount: amount
-                },
+                url: `/api/organization/buildings/${buildingId}/contracts/check-pending`,
+                type: 'GET',
                 headers: {
                     'Authorization': 'Bearer ' + token
                 },
-                success: function(response) {
-                    if (response.success) {
-                        $('#addServiceModal').modal('hide');
-                        $('#addServiceForm')[0].reset();
-                        
+                success: function(checkResponse) {
+                    if (checkResponse.success && !checkResponse.data.has_active_contract) {
+                        // No active contract - show informational message
                         swal({
-                            title: 'موفقیت',
-                            text: response.message,
-                            type: 'success',
+                            title: 'اطلاعیه',
+                            html: 'این ساختمان قرارداد فعالی ندارد.<br>سرویس بدون ارتباط با قرارداد ایجاد خواهد شد.',
+                            type: 'info',
+                            showCancelButton: true,
+                            confirmButtonText: 'ادامه و ایجاد سرویس',
+                            cancelButtonText: 'انصراف',
                             padding: '2em'
+                        }).then(function(result) {
+                            if (result.value) {
+                                // User confirmed - proceed with service creation
+                                submitServiceCreation();
+                            } else {
+                                btn.prop('disabled', false).text(originalText);
+                            }
                         });
-                        
-                        if (typeof window.datatableApi !== 'undefined' && window.datatableApi.refresh) {
-                            window.datatableApi.refresh();
-                        }
                     } else {
-                        $('#add-service-error').text(response.message || 'خطا در ایجاد سرویس').show();
+                        // Has active contract - show info that service will be created without contract link
+                        swal({
+                            title: 'اطلاعیه',
+                            html: 'این ساختمان قرارداد فعالی دارد، اما سرویس بدون ارتباط با قرارداد ایجاد خواهد شد.',
+                            type: 'info',
+                            showCancelButton: true,
+                            confirmButtonText: 'ادامه و ایجاد سرویس',
+                            cancelButtonText: 'انصراف',
+                            padding: '2em'
+                        }).then(function(result) {
+                            if (result.value) {
+                                // User confirmed - proceed with service creation
+                                submitServiceCreation();
+                            } else {
+                                btn.prop('disabled', false).text(originalText);
+                            }
+                        });
                     }
                 },
-                error: function(xhr) {
-                    const response = xhr.responseJSON;
-                    let errorMessage = 'خطا در ایجاد سرویس';
-                    
-                    if (xhr.status === 422) {
-                        const errors = xhr.responseJSON.errors;
-                        errorMessage = 'خطاهای اعتبارسنجی:\n';
-                        for (const field in errors) {
-                            errorMessage += errors[field][0] + '\n';
-                        }
-                    } else if (response && response.message) {
-                        errorMessage = response.message;
-                    }
-                    
-                    $('#add-service-error').text(errorMessage).show();
-                },
-                complete: function() {
-                    btn.prop('disabled', false).text('افزودن سرویس');
+                error: function() {
+                    // If check fails, proceed anyway
+                    submitServiceCreation();
                 }
             });
+            
+            // Function to submit service creation
+            function submitServiceCreation() {
+                btn.prop('disabled', true).text('در حال ایجاد...');
+                
+                $.ajax({
+                    url: '/api/organization/services',
+                    type: 'POST',
+                    data: {
+                        building_id: buildingId,
+                        service_month: serviceMonth,
+                        service_year: serviceYear,
+                        amount: amount
+                    },
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#addServiceModal').modal('hide');
+                            $('#addServiceForm')[0].reset();
+                            
+                            swal({
+                                title: 'موفقیت',
+                                text: response.message,
+                                type: 'success',
+                                padding: '2em'
+                            });
+                            
+                            if (typeof window.datatableApi !== 'undefined' && window.datatableApi.refresh) {
+                                window.datatableApi.refresh();
+                            }
+                        } else {
+                            $('#add-service-error').text(response.message || 'خطا در ایجاد سرویس').show();
+                            btn.prop('disabled', false).text(originalText);
+                        }
+                    },
+                    error: function(xhr) {
+                        const response = xhr.responseJSON;
+                        let errorMessage = 'خطا در ایجاد سرویس';
+                        
+                        if (xhr.status === 422) {
+                            const errors = xhr.responseJSON.errors;
+                            errorMessage = 'خطاهای اعتبارسنجی:\n';
+                            for (const field in errors) {
+                                errorMessage += errors[field][0] + '\n';
+                            }
+                        } else if (response && response.message) {
+                            errorMessage = response.message;
+                        }
+                        
+                        $('#add-service-error').text(errorMessage).show();
+                        btn.prop('disabled', false).text(originalText);
+                    }
+                });
+            }
             
             return false;
         });
