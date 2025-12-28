@@ -41,6 +41,17 @@ class CheckOrganizationPackagePayment
         }
 
         $organization = $user->organization;
+        
+        // Check if organization is disabled
+        if (!$organization->status) {
+            // Revoke the token to force logout
+            $user->token()->revoke();
+            
+            return response()->json([
+                'message' => 'سازمان شما غیرفعال است. لطفا با پشتیبانی تماس بگیرید.',
+                'organization_disabled' => true
+            ], 403);
+        }
         $activePackages = $organization->activePackages();
 
         // If no active packages, lock access

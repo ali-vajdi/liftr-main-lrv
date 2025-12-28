@@ -38,8 +38,17 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $token = $organizationUser->createToken('organization-token')->accessToken;
+        // Load organization to check its status
         $organizationUser->load('organization');
+        
+        // Check if organization is disabled
+        if (!$organizationUser->organization || !$organizationUser->organization->status) {
+            return response()->json([
+                'message' => 'سازمان شما غیرفعال است. لطفا با پشتیبانی تماس بگیرید.'
+            ], 403);
+        }
+
+        $token = $organizationUser->createToken('organization-token')->accessToken;
 
         return response()->json([
             'token' => $token,
@@ -82,9 +91,18 @@ class AuthController extends Controller
             ], 401);
         }
         
+        // Load organization to check its status
+        $organizationUser->load('organization');
+        
+        // Check if organization is disabled
+        if (!$organizationUser->organization || !$organizationUser->organization->status) {
+            return response()->json([
+                'message' => 'سازمان شما غیرفعال است. لطفا با پشتیبانی تماس بگیرید.'
+            ], 403);
+        }
+        
         // Generate a new token for the user
         $token = $organizationUser->createToken('organization-token')->accessToken;
-        $organizationUser->load('organization');
         
         return response()->json([
             'message' => 'قفل صفحه باز شد.',
@@ -97,6 +115,18 @@ class AuthController extends Controller
     {
         $user = $request->user();
         $user->load('organization');
+        
+        // Check if organization is disabled
+        if (!$user->organization || !$user->organization->status) {
+            // Revoke the token to force logout
+            $user->token()->revoke();
+            
+            return response()->json([
+                'authenticated' => false,
+                'message' => 'سازمان شما غیرفعال است. لطفا با پشتیبانی تماس بگیرید.',
+                'organization_disabled' => true
+            ], 403);
+        }
         
         return response()->json([
             'authenticated' => true,

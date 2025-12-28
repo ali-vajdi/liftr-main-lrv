@@ -14,6 +14,23 @@ function getOrganizationData(callback) {
             'Authorization': 'Bearer ' + token
         },
         success: function(response) {
+            // Check if organization is disabled
+            if (response.organization_disabled || (response.user && response.user.organization && !response.user.organization.status)) {
+                localStorage.removeItem('organization_token');
+                localStorage.removeItem('organization_user');
+                swal({
+                    title: 'سازمان غیرفعال',
+                    text: 'سازمان شما غیرفعال است. لطفا با پشتیبانی تماس بگیرید.',
+                    type: 'error',
+                    confirmButtonText: 'باشه',
+                    padding: '2em'
+                }).then(function() {
+                    window.location.href = '/login';
+                });
+                if (callback) callback(null, 'Organization disabled');
+                return;
+            }
+            
             if (response.user && response.user.organization) {
                 if (callback) callback(response.user.organization, null);
             } else {
@@ -21,10 +38,25 @@ function getOrganizationData(callback) {
             }
         },
         error: function(xhr) {
-            if (xhr.status === 401) {
-                localStorage.removeItem('organization_token');
-                localStorage.removeItem('organization_user');
-                window.location.href = '/login';
+            if (xhr.status === 401 || xhr.status === 403) {
+                const response = xhr.responseJSON;
+                if (response && response.organization_disabled) {
+                    localStorage.removeItem('organization_token');
+                    localStorage.removeItem('organization_user');
+                    swal({
+                        title: 'سازمان غیرفعال',
+                        text: response.message || 'سازمان شما غیرفعال است. لطفا با پشتیبانی تماس بگیرید.',
+                        type: 'error',
+                        confirmButtonText: 'باشه',
+                        padding: '2em'
+                    }).then(function() {
+                        window.location.href = '/login';
+                    });
+                } else {
+                    localStorage.removeItem('organization_token');
+                    localStorage.removeItem('organization_user');
+                    window.location.href = '/login';
+                }
             } else {
                 if (callback) callback(null, 'Error fetching organization data');
             }
@@ -74,13 +106,31 @@ $(document).ajaxError(function(event, xhr, settings) {
             return;
         }
         
+        const response = xhr.responseJSON;
+        
+        // Check if organization is disabled
+        if ((xhr.status === 403 || xhr.status === 401) && response && response.organization_disabled) {
+            localStorage.removeItem('organization_token');
+            localStorage.removeItem('organization_user');
+            swal({
+                title: 'سازمان غیرفعال',
+                text: response.message || 'سازمان شما غیرفعال است. لطفا با پشتیبانی تماس بگیرید.',
+                type: 'error',
+                confirmButtonText: 'باشه',
+                padding: '2em'
+            }).then(function() {
+                window.location.href = '/login';
+            });
+            return;
+        }
+        
         // Check if response indicates payment is required
-        if (xhr.status === 403 && xhr.responseJSON && xhr.responseJSON.locked && xhr.responseJSON.requires_payment) {
+        if (xhr.status === 403 && response && response.locked && response.requires_payment) {
             // Don't redirect if already on payment page
             if (window.location.pathname !== '/packages/payment') {
                 swal({
                     title: 'دسترسی محدود شده',
-                    text: xhr.responseJSON.message || 'برای دسترسی به سیستم، لطفا پرداخت خود را انجام دهید.',
+                    text: response.message || 'برای دسترسی به سیستم، لطفا پرداخت خود را انجام دهید.',
                     type: 'warning',
                     confirmButtonText: 'رفتن به صفحه پرداخت',
                     showCancelButton: false,
