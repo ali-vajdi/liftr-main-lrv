@@ -41,20 +41,6 @@
                         </svg>
                         افزایش موجودی
                     </button>
-                    <div class="row mt-4" style="border-top: 1px solid rgba(255,255,255,0.25); padding-top: 20px; margin-top: 20px;">
-                        <div class="col-4 text-center">
-                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 5px;"><span id="sms-total">0</span></div>
-                            <div style="font-size: 11px; opacity: 0.85; font-weight: 500;">کل</div>
-                        </div>
-                        <div class="col-4 text-center">
-                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 5px;"><span id="sms-sent">0</span></div>
-                            <div style="font-size: 11px; opacity: 0.85; font-weight: 500;">ارسال شده</div>
-                        </div>
-                        <div class="col-4 text-center">
-                            <div style="font-size: 24px; font-weight: 700; margin-bottom: 5px;"><span id="sms-pending">0</span></div>
-                            <div style="font-size: 11px; opacity: 0.85; font-weight: 500;">در انتظار</div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
