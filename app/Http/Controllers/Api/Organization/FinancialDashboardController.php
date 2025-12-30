@@ -535,7 +535,7 @@ class FinancialDashboardController extends Controller
             'currentDate' => $currentDate,
         ]);
 
-        $filename = 'صورتحساب_مالی_' . $building->name . '_' . $currentDate . '.pdf';
+        $filename = 'صورتحساب_مالی_' . $building->name . '.pdf';
         
         return $pdf->download($filename);
     }
