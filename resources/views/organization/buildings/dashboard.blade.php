@@ -35,15 +35,20 @@
         <!-- Filters Card -->
         <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
             <div class="widget widget-chart-one">
-                <div class="widget-heading" style="border-bottom: 2px solid #e0e6ed; padding: 20px 25px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);">
-                    <h5 class="mb-0" style="font-weight: 600; color: #3b3f5c;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 10px; color: #667eea;">
-                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                <div class="widget-heading" style="border-bottom: 2px solid #e0e6ed; padding: 20px 25px; background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); cursor: pointer;" data-toggle="collapse" data-target="#filters-collapse" aria-expanded="false" aria-controls="filters-collapse">
+                    <h5 class="mb-0" style="font-weight: 600; color: #3b3f5c; display: flex; justify-content: space-between; align-items: center;">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 10px; color: #667eea;">
+                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                            </svg>
+                            فیلترها
+                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="collapse-icon" style="color: #667eea; transition: transform 0.3s ease;">
+                            <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
-                        فیلترها
                     </h5>
                 </div>
-                <div class="widget-content" style="padding: 30px 25px;">
+                <div id="filters-collapse" class="widget-content collapse" style="padding: 30px 25px;">
                     <form id="dashboard-filters">
                         <!-- First Row: Date Filters -->
                         <div class="row mb-4">
@@ -368,6 +373,17 @@
     #dashboard-filters .btn-secondary:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+    }
+    
+    /* Collapse Icon Styles */
+    .collapse-icon {
+        transition: transform 0.3s ease;
+    }
+    .widget-heading[aria-expanded="true"] .collapse-icon {
+        transform: rotate(180deg);
+    }
+    .widget-heading:hover {
+        background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%) !important;
     }
 </style>
 @endsection
@@ -1055,6 +1071,15 @@ $(document).ready(function() {
             maxDate: 'today'
         });
     }
+
+    // Handle filters collapse toggle
+    $('#filters-collapse').on('show.bs.collapse', function() {
+        $('.widget-heading[data-target="#filters-collapse"]').attr('aria-expanded', 'true');
+    });
+    
+    $('#filters-collapse').on('hide.bs.collapse', function() {
+        $('.widget-heading[data-target="#filters-collapse"]').attr('aria-expanded', 'false');
+    });
 
     // Initial load
     populateYearDropdown();
