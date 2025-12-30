@@ -122,6 +122,7 @@
             border-collapse: collapse;
             margin-bottom: 15px;
             direction: rtl;
+            table-layout: fixed;
         }
 
         .financial-table th,
@@ -131,15 +132,35 @@
             text-align: center;
             vertical-align: middle;
             direction: rtl;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .financial-table th {
             background-color: #f0f0f0;
             font-weight: bold;
+            overflow: visible;
+            word-wrap: break-word;
         }
 
         .financial-table td {
             font-size: 11px;
+        }
+
+        .financial-table td.description-cell {
+            text-align: right;
+            word-break: break-word;
+            hyphens: auto;
+        }
+
+        .financial-table th:first-child,
+        .financial-table td.row-number-cell {
+            width: 8%;
+            min-width: 8%;
+            text-align: center;
+            padding: 8px 4px;
+            overflow: visible;
+            white-space: normal;
         }
 
         .text-right {
@@ -239,9 +260,9 @@
                 @if($pageIndex == 0)
                 <thead>
                     <tr>
-                        <th style="width: 5%;">ردیف</th>
-                        <th style="width: 15%;">تاریخ</th>
-                        <th style="width: 30%;">شرح</th>
+                        <th style="width: 8%;">ردیف</th>
+                        <th style="width: 14%;">تاریخ</th>
+                        <th style="width: 28%;">شرح</th>
                         <th style="width: 15%;">بدهکاری</th>
                         <th style="width: 15%;">بستانکاری</th>
                         <th style="width: 20%;">مانده</th>
@@ -252,9 +273,9 @@
                     @if($records->count() > 0)
                         @foreach($records as $record)
                             <tr>
-                                <td>{{ ++$recordIndex }}</td>
+                                <td class="row-number-cell">{{ ++$recordIndex }}</td>
                                 <td>{{ $record['transaction_date_jalali'] ?? '-' }}</td>
-                                <td class="text-right">{{ $record['description'] ?? '-' }}</td>
+                                <td class="description-cell">{{ $record['description'] ?? '-' }}</td>
                                 <td>{{ $record['debit'] ? number_format($record['debit'], 0) . ' ریال' : '-' }}</td>
                                 <td>{{ $record['credit'] ? number_format($record['credit'], 0) . ' ریال' : '-' }}</td>
                                 <td>{{ number_format(abs($record['balance']), 0) . ' ریال' }}</td>
