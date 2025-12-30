@@ -96,6 +96,18 @@ class BuildingContract extends Model
                 ->where('service_month', $month)
                 ->first();
 
+            // Skip creating expired services and their financial records
+            if ($isExpired) {
+                // Skip expired services - do not create service or financial record
+                // Move to next month
+                $month++;
+                if ($month > 12) {
+                    $month = 1;
+                    $year++;
+                }
+                continue;
+            }
+
             if (!$existingService) {
                 $service = Service::create([
                     'building_id' => $this->building_id,
@@ -103,21 +115,23 @@ class BuildingContract extends Model
                     'service_year' => $year,
                     'service_month' => $month,
                     'monthly_amount' => $this->monthly_amount,
-                    'status' => $isExpired ? Service::STATUS_EXPIRED : Service::STATUS_PENDING,
+                    'status' => Service::STATUS_PENDING,
                     'is_manual' => false,
                 ]);
                 
                 // Create financial record for expired service
-                if ($isExpired) {
-                    $this->createFinancialRecordForExpiredService($service);
-                }
+                // COMMENTED OUT: Should not create financial records for expired services
+                // if ($isExpired) {
+                //     $this->createFinancialRecordForExpiredService($service);
+                // }
             } else {
                 // Update existing service expiration status if needed
-                if ($isExpired && $existingService->status !== Service::STATUS_EXPIRED) {
-                    $existingService->update(['status' => Service::STATUS_EXPIRED]);
-                    // Create financial record for newly expired service
-                    $this->createFinancialRecordForExpiredService($existingService);
-                }
+                // COMMENTED OUT: Should not update to expired or create financial records for expired services
+                // if ($isExpired && $existingService->status !== Service::STATUS_EXPIRED) {
+                //     $existingService->update(['status' => Service::STATUS_EXPIRED]);
+                //     // Create financial record for newly expired service
+                //     $this->createFinancialRecordForExpiredService($existingService);
+                // }
             }
 
             // Move to next month

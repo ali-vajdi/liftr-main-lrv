@@ -128,17 +128,18 @@ class BuildingContractController extends Controller
                 $activeContract->status = BuildingContract::STATUS_FINISHED;
                 $activeContract->save();
                 
+                // COMMENTED OUT: Should not mark services as expired or create financial records for them
                 // Mark pending services as expired (only pending services)
-                Service::where('building_contract_id', $activeContract->id)
-                    ->where('status', Service::STATUS_PENDING)
-                    ->update([
-                        'status' => Service::STATUS_EXPIRED,
-                    ]);
+                // Service::where('building_contract_id', $activeContract->id)
+                //     ->where('status', Service::STATUS_PENDING)
+                //     ->update([
+                //         'status' => Service::STATUS_EXPIRED,
+                //     ]);
                 
                 // Cancel pending services if requested (this will override the expired status)
                 if ($request->has('cancel_pending_services') && $request->cancel_pending_services) {
                     Service::where('building_contract_id', $activeContract->id)
-                        ->where('status', Service::STATUS_EXPIRED)
+                        ->where('status', Service::STATUS_PENDING)
                         ->update([
                             'status' => Service::STATUS_CANCELLED,
                             'technician_id' => null,
@@ -330,16 +331,17 @@ class BuildingContractController extends Controller
             $contract->status = $request->status === 'finished' ? BuildingContract::STATUS_FINISHED : BuildingContract::STATUS_CANCELLED;
             $contract->save();
 
+            // COMMENTED OUT: Should not mark services as expired or create financial records for them
             // If contract is finished, mark only pending services as expired
-            if ($request->status === 'finished') {
-                Service::where('building_contract_id', $contract->id)
-                    ->where('status', Service::STATUS_PENDING)
-                    ->update([
-                        'status' => Service::STATUS_EXPIRED,
-                    ]);
-            }
+            // if ($request->status === 'finished') {
+            //     Service::where('building_contract_id', $contract->id)
+            //         ->where('status', Service::STATUS_PENDING)
+            //         ->update([
+            //             'status' => Service::STATUS_EXPIRED,
+            //         ]);
+            // }
             // If contract is cancelled, cancel only pending services for this contract
-            elseif ($request->status === 'cancelled') {
+            if ($request->status === 'cancelled') {
                 Service::where('building_contract_id', $contract->id)
                     ->where('status', Service::STATUS_PENDING)
                     ->update([

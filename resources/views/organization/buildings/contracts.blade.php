@@ -129,6 +129,20 @@
                         </div>
                     </div>
                     <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="manager_name">نام مدیر/نماینده <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="manager_name" name="manager_name" maxlength="255" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="manager_phone">شماره تماس مدیر/نماینده <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="manager_phone" name="manager_phone" maxlength="20" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label for="previous_debt">بدهی قبلی</label>
@@ -153,6 +167,7 @@
 const buildingId = {{ $buildingId }};
 const buildingSlug = '{{ $buildingSlug }}';
 let currentContractId = null;
+let buildingData = null;
 
 // Load building info
 function loadBuildingInfo() {
@@ -164,12 +179,12 @@ function loadBuildingInfo() {
         },
         success: function(response) {
             if (response.success) {
-                const building = response.data;
+                buildingData = response.data;
                 $('#building-info').html(`
-                    <h6>${building.name}</h6>
-                    <p class="mb-1"><strong>مدیر/نماینده:</strong> ${building.manager_name}</p>
-                    <p class="mb-1"><strong>شماره تماس:</strong> ${building.manager_phone}</p>
-                    <p class="mb-0"><strong>آدرس:</strong> ${building.address}</p>
+                    <h6>${buildingData.name}</h6>
+                    <p class="mb-1"><strong>مدیر/نماینده:</strong> ${buildingData.manager_name || '-'}</p>
+                    <p class="mb-1"><strong>شماره تماس:</strong> ${buildingData.manager_phone || '-'}</p>
+                    <p class="mb-0"><strong>آدرس:</strong> ${buildingData.address}</p>
                 `);
             }
         },
@@ -361,7 +376,38 @@ $('#addContractBtn').on('click', function() {
     $('#contractForm')[0].reset();
     $('#contractModalLabel').text('افزودن قرارداد جدید');
     $('#custom_payment_method_fields').hide();
-    $('#contractModal').modal('show');
+    
+    // Load or use building data to pre-fill manager fields
+    function fillManagerFields() {
+        if (buildingData) {
+            $('#manager_name').val(buildingData.manager_name || '');
+            $('#manager_phone').val(buildingData.manager_phone || '');
+        }
+        $('#contractModal').modal('show');
+    }
+    
+    // If building data is not loaded yet, load it first
+    if (!buildingData) {
+        $.ajax({
+            url: `/api/organization/buildings/${buildingId}`,
+            type: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
+            },
+            success: function(response) {
+                if (response.success) {
+                    buildingData = response.data;
+                }
+                fillManagerFields();
+            },
+            error: function(xhr) {
+                console.error('Error loading building:', xhr);
+                fillManagerFields(); // Still show modal even if loading fails
+            }
+        });
+    } else {
+        fillManagerFields();
+    }
 });
 
 // Initialize date pickers
@@ -446,6 +492,8 @@ $('#saveContract').on('click', function() {
         contract_end_date: $('#contract_end_date').val(),
         monthly_amount: $('#contract_monthly_amount').val(),
         payment_method: $('#payment_method').val(),
+        manager_name: $('#manager_name').val(),
+        manager_phone: $('#manager_phone').val(),
         previous_debt: $('#previous_debt').val() || 0
     };
     
@@ -470,7 +518,7 @@ $('#saveContract').on('click', function() {
         formData.payment_frequency_value = mapping.payment_frequency_value;
     }
     
-    if (!formData.contract_start_date || !formData.contract_end_date || !formData.monthly_amount || !formData.payment_method) {
+    if (!formData.contract_start_date || !formData.contract_end_date || !formData.monthly_amount || !formData.payment_method || !formData.manager_name || !formData.manager_phone) {
         swal({
             title: 'خطا',
             text: 'لطفاً تمام فیلدهای الزامی را پر کنید',
