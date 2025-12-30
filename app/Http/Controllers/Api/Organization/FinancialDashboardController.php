@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Morilog\Jalali\Jalalian;
 use Carbon\Carbon;
+use niklasravnsborg\LaravelPdf\Facades\Pdf;
 
 class FinancialDashboardController extends Controller
 {
@@ -22,9 +23,15 @@ class FinancialDashboardController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        // Verify building belongs to the organization
-        $building = \App\Models\Building::where('organization_id', $user->organization_id)
-            ->findOrFail($building);
+        // Verify building belongs to the organization - support both ID and slug
+        $buildingQuery = \App\Models\Building::where('organization_id', $user->organization_id);
+        
+        // Check if $building is numeric (ID) or string (slug)
+        if (is_numeric($building)) {
+            $building = $buildingQuery->findOrFail($building);
+        } else {
+            $building = $buildingQuery->where('slug', $building)->firstOrFail();
+        }
 
         // Get all financial records for this building, ordered by transaction_date (or created_at) ascending for balance calculation
         $records = BuildingFinancialRecord::where('building_id', $building->id)
@@ -301,6 +308,96 @@ class FinancialDashboardController extends Controller
     }
 
     /**
+     * Export financial dashboard as PDF
+     */
+    public function exportPdf(Request $request, $building)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            abort(401, 'Unauthorized');
+        }
+
+        // Load organization
+        $user->load('organization');
+        $organization = $user->organization;
+
+        // Verify building belongs to the organization - support both ID and slug
+        $buildingQuery = \App\Models\Building::where('organization_id', $user->organization_id);
+        
+        // Check if $building is numeric (ID) or string (slug)
+        if (is_numeric($building)) {
+            $building = $buildingQuery->find($building);
+        } else {
+            $building = $buildingQuery->where('slug', $building)->first();
+        }
+        
+        if (!$building) {
+            abort(404, 'ساختمان یافت نشد');
+        }
+
+        // Get all financial records for this building, ordered by transaction_date (or created_at) ascending for balance calculation
+        $records = BuildingFinancialRecord::where('building_id', $building->id)
+            ->orderByRaw('COALESCE(transaction_date, created_at) ASC')
+            ->orderBy('id', 'ASC')
+            ->get();
+
+        // Calculate cumulative balance and format records
+        $cumulativeBalance = 0;
+        $formattedRecords = $records->map(function ($record) use (&$cumulativeBalance) {
+            // Calculate balance: debit (بدهکاری) is negative, credit (بستانکاری) is positive
+            if ($record->type === BuildingFinancialRecord::TYPE_DEBIT) {
+                $cumulativeBalance -= $record->amount;
+            } else {
+                $cumulativeBalance += $record->amount;
+            }
+
+            // Get transaction date (prefer transaction_date, fallback to created_at)
+            $transactionDate = $record->transaction_date ?? $record->created_at;
+
+            return [
+                'id' => $record->id,
+                'transaction_date' => $transactionDate,
+                'transaction_date_jalali' => $transactionDate ? Jalalian::forge($transactionDate)->format('Y/m/d') : null,
+                'description' => $record->description,
+                'debit' => $record->type === BuildingFinancialRecord::TYPE_DEBIT ? $record->amount : null,
+                'credit' => $record->type === BuildingFinancialRecord::TYPE_CREDIT ? $record->amount : null,
+                'balance' => $cumulativeBalance,
+            ];
+        });
+
+        // Calculate totals
+        $totalDebits = $records->where('type', BuildingFinancialRecord::TYPE_DEBIT)->sum('amount');
+        $totalCredits = $records->where('type', BuildingFinancialRecord::TYPE_CREDIT)->sum('amount');
+        $finalBalance = BuildingFinancialRecord::calculateBalance($building->id);
+
+        // Get current Jalali date
+        $currentDate = Jalalian::now()->format('Y/m/d');
+
+        // Convert final balance to Persian words (use absolute value for display)
+        $finalBalanceInWords = $this->numberToPersianWords(abs($finalBalance));
+
+        // Split records into pages (approximately 20 records per page after header/building info)
+        $recordsPerPage = 20;
+        $recordChunks = $formattedRecords->chunk($recordsPerPage);
+
+        // Generate PDF
+        $pdf = PDF::loadView('organization.financial-dashboard.pdf', [
+            'organization' => $organization,
+            'building' => $building,
+            'recordChunks' => $recordChunks,
+            'totalDebits' => $totalDebits,
+            'totalCredits' => $totalCredits,
+            'finalBalance' => $finalBalance,
+            'finalBalanceInWords' => $finalBalanceInWords,
+            'currentDate' => $currentDate,
+        ]);
+
+        $filename = 'صورتحساب_مالی_' . $building->name . '_' . $currentDate . '.pdf';
+        
+        return $pdf->download($filename);
+    }
+
+    /**
      * Map database fields to payment method selection
      * Determines if contract matches a predefined option or is custom
      */
@@ -323,5 +420,135 @@ class FinancialDashboardController extends Controller
             // Doesn't match any predefined option, so it's custom
             return 'custom';
         }
+    }
+
+    /**
+     * Convert number to Persian words
+     */
+    private function numberToPersianWords($number)
+    {
+        $ones = [
+            0 => '',
+            1 => 'یک',
+            2 => 'دو',
+            3 => 'سه',
+            4 => 'چهار',
+            5 => 'پنج',
+            6 => 'شش',
+            7 => 'هفت',
+            8 => 'هشت',
+            9 => 'نه',
+            10 => 'ده',
+            11 => 'یازده',
+            12 => 'دوازده',
+            13 => 'سیزده',
+            14 => 'چهارده',
+            15 => 'پانزده',
+            16 => 'شانزده',
+            17 => 'هفده',
+            18 => 'هجده',
+            19 => 'نوزده',
+        ];
+
+        $tens = [
+            2 => 'بیست',
+            3 => 'سی',
+            4 => 'چهل',
+            5 => 'پنجاه',
+            6 => 'شصت',
+            7 => 'هفتاد',
+            8 => 'هشتاد',
+            9 => 'نود',
+        ];
+
+        $hundreds = [
+            1 => 'یکصد',
+            2 => 'دویست',
+            3 => 'سیصد',
+            4 => 'چهارصد',
+            5 => 'پانصد',
+            6 => 'ششصد',
+            7 => 'هفتصد',
+            8 => 'هشتصد',
+            9 => 'نهصد',
+        ];
+
+        if ($number == 0) {
+            return 'صفر';
+        }
+
+        // Handle negative numbers
+        $isNegative = $number < 0;
+        $number = abs($number);
+
+        // Split into integer and decimal parts
+        $parts = explode('.', (string)$number);
+        $integerPart = (int)$parts[0];
+        $decimalPart = isset($parts[1]) ? (int)substr($parts[1], 0, 2) : 0;
+
+        $result = '';
+
+        // Convert integer part
+        if ($integerPart >= 1000000000) {
+            $billions = (int)($integerPart / 1000000000);
+            $result .= $this->convertThreeDigits($billions, $ones, $tens, $hundreds) . ' میلیارد ';
+            $integerPart = $integerPart % 1000000000;
+        }
+
+        if ($integerPart >= 1000000) {
+            $millions = (int)($integerPart / 1000000);
+            $result .= $this->convertThreeDigits($millions, $ones, $tens, $hundreds) . ' میلیون ';
+            $integerPart = $integerPart % 1000000;
+        }
+
+        if ($integerPart >= 1000) {
+            $thousands = (int)($integerPart / 1000);
+            if ($thousands == 1) {
+                $result .= 'هزار ';
+            } else {
+                $result .= $this->convertThreeDigits($thousands, $ones, $tens, $hundreds) . ' هزار ';
+            }
+            $integerPart = $integerPart % 1000;
+        }
+
+        if ($integerPart > 0) {
+            $result .= $this->convertThreeDigits($integerPart, $ones, $tens, $hundreds);
+        }
+
+        // Remove trailing space
+        $result = trim($result);
+
+        // Add negative prefix if needed
+        if ($isNegative) {
+            $result = 'منفی ' . $result;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Convert three-digit number to words
+     */
+    private function convertThreeDigits($number, $ones, $tens, $hundreds)
+    {
+        $result = '';
+
+        if ($number >= 100) {
+            $hundred = (int)($number / 100);
+            $result .= $hundreds[$hundred] . ' ';
+            $number = $number % 100;
+        }
+
+        if ($number >= 20) {
+            $ten = (int)($number / 10);
+            $result .= $tens[$ten] . ' ';
+            $number = $number % 10;
+        }
+
+        if ($number > 0) {
+            $result .= $ones[$number] . ' ';
+        }
+
+        return trim($result);
     }
 }

@@ -11,6 +11,14 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">داشبورد مالی</h5>
                         <div>
+                            <button type="button" class="btn btn-info btn-sm mr-2" id="exportPdfBtn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                خروجی PDF
+                            </button>
                             <button type="button" class="btn btn-success btn-sm mr-2" id="addPaymentBtn">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -555,6 +563,58 @@ function formatCurrency(amount) {
     const formatted = new Intl.NumberFormat('fa-IR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
     return `${formatted} ریال`;
 }
+
+// Handle PDF export button
+$('#exportPdfBtn').on('click', function() {
+    const token = localStorage.getItem('organization_token');
+    if (!token) {
+        swal({
+            title: 'خطا',
+            text: 'لطفاً ابتدا وارد سیستم شوید',
+            type: 'error',
+            padding: '2em'
+        });
+        return;
+    }
+
+    // Use building slug for the API call (route supports both ID and slug, but slug is preferred)
+    const buildingIdentifier = buildingSlug || buildingId;
+    const url = `/api/organization/buildings/${buildingIdentifier}/financial-dashboard/export-pdf`;
+    
+    // Use fetch to download PDF with authentication
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/pdf'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('خطا در دریافت فایل PDF');
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `صورتحساب_مالی_${buildingSlug}_${new Date().toLocaleDateString('fa-IR')}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        swal({
+            title: 'خطا',
+            text: 'خطا در دریافت فایل PDF. لطفاً دوباره تلاش کنید.',
+            type: 'error',
+            padding: '2em'
+        });
+    });
+});
 
 // Load data on page load
 $(document).ready(function() {

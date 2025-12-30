@@ -167,6 +167,8 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::post('buildings/{building}/contracts/{contract}/cancel-pending-services', [\App\Http\Controllers\Api\Organization\BuildingContractController::class, 'cancelPendingServices']);
         
         // Financial Dashboard API
+        // More specific routes must come first to avoid route conflicts
+        Route::get('buildings/{building}/financial-dashboard/export-pdf', [\App\Http\Controllers\Api\Organization\FinancialDashboardController::class, 'exportPdf']);
         Route::get('buildings/{building}/financial-dashboard', [\App\Http\Controllers\Api\Organization\FinancialDashboardController::class, 'index']);
         Route::post('buildings/{building}/financial-transactions', [\App\Http\Controllers\Api\Organization\FinancialDashboardController::class, 'addTransaction']);
         Route::get('financial/all-buildings-summary', [\App\Http\Controllers\Api\Organization\FinancialDashboardController::class, 'getAllBuildingsFinancialSummary']);
