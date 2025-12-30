@@ -5,14 +5,23 @@ namespace App\Http\Controllers\Api\Organization;
 use App\Http\Controllers\Controller;
 use App\Models\BuildingContract;
 use App\Models\BuildingFinancialRecord;
+use App\Models\Organization;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use Morilog\Jalali\Jalalian;
 use Carbon\Carbon;
 use niklasravnsborg\LaravelPdf\Facades\Pdf;
 
 class FinancialDashboardController extends Controller
 {
+    protected $smsService;
+
+    public function __construct(SmsService $smsService)
+    {
+        $this->smsService = $smsService;
+    }
     /**
      * Get financial dashboard data - financial records for a specific building
      */
@@ -693,5 +702,75 @@ class FinancialDashboardController extends Controller
         }
 
         return trim($result);
+    }
+
+    /**
+     * Send debt notification SMS to building manager
+     */
+    public function sendDebtSms(Request $request, $building)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Verify building belongs to the organization - support both ID and slug
+        $buildingQuery = \App\Models\Building::where('organization_id', $user->organization_id);
+        
+        // Check if $building is numeric (ID) or string (slug)
+        if (is_numeric($building)) {
+            $building = $buildingQuery->findOrFail($building);
+        } else {
+            $building = $buildingQuery->where('slug', $building)->firstOrFail();
+        }
+
+        // Check if building has manager phone
+        if (!$building->manager_phone) {
+            return response()->json([
+                'success' => false,
+                'message' => 'شماره تماس مدیر ساختمان ثبت نشده است.'
+            ], 400);
+        }
+
+        // Get organization
+        $organization = Organization::findOrFail($user->organization_id);
+
+        // Calculate current debt (balance - if negative, it's debt)
+        $balance = BuildingFinancialRecord::calculateBalance($building->id);
+        $debtValue = $balance < 0 ? abs($balance) : 0;
+
+        // Send SMS
+        $smsResult = $this->smsService->sendBuildingManagerDebtSms(
+            $organization,
+            $building->manager_phone,
+            $building->name,
+            $debtValue,
+            true // Use queue
+        );
+
+        if (!$smsResult['success']) {
+            Log::error('Building manager debt SMS failed', [
+                'building_id' => $building->id,
+                'phone_number' => $building->manager_phone,
+                'debt_value' => $debtValue,
+                'error' => $smsResult['error'] ?? 'Unknown error',
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => $smsResult['message'] ?? 'خطا در ارسال پیامک',
+                'error' => $smsResult['error'] ?? 'Unknown error'
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'پیامک با موفقیت ارسال شد.',
+            'data' => [
+                'debt_value' => $debtValue,
+                'sms_count' => $smsResult['sms_count'] ?? 0,
+                'cost' => $smsResult['cost'] ?? 0,
+            ]
+        ]);
     }
 }

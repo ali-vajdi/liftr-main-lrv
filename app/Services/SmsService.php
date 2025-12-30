@@ -1343,6 +1343,35 @@ class SmsService
     }
 
     /**
+     * Send building manager debt notification SMS
+     *
+     * @param Organization $organization
+     * @param string $phoneNumber Building manager phone number
+     * @param string $buildingName
+     * @param float $debtValue Debt amount (should be positive value)
+     * @param bool $queue Whether to queue the SMS sending
+     * @return array
+     */
+    public function sendBuildingManagerDebtSms(Organization $organization, string $phoneNumber, string $buildingName, float $debtValue, bool $queue = false): array
+    {
+        $patternCode = '7wu8nt1p3ppazqa';
+        
+        $fillData = [
+            'building_name' => $buildingName,
+            'debt_value' => number_format($debtValue, 0, '.', ','),
+            'organization_name' => $organization->name,
+        ];
+
+        return $this->sendPatternSms(
+            $organization,
+            $patternCode,
+            $fillData,
+            $phoneNumber,
+            $queue
+        );
+    }
+
+    /**
      * Send organization user password reset SMS
      *
      * @param Organization $organization
