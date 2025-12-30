@@ -576,12 +576,6 @@ $(document).ready(function() {
                             <span class="info-value">${service.completed_at_jalali}</span>
                         </div>
                         ` : ''}
-                        ${service.visit_date_jalali ? `
-                        <div class="info-item">
-                            <span class="info-label">تاریخ بازدید</span>
-                            <span class="info-value">${service.visit_date_jalali}</span>
-                        </div>
-                        ` : ''}
                         ${service.visit_time_range ? `
                         <div class="info-item">
                             <span class="info-label">بازه زمانی بازدید</span>
