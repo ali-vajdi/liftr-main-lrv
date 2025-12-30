@@ -1349,15 +1349,17 @@ class SmsService
      * @param string $phoneNumber Building manager phone number
      * @param string $buildingName
      * @param float $debtValue Debt amount (should be positive value)
+     * @param string $dateValue Current date in Jalali format
      * @param bool $queue Whether to queue the SMS sending
      * @return array
      */
-    public function sendBuildingManagerDebtSms(Organization $organization, string $phoneNumber, string $buildingName, float $debtValue, bool $queue = false): array
+    public function sendBuildingManagerDebtSms(Organization $organization, string $phoneNumber, string $buildingName, float $debtValue, string $dateValue, bool $queue = false): array
     {
-        $patternCode = '7wu8nt1p3ppazqa';
+        $patternCode = '9qf0rzemt67gvi6';
         
         $fillData = [
             'building_name' => $buildingName,
+            'date_value' => $dateValue,
             'debt_value' => number_format($debtValue, 0, '.', ','),
             'organization_name' => $organization->name,
         ];

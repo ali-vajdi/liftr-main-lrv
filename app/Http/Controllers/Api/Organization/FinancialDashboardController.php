@@ -739,12 +739,16 @@ class FinancialDashboardController extends Controller
         $balance = BuildingFinancialRecord::calculateBalance($building->id);
         $debtValue = $balance < 0 ? abs($balance) : 0;
 
+        // Get current Jalali date
+        $dateValue = Jalalian::now()->format('Y/m/d');
+
         // Send SMS
         $smsResult = $this->smsService->sendBuildingManagerDebtSms(
             $organization,
             $building->manager_phone,
             $building->name,
             $debtValue,
+            $dateValue,
             true // Use queue
         );
 
