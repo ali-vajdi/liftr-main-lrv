@@ -541,7 +541,6 @@ function displayServiceDetails(service) {
                 <p><strong>نام:</strong> ${building.name || '-'}</p>
                 <p><strong>مدیر/نماینده:</strong> ${building.manager_name || '-'}</p>
                 <p><strong>شماره تماس:</strong> ${building.manager_phone || '-'}</p>
-                <p><strong>نوع:</strong> ${building.building_type || '-'}</p>
             </div>
             <div class="col-md-6">
                 <h6>موقعیت</h6>
