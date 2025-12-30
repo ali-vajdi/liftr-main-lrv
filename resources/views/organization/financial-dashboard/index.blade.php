@@ -247,6 +247,7 @@
 <script>
 const buildingId = {{ $buildingId }};
 const buildingSlug = '{{ $buildingSlug }}';
+let buildingName = ''; // Store building name for PDF export
 
 // Load building info
 function loadBuildingInfo() {
@@ -259,6 +260,7 @@ function loadBuildingInfo() {
         success: function(response) {
             if (response.success) {
                 const building = response.data;
+                buildingName = building.name || ''; // Store building name
                 $('#building-info').html(`
                     <div class="mb-0">
                         <h6 class="mb-3 text-primary">${building.name}</h6>
@@ -922,7 +924,11 @@ $('#exportPdfBtn').on('click', function() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `صورتحساب_مالی_${buildingSlug}_${new Date().toLocaleDateString('fa-IR')}.pdf`;
+        // Use building name if available, otherwise fallback to buildingSlug
+        const buildingIdentifier = buildingName || buildingSlug;
+        // Sanitize building name for filename (replace spaces and special chars with underscore)
+        const sanitizedName = buildingIdentifier.replace(/[^\w\u0600-\u06FF]/g, '_');
+        a.download = `صورتحساب_مالی_${sanitizedName}.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
