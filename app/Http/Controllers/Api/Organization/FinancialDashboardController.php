@@ -51,9 +51,9 @@ class FinancialDashboardController extends Controller
             $balanceMap[$record->id] = $cumulativeBalance;
         }
 
-        // Get all records ordered by ID descending (newest first) for display
+        // Get all records ordered by ID ascending (oldest first) for display
         $records = BuildingFinancialRecord::where('building_id', $building->id)
-            ->orderBy('id', 'DESC')
+            ->orderBy('id', 'ASC')
             ->get();
 
         // Format records with balance from map
@@ -359,9 +359,9 @@ class FinancialDashboardController extends Controller
             $balanceMap[$record->id] = $cumulativeBalance;
         }
 
-        // Get all records ordered by ID descending (newest first) for display
+        // Get all records ordered by ID ascending (oldest first) for display
         $records = BuildingFinancialRecord::where('building_id', $building->id)
-            ->orderBy('id', 'DESC')
+            ->orderBy('id', 'ASC')
             ->get();
 
         // Format records with balance from map
