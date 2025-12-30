@@ -137,7 +137,7 @@
         }
 
         .financial-table th {
-            background-color: #f0f0f0;
+            background-color: #e0e0e0;
             font-weight: bold;
             overflow: visible;
             word-wrap: break-word;
@@ -173,7 +173,7 @@
 
         .total-row {
             font-weight: bold;
-            background-color: #f0f0f0;
+            background-color: #e0e0e0;
         }
 
         .final-amount-row {
@@ -303,10 +303,8 @@
                                 <td>{{ $record['debit'] ? number_format($record['debit'], 0) . ' ریال' : '-' }}</td>
                                 <td>{{ $record['credit'] ? number_format($record['credit'], 0) . ' ریال' : '-' }}</td>
                                 <td>
-                                    @if($record['balance'] > 0)
-                                        {{ number_format($record['balance'], 0) . ' ریال (بستانکار)' }}
-                                    @elseif($record['balance'] < 0)
-                                        {{ number_format(abs($record['balance']), 0) . ' ریال (بدهکار)' }}
+                                    @if($record['balance'] != 0)
+                                        {{ number_format(abs($record['balance']), 0) . ' ریال' }}
                                     @else
                                         {{ number_format(0, 0) . ' ریال' }}
                                     @endif
@@ -335,13 +333,7 @@
                         </td>
                         <td>
                             <strong>
-                                @if($finalBalance > 0)
-                                    {{ number_format($finalBalance, 0) . ' ریال (بستانکار)' }}
-                                @elseif($finalBalance < 0)
-                                    {{ number_format(abs($finalBalance), 0) . ' ریال (بدهکار)' }}
-                                @else
-                                    {{ number_format(0, 0) . ' ریال' }}
-                                @endif
+                                {{ number_format(abs($finalBalance), 0) . ' ریال' }}
                             </strong>
                         </td>
                     </tr>
