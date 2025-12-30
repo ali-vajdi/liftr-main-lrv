@@ -312,11 +312,15 @@ function loadFinancialDashboard() {
                 // Show balance with بدهکار (debtor) when negative, بستانکار (creditor) when positive
                 let balanceDisplay, balanceNote;
                 if (balance > 0) {
-                    balanceDisplay = `+${formatCurrency(balance)}`;
+                    // Use left-to-right mark to ensure plus appears before the number in RTL context
+                    const formattedAmount = formatCurrency(balance);
+                    balanceDisplay = `\u200E+${formattedAmount}`;
                     balanceNote = 'بستانکار';
                     $('#balanceNote').text('(بستانکار)').removeClass('text-white text-danger').addClass('text-success');
                 } else if (balance < 0) {
-                    balanceDisplay = `${formatCurrency(Math.abs(balance))}`;
+                    // Use left-to-right mark to ensure minus appears before the number in RTL context
+                    const formattedAmount = formatCurrency(Math.abs(balance));
+                    balanceDisplay = `\u200E-${formattedAmount}`;
                     balanceNote = 'بدهکار';
                     $('#balanceNote').text('(بدهکار)').removeClass('text-white text-success').addClass('text-danger');
                 } else {
@@ -423,12 +427,16 @@ function renderRecordsTable(records) {
         const debitAmount = record.debit !== null ? formatCurrency(record.debit) : '-';
         const creditAmount = record.credit !== null ? formatCurrency(record.credit) : '-';
         const balanceAmount = record.balance || 0;
-        // Show balance without بدهکار (debtor) or بستانکار (creditor) labels
+        // Show balance without بدهکار (debtor) or بستانکار (creditor) labels, but with plus/minus signs
         let balanceDisplay;
         if (balanceAmount > 0) {
-            balanceDisplay = `+${formatCurrency(balanceAmount)}`;
+            // Use left-to-right mark to ensure plus appears before the number in RTL context
+            const formattedAmount = formatCurrency(balanceAmount);
+            balanceDisplay = `\u200E+${formattedAmount}`;
         } else if (balanceAmount < 0) {
-            balanceDisplay = `${formatCurrency(Math.abs(balanceAmount))}`;
+            // Use left-to-right mark to ensure minus appears before the number in RTL context
+            const formattedAmount = formatCurrency(Math.abs(balanceAmount));
+            balanceDisplay = `\u200E-${formattedAmount}`;
         } else {
             balanceDisplay = formatCurrency(0);
         }
