@@ -152,11 +152,6 @@
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>\';
                                 html += \'</button>\';
                                 
-                                // Location button
-                                html += \'<button type="button" class="btn btn-sm btn-warning location-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="مشاهده موقعیت">\';
-                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map-pin"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>\';
-                                html += \'</button>\';
-                                
                                 // Edit contract button
                                 html += \'<button type="button" class="btn btn-sm btn-primary edit-contract-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" title="ویرایش قرارداد">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>\';
@@ -260,10 +255,6 @@
                         <tr>
                             <th>تاریخ پایان قرارداد</th>
                             <td id="detailServiceEndDate"></td>
-                        </tr>
-                        <tr>
-                            <th>موقعیت انتخابی</th>
-                            <td id="detailLocation"></td>
                         </tr>
                         <tr>
                             <th>تعداد آسانسورها</th>
@@ -442,7 +433,7 @@ window.onShow = function(id) {
                 $('#detailManagerName').text(data.manager_name);
                 $('#detailManagerPhone').text(data.manager_phone);
                 $('#detailCreator').text(data.organization_user ? 
-                    data.organization_user.first_name + ' ' + data.organization_user.last_name : 
+                    data.organization_user.name : 
                     'نامشخص'
                 );
                 const buildingTypes = {
