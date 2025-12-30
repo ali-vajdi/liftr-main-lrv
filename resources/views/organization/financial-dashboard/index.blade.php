@@ -390,10 +390,6 @@ function renderContractInfo(contract) {
                     <small class="text-muted d-block">مبلغ سالیانه</small>
                     <span class="font-weight-medium">${formatCurrency(contract.annual_amount || 0)}</span>
                 </div>
-                <div class="col-md-6 mb-2">
-                    <small class="text-muted d-block">بدهی قبلی</small>
-                    <span class="font-weight-medium">${formatCurrency(contract.previous_debt || 0)}</span>
-                </div>
                 <div class="col-md-6 mb-0">
                     <small class="text-muted d-block">روش پرداخت</small>
                     <span class="font-weight-medium">${paymentMethodText}</span>
