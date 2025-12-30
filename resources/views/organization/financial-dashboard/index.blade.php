@@ -44,56 +44,51 @@
                     </div>
                 </div>
                 <div class="widget-content">
-                    <!-- Building Info -->
-                    <div id="building-info" class="mb-4 p-3 bg-light rounded">
-                        <div class="text-center">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="sr-only">در حال بارگذاری...</span>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Building and Contract Info -->
+                    <div class="mb-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body p-4">
+                                <!-- Building Info -->
+                                <div id="building-info">
+                                    <div class="text-center py-3">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="sr-only">در حال بارگذاری...</span>
+                                        </div>
+                                    </div>
+                                </div>
 
-                    <!-- Contract Info -->
-                    <div id="contract-info" class="mb-4 p-3 bg-info text-white rounded" style="display: none;">
-                        <div class="text-center">
-                            <div class="spinner-border text-white" role="status">
-                                <span class="sr-only">در حال بارگذاری...</span>
+                                <!-- Contract Info -->
+                                <div id="contract-info" style="display: none;">
+                                    <hr class="my-3">
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Summary Cards -->
                     <div class="row mb-4" id="summaryCards">
-                        <div class="col-md-3">
-                            <div class="card bg-info text-white">
-                                <div class="card-body">
-                                    <h6 class="card-title">موجودی حساب</h6>
-                                    <h3 id="balance">0 ریال</h3>
-                                    <small id="balanceNote">(مثبت = بدهکار، منفی = بستانکار)</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card bg-warning text-white">
-                                <div class="card-body">
-                                    <h6 class="card-title">در انتظار پرداخت</h6>
-                                    <h3 id="pendingAmount">0 ریال</h3>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <div class="card bg-danger text-white">
                                 <div class="card-body">
-                                    <h6 class="card-title">کل بدهی‌ها</h6>
+                                    <h6 class="card-title">مجموع بدهکاری</h6>
                                     <h3 id="totalDebits">0 ریال</h3>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <div class="card bg-success text-white">
                                 <div class="card-body">
-                                    <h6 class="card-title">کل پرداخت‌ها</h6>
+                                    <h6 class="card-title">مجموع بستانکاری</h6>
                                     <h3 id="totalCredits">0 ریال</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <h6 class="card-title">مانده نهایی</h6>
+                                    <h3 id="balance">0 ریال</h3>
+                                    <small id="balanceNote">(مثبت = بدهکار، منفی = بستانکار)</small>
                                 </div>
                             </div>
                         </div>
@@ -224,10 +219,23 @@ function loadBuildingInfo() {
             if (response.success) {
                 const building = response.data;
                 $('#building-info').html(`
-                    <h6>${building.name}</h6>
-                    <p class="mb-1"><strong>مدیر/نماینده:</strong> ${building.manager_name}</p>
-                    <p class="mb-1"><strong>شماره تماس:</strong> ${building.manager_phone}</p>
-                    <p class="mb-0"><strong>آدرس:</strong> ${building.address}</p>
+                    <div class="mb-0">
+                        <h6 class="mb-3 text-primary">${building.name}</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <small class="text-muted d-block">مدیر/نماینده</small>
+                                <span class="font-weight-medium">${building.manager_name || '-'}</span>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <small class="text-muted d-block">شماره تماس</small>
+                                <span class="font-weight-medium">${building.manager_phone || '-'}</span>
+                            </div>
+                            <div class="col-12 mb-0">
+                                <small class="text-muted d-block">آدرس</small>
+                                <span class="font-weight-medium">${building.address || '-'}</span>
+                            </div>
+                        </div>
+                    </div>
                 `);
             }
         },
@@ -251,14 +259,11 @@ function loadFinancialDashboard() {
                 
                 // Update summary cards
                 const balance = data.balance || 0;
-                $('#balance').text(formatCurrency(Math.abs(balance)));
-                if (balance > 0) {
-                    $('#balanceNote').text('(بستانکار)').removeClass('text-white').addClass('text-success');
-                } else if (balance < 0) {
-                    $('#balanceNote').text('(بدهکار)').removeClass('text-white').addClass('text-warning');
-                } else {
-                    $('#balanceNote').text('(صفر)').removeClass('text-white text-warning text-success');
-                }
+                // Show balance with + or - sign (positive = بستانکار, negative = بدهکار)
+                const balanceSign = balance > 0 ? '+' : (balance < 0 ? '-' : '');
+                const balanceDisplay = balance !== 0 ? `${balanceSign}${formatCurrency(Math.abs(balance))}` : formatCurrency(0);
+                $('#balance').text(balanceDisplay);
+                $('#balanceNote').text('').removeClass('text-white text-success text-warning');
                 $('#pendingAmount').text(formatCurrency(data.pending_amount || 0));
                 $('#totalDebits').text(formatCurrency(data.total_debits || 0));
                 $('#totalCredits').text(formatCurrency(data.total_credits || 0));
@@ -309,17 +314,33 @@ function renderContractInfo(contract) {
     const paymentMethodText = paymentMethodTexts[contract.payment_method] || 'نامشخص';
     
     let html = `
-        <h6 class="mb-3">${contractTitle} ${statusBadge}</h6>
-        <div class="row">
-            <div class="col-md-6">
-                <p class="mb-2"><strong>تاریخ شروع:</strong> ${contract.contract_start_date_jalali || '-'}</p>
-                <p class="mb-2"><strong>تاریخ پایان:</strong> ${contract.contract_end_date_jalali || '-'}</p>
-                <p class="mb-2"><strong>مبلغ ماهیانه:</strong> ${formatCurrency(contract.monthly_amount || 0)}</p>
-            </div>
-            <div class="col-md-6">
-                <p class="mb-2"><strong>مبلغ سالیانه:</strong> ${formatCurrency(contract.annual_amount || 0)}</p>
-                <p class="mb-2"><strong>بدهی قبلی:</strong> ${formatCurrency(contract.previous_debt || 0)}</p>
-                <p class="mb-2"><strong>روش پرداخت:</strong> ${paymentMethodText}</p>
+        <div class="mb-0">
+            <h6 class="mb-3 text-primary">${contractTitle} ${statusBadge}</h6>
+            <div class="row">
+                <div class="col-md-6 mb-2">
+                    <small class="text-muted d-block">تاریخ شروع</small>
+                    <span class="font-weight-medium">${contract.contract_start_date_jalali || '-'}</span>
+                </div>
+                <div class="col-md-6 mb-2">
+                    <small class="text-muted d-block">تاریخ پایان</small>
+                    <span class="font-weight-medium">${contract.contract_end_date_jalali || '-'}</span>
+                </div>
+                <div class="col-md-6 mb-2">
+                    <small class="text-muted d-block">مبلغ ماهیانه</small>
+                    <span class="font-weight-medium">${formatCurrency(contract.monthly_amount || 0)}</span>
+                </div>
+                <div class="col-md-6 mb-2">
+                    <small class="text-muted d-block">مبلغ سالیانه</small>
+                    <span class="font-weight-medium">${formatCurrency(contract.annual_amount || 0)}</span>
+                </div>
+                <div class="col-md-6 mb-2">
+                    <small class="text-muted d-block">بدهی قبلی</small>
+                    <span class="font-weight-medium">${formatCurrency(contract.previous_debt || 0)}</span>
+                </div>
+                <div class="col-md-6 mb-0">
+                    <small class="text-muted d-block">روش پرداخت</small>
+                    <span class="font-weight-medium">${paymentMethodText}</span>
+                </div>
             </div>
         </div>
     `;
@@ -337,21 +358,22 @@ function renderRecordsTable(records) {
         return;
     }
     
-    // Records come from API with balance already calculated (newest first)
+    // Records come from API ordered by ID descending
     records.forEach(function(record) {
         const debitAmount = record.debit !== null ? formatCurrency(record.debit) : '-';
         const creditAmount = record.credit !== null ? formatCurrency(record.credit) : '-';
         const balanceAmount = record.balance || 0;
-        // Red for بدهکار (negative/debtor), black for بستانکار (positive/creditor)
-        const balanceClass = balanceAmount < 0 ? 'text-danger' : '';
+        // Show balance with + or - sign (positive = بستانکار, negative = بدهکار)
+        const balanceSign = balanceAmount > 0 ? '+' : (balanceAmount < 0 ? '-' : '');
+        const balanceDisplay = balanceAmount !== 0 ? `${balanceSign}${formatCurrency(Math.abs(balanceAmount))}` : formatCurrency(0);
         
         const row = `
             <tr>
                 <td>${record.transaction_date_jalali || '-'}</td>
                 <td>${record.description || '-'}</td>
-                <td class="text-danger">${debitAmount}</td>
-                <td class="text-success">${creditAmount}</td>
-                <td class="${balanceClass}">${formatCurrency(Math.abs(balanceAmount))}</td>
+                <td>${debitAmount}</td>
+                <td>${creditAmount}</td>
+                <td>${balanceDisplay}</td>
                 <td>${record.extra_descriptions || '-'}</td>
             </tr>
         `;

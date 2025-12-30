@@ -33,22 +33,31 @@ class FinancialDashboardController extends Controller
             $building = $buildingQuery->where('slug', $building)->firstOrFail();
         }
 
-        // Get all financial records for this building, ordered by transaction_date (or created_at) ascending for balance calculation
-        $records = BuildingFinancialRecord::where('building_id', $building->id)
-            ->orderByRaw('COALESCE(transaction_date, created_at) ASC')
+        // Get all financial records for this building, ordered by ID ascending for balance calculation
+        $recordsForBalance = BuildingFinancialRecord::where('building_id', $building->id)
             ->orderBy('id', 'ASC')
             ->get();
 
-        // Calculate cumulative balance
+        // Calculate cumulative balance (from oldest to newest)
         $cumulativeBalance = 0;
-        $formattedRecords = $records->map(function ($record) use (&$cumulativeBalance) {
+        $balanceMap = [];
+        foreach ($recordsForBalance as $record) {
             // Calculate balance: debit (بدهکاری) is negative, credit (بستانکاری) is positive
             if ($record->type === BuildingFinancialRecord::TYPE_DEBIT) {
                 $cumulativeBalance -= $record->amount;
             } else {
                 $cumulativeBalance += $record->amount;
             }
+            $balanceMap[$record->id] = $cumulativeBalance;
+        }
 
+        // Get all records ordered by ID descending (newest first) for display
+        $records = BuildingFinancialRecord::where('building_id', $building->id)
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        // Format records with balance from map
+        $formattedRecords = $records->map(function ($record) use ($balanceMap) {
             // Get transaction date (prefer transaction_date, fallback to created_at)
             $transactionDate = $record->transaction_date ?? $record->created_at;
 
@@ -59,13 +68,10 @@ class FinancialDashboardController extends Controller
                 'description' => $record->description,
                 'debit' => $record->type === BuildingFinancialRecord::TYPE_DEBIT ? $record->amount : null,
                 'credit' => $record->type === BuildingFinancialRecord::TYPE_CREDIT ? $record->amount : null,
-                'balance' => $cumulativeBalance,
+                'balance' => $balanceMap[$record->id] ?? 0,
                 'extra_descriptions' => $record->extra_descriptions,
             ];
         });
-
-        // Reverse to show newest first in the table
-        $formattedRecords = $formattedRecords->reverse()->values();
 
         // Calculate balance (for summary)
         $balance = BuildingFinancialRecord::calculateBalance($building->id);
@@ -335,22 +341,31 @@ class FinancialDashboardController extends Controller
             abort(404, 'ساختمان یافت نشد');
         }
 
-        // Get all financial records for this building, ordered by transaction_date (or created_at) ascending for balance calculation
-        $records = BuildingFinancialRecord::where('building_id', $building->id)
-            ->orderByRaw('COALESCE(transaction_date, created_at) ASC')
+        // Get all financial records for this building, ordered by ID ascending for balance calculation
+        $recordsForBalance = BuildingFinancialRecord::where('building_id', $building->id)
             ->orderBy('id', 'ASC')
             ->get();
 
-        // Calculate cumulative balance and format records
+        // Calculate cumulative balance (from oldest to newest)
         $cumulativeBalance = 0;
-        $formattedRecords = $records->map(function ($record) use (&$cumulativeBalance) {
+        $balanceMap = [];
+        foreach ($recordsForBalance as $record) {
             // Calculate balance: debit (بدهکاری) is negative, credit (بستانکاری) is positive
             if ($record->type === BuildingFinancialRecord::TYPE_DEBIT) {
                 $cumulativeBalance -= $record->amount;
             } else {
                 $cumulativeBalance += $record->amount;
             }
+            $balanceMap[$record->id] = $cumulativeBalance;
+        }
 
+        // Get all records ordered by ID descending (newest first) for display
+        $records = BuildingFinancialRecord::where('building_id', $building->id)
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        // Format records with balance from map
+        $formattedRecords = $records->map(function ($record) use ($balanceMap) {
             // Get transaction date (prefer transaction_date, fallback to created_at)
             $transactionDate = $record->transaction_date ?? $record->created_at;
 
@@ -361,7 +376,7 @@ class FinancialDashboardController extends Controller
                 'description' => $record->description,
                 'debit' => $record->type === BuildingFinancialRecord::TYPE_DEBIT ? $record->amount : null,
                 'credit' => $record->type === BuildingFinancialRecord::TYPE_CREDIT ? $record->amount : null,
-                'balance' => $cumulativeBalance,
+                'balance' => $balanceMap[$record->id] ?? 0,
             ];
         });
 
