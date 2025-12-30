@@ -520,7 +520,7 @@ class FinancialDashboardController extends Controller
         $finalBalanceInWords = $this->numberToPersianWords(abs($finalBalance));
 
         // Split records into pages (approximately 20 records per page after header/building info)
-        $recordsPerPage = 20;
+        $recordsPerPage = 15;
         $recordChunks = $formattedRecords->chunk($recordsPerPage);
 
         // Generate PDF

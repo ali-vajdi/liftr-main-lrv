@@ -210,8 +210,32 @@
                             صورتحساب مالی ساختمان
                         </td>
                         <td class="header-right" style="width: 33.33%;">
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Organization Info - Only on first page -->
+            <div class="building-info">
+                <table>
+                    <tr>
+                        <td class="building-info-left" style="width: 50%; text-align: left;">
+                            <div>
+                                <strong>تلفن ثابت:</strong> {{ $organization->landline_phone ?? 'نامشخص' }}
+                            </div>
+                        </td>
+                        <td class="building-info-right" style="width: 50%; text-align: right;">
                             <div>
                                 <strong>نام شرکت:</strong> {{ $organization->name ?? 'نامشخص' }}
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="building-info-right" style="text-align: right;">
+                            <div>
+                                <strong>آدرس شرکت:</strong> {{ $organization->address ?? 'نامشخص' }}
                             </div>
                         </td>
                     </tr>
@@ -238,7 +262,7 @@
                     <tr>
                         <td colspan="2" class="building-info-right" style="text-align: right;">
                             <div>
-                                <strong>نام مدیر:</strong> {{ $building->manager_name ?? 'نامشخص' }}
+                                <strong>نام مدیر ساختمان:</strong> {{ $building->manager_name ?? 'نامشخص' }}
                             </div>
                         </td>
                     </tr>
