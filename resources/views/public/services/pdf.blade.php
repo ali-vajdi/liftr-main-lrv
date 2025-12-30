@@ -133,7 +133,7 @@
                         <tr>
                             <td style="width: 50%; text-align: right; vertical-align: top; padding-left: 8px;">
                                 <div>
-                                    <span style="font-weight: bold; display: inline-block; min-width: 90px; margin-left: 8px; font-size: 11px;">نام پروژه:</span>
+                                    <span style="font-weight: bold; display: inline-block; min-width: 90px; margin-left: 8px; font-size: 11px;">نام ساختمان:</span>
                                     <span style="font-size: 12px;">{{ $service->building->name ?? 'نامشخص' }}</span>
                                 </div>
                             </td>
