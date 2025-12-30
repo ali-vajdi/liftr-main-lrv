@@ -94,8 +94,8 @@
                             <div class="card bg-info text-white">
                                 <div class="card-body">
                                     <h6 class="card-title">مانده نهایی</h6>
-                                    <h3 id="balance">0 ریال</h3>
-                                    <small id="balanceNote"></small>
+                                    <h3 id="balance" class="d-inline">0 ریال</h3>
+                                    <small id="balanceNote" class="d-inline ml-2"></small>
                                 </div>
                             </div>
                         </div>
@@ -423,12 +423,12 @@ function renderRecordsTable(records) {
         const debitAmount = record.debit !== null ? formatCurrency(record.debit) : '-';
         const creditAmount = record.credit !== null ? formatCurrency(record.credit) : '-';
         const balanceAmount = record.balance || 0;
-        // Show balance with بدهکار (debtor) when negative, بستانکار (creditor) when positive
+        // Show balance without بدهکار (debtor) or بستانکار (creditor) labels
         let balanceDisplay;
         if (balanceAmount > 0) {
-            balanceDisplay = `+${formatCurrency(balanceAmount)} (بستانکار)`;
+            balanceDisplay = `+${formatCurrency(balanceAmount)}`;
         } else if (balanceAmount < 0) {
-            balanceDisplay = `${formatCurrency(Math.abs(balanceAmount))} (بدهکار)`;
+            balanceDisplay = `${formatCurrency(Math.abs(balanceAmount))}`;
         } else {
             balanceDisplay = formatCurrency(0);
         }
