@@ -949,88 +949,92 @@ $('#exportPdfBtn').on('click', function() {
 });
 
 // Handle send debt SMS button
-$('#sendDebtSmsBtn').on('click', function() {
-    const token = localStorage.getItem('organization_token');
-    if (!token) {
-        swal({
-            title: 'خطا',
-            text: 'لطفاً ابتدا وارد سیستم شوید',
-            type: 'error',
-            padding: '2em'
-        });
-        return;
-    }
-
-    // Confirm before sending
-    swal({
-        title: 'ارسال پیامک بدهی',
-        text: 'آیا از ارسال پیامک بدهی به مدیر ساختمان اطمینان دارید؟',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'بله، ارسال کن',
-        cancelButtonText: 'لغو',
-        padding: '2em'
-    }, function(isConfirm) {
-        if (!isConfirm) {
+$(document).ready(function() {
+    $(document).on('click', '#sendDebtSmsBtn', function(e) {
+        e.preventDefault();
+        
+        const token = localStorage.getItem('organization_token');
+        if (!token) {
+            swal({
+                title: 'خطا',
+                text: 'لطفاً ابتدا وارد سیستم شوید',
+                type: 'error',
+                padding: '2em'
+            });
             return;
         }
 
-        // Disable button during request
-        const $btn = $('#sendDebtSmsBtn');
-        const originalText = $btn.html();
-        $btn.prop('disabled', true);
-        $btn.html('<span class="spinner-border spinner-border-sm mr-2"></span>در حال ارسال...');
+        // Confirm before sending - using SweetAlert2 promise syntax
+        swal({
+            title: 'ارسال پیامک بدهی',
+            text: 'آیا از ارسال پیامک بدهی به مدیر ساختمان اطمینان دارید؟',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'بله، ارسال کن',
+            cancelButtonText: 'لغو',
+            padding: '2em'
+        }).then((result) => {
+            if (!result.value || result.dismiss) {
+                return;
+            }
 
-        // Use building slug for the API call (route supports both ID and slug, but slug is preferred)
-        const buildingIdentifier = buildingSlug || buildingId;
-        const url = `/api/organization/buildings/${buildingIdentifier}/financial-dashboard/send-debt-sms`;
-        
-        $.ajax({
-            url: url,
-            type: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json'
-            },
-            success: function(response) {
-                if (response.success) {
-                    swal({
-                        title: 'موفقیت',
-                        text: response.message || 'پیامک با موفقیت ارسال شد.',
-                        type: 'success',
-                        padding: '2em',
-                        timer: 3000
-                    });
-                } else {
+            // Disable button during request
+            const $btn = $('#sendDebtSmsBtn');
+            const originalText = $btn.html();
+            $btn.prop('disabled', true);
+            $btn.html('<span class="spinner-border spinner-border-sm mr-2"></span>در حال ارسال...');
+
+            // Use building slug for the API call (route supports both ID and slug, but slug is preferred)
+            const buildingIdentifier = buildingSlug || buildingId;
+            const url = `/api/organization/buildings/${buildingIdentifier}/financial-dashboard/send-debt-sms`;
+            
+            $.ajax({
+                url: url,
+                type: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        swal({
+                            title: 'موفقیت',
+                            text: response.message || 'پیامک با موفقیت ارسال شد.',
+                            type: 'success',
+                            padding: '2em',
+                            timer: 3000
+                        });
+                    } else {
+                        swal({
+                            title: 'خطا',
+                            text: response.message || 'خطا در ارسال پیامک',
+                            type: 'error',
+                            padding: '2em'
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    const response = xhr.responseJSON;
+                    let errorMessage = 'خطا در ارسال پیامک';
+                    if (response?.message) {
+                        errorMessage = response.message;
+                    } else if (response?.errors) {
+                        const errors = Object.values(response.errors).flat();
+                        errorMessage = errors.join('\n');
+                    }
                     swal({
                         title: 'خطا',
-                        text: response.message || 'خطا در ارسال پیامک',
+                        text: errorMessage,
                         type: 'error',
                         padding: '2em'
                     });
+                },
+                complete: function() {
+                    // Re-enable button
+                    $btn.prop('disabled', false);
+                    $btn.html(originalText);
                 }
-            },
-            error: function(xhr) {
-                const response = xhr.responseJSON;
-                let errorMessage = 'خطا در ارسال پیامک';
-                if (response?.message) {
-                    errorMessage = response.message;
-                } else if (response?.errors) {
-                    const errors = Object.values(response.errors).flat();
-                    errorMessage = errors.join('\n');
-                }
-                swal({
-                    title: 'خطا',
-                    text: errorMessage,
-                    type: 'error',
-                    padding: '2em'
-                });
-            },
-            complete: function() {
-                // Re-enable button
-                $btn.prop('disabled', false);
-                $btn.html(originalText);
-            }
+            });
         });
     });
 });
