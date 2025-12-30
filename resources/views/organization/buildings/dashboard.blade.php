@@ -945,6 +945,53 @@ $(document).ready(function() {
             html += `</div>`;
         }
 
+        // Display signatures for completed services
+        if (service.status === 'completed' && service.checklist) {
+            const managerSig = service.checklist.manager_signature;
+            const technicianSig = service.checklist.technician_signature;
+            
+            if (managerSig || technicianSig) {
+                html += `
+                    <div class="service-details-section">
+                        <h6>امضاها</h6>
+                        <div class="row">
+                `;
+                
+                if (managerSig && managerSig.signature) {
+                    html += `
+                        <div class="col-md-6 mb-3">
+                            <div class="signature-item" style="padding: 1rem; background: white; border-radius: 0.5rem; border: 1px solid #dee2e6; text-align: center;">
+                                <div style="margin-bottom: 0.5rem; font-weight: 600; color: #495057;">امضای مدیر ساختمان</div>
+                                ${managerSig.name ? `<div style="margin-bottom: 0.5rem; color: #6c757d; font-size: 0.875rem;">${managerSig.name}</div>` : ''}
+                                <div style="border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 0.5rem; background: #f8f9fa; display: inline-block; max-width: 100%;">
+                                    <img src="${managerSig.signature}" alt="امضای مدیر" style="max-width: 100%; height: auto; display: block; margin: 0 auto;" />
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (technicianSig && technicianSig.signature) {
+                    html += `
+                        <div class="col-md-6 mb-3">
+                            <div class="signature-item" style="padding: 1rem; background: white; border-radius: 0.5rem; border: 1px solid #dee2e6; text-align: center;">
+                                <div style="margin-bottom: 0.5rem; font-weight: 600; color: #495057;">امضای تکنسین</div>
+                                ${technicianSig.name ? `<div style="margin-bottom: 0.5rem; color: #6c757d; font-size: 0.875rem;">${technicianSig.name}</div>` : ''}
+                                <div style="border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 0.5rem; background: #f8f9fa; display: inline-block; max-width: 100%;">
+                                    <img src="${technicianSig.signature}" alt="امضای تکنسین" style="max-width: 100%; height: auto; display: block; margin: 0 auto;" />
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
         $('#service-details-content').html(html);
     }
 

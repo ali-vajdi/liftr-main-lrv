@@ -791,10 +791,12 @@ class BuildingController extends Controller
                     'elevator_checklists_count' => count($elevatorChecklists),
                     'manager_signature' => $service->checklist->managerSignature ? [
                         'id' => $service->checklist->managerSignature->id,
+                        'name' => $service->checklist->managerSignature->name,
                         'signature' => $service->checklist->managerSignature->signature,
                     ] : null,
                     'technician_signature' => $service->checklist->technicianSignature ? [
                         'id' => $service->checklist->technicianSignature->id,
+                        'name' => $service->checklist->technicianSignature->name,
                         'signature' => $service->checklist->technicianSignature->signature,
                     ] : null,
                 ];
