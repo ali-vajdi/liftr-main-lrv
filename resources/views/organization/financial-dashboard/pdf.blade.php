@@ -303,10 +303,8 @@
                                 <td>{{ $record['debit'] ? number_format($record['debit'], 0) . ' ریال' : '-' }}</td>
                                 <td>{{ $record['credit'] ? number_format($record['credit'], 0) . ' ریال' : '-' }}</td>
                                 <td>
-                                    @if($record['balance'] > 0)
-                                        <span dir="ltr" style="direction: ltr; display: inline-block;">+{{ number_format($record['balance'], 0) . ' ریال' }}</span>
-                                    @elseif($record['balance'] < 0)
-                                        <span dir="ltr" style="direction: ltr; display: inline-block;">-{{ number_format(abs($record['balance']), 0) . ' ریال' }}</span>
+                                    @if($record['balance'] != 0)
+                                        {{ number_format(abs($record['balance']), 0) . ' ریال' }}
                                     @else
                                         {{ number_format(0, 0) . ' ریال' }}
                                     @endif
@@ -335,13 +333,7 @@
                         </td>
                         <td>
                             <strong>
-                                @if($finalBalance > 0)
-                                    <span dir="ltr" style="direction: ltr; display: inline-block;">+{{ number_format($finalBalance, 0) . ' ریال' }}</span>
-                                @elseif($finalBalance < 0)
-                                    <span dir="ltr" style="direction: ltr; display: inline-block;">-{{ number_format(abs($finalBalance), 0) . ' ریال' }}</span>
-                                @else
-                                    {{ number_format(0, 0) . ' ریال' }}
-                                @endif
+                                {{ number_format(abs($finalBalance), 0) . ' ریال' }}
                             </strong>
                         </td>
                     </tr>
@@ -359,9 +351,9 @@
                         <td style="text-align: center; padding: 8px;">
                             <strong>
                                 @if($finalBalance > 0)
-                                    <span dir="ltr" style="direction: ltr; display: inline-block;">+{{ number_format($finalBalance, 0) . ' ریال' }}</span> (بستانکار)
+                                    {{ number_format($finalBalance, 0) . ' ریال (بستانکار)' }}
                                 @elseif($finalBalance < 0)
-                                    <span dir="ltr" style="direction: ltr; display: inline-block;">-{{ number_format(abs($finalBalance), 0) . ' ریال' }}</span> (بدهکار)
+                                    {{ number_format(abs($finalBalance), 0) . ' ریال (بدهکار)' }}
                                 @else
                                     {{ number_format(0, 0) . ' ریال' }}
                                 @endif
