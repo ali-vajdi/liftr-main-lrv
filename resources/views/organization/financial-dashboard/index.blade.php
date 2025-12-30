@@ -263,7 +263,7 @@ function loadBuildingInfo() {
                 buildingName = building.name || ''; // Store building name
                 $('#building-info').html(`
                     <div class="mb-0">
-                        <h6 class="mb-3 text-primary">${building.name}</h6>
+                        <h6 class="mb-3 text-primary">نام ساختمان: ${building.name}</h6>
                         <div class="row">
                             <div class="col-md-6 mb-2">
                                 <small class="text-muted d-block">مدیر/نماینده</small>
