@@ -762,7 +762,7 @@ window.onAssign = function(id) {
                 
                 if (xhr.status === 422) {
                     const errors = xhr.responseJSON.errors;
-                    errorMessage = 'خطاهای اعتبارسنجی:\n';
+                    errorMessage = 'لطفا اطلاعات درخواستی را به صورت کامل وارد نمایید:\n';
                     for (const field in errors) {
                         errorMessage += errors[field][0] + '\n';
                     }

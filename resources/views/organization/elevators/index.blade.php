@@ -322,7 +322,7 @@ $(document).ready(function() {
             error: function(xhr) {
                 if (xhr.status === 422) {
                     const errors = xhr.responseJSON.errors;
-                    let errorMessage = 'خطاهای اعتبارسنجی:\n';
+                    let errorMessage = 'لطفا اطلاعات درخواستی را به صورت کامل وارد نمایید:\n';
                     for (const field in errors) {
                         errorMessage += errors[field][0] + '\n';
                     }
