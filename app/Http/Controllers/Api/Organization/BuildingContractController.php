@@ -188,7 +188,7 @@ class BuildingContractController extends Controller
                     'type' => BuildingFinancialRecord::TYPE_DEBIT,
                     'amount' => $contract->previous_debt,
                     'transaction_type' => BuildingFinancialRecord::TRANSACTION_PREVIOUS_DEBT,
-                    'description' => 'بدهی قبلی - ' . ($contract->contract_start_date ? Jalalian::forge($contract->contract_start_date)->format('Y/m/d') : ''),
+                    'description' => 'بدهی قبلی تا تاریخ ' . Jalalian::forge(now())->format('Y/m/d'),
                     'transaction_date' => now(),
                 ]);
             }
