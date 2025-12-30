@@ -99,7 +99,6 @@
                                     <option value="4">3 ماه یکبار قبل از انجام سرویس</option>
                                     <option value="5">6ماه یکبار قبل از انجام سرویس</option>
                                     <option value="6">یکساله زمان عقد قرارداد</option>
-                                    <option value="custom">وارد کردن</option>
                                 </select>
                             </div>
                         </div>
