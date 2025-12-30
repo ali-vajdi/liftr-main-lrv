@@ -169,6 +169,10 @@ class DashboardController extends Controller
                     'buildings' => $buildingStats,
                     'services' => $serviceStats,
                     'current_month_services' => $currentMonthServiceStats,
+                    'current_jalali_date' => [
+                        'year' => $currentYear,
+                        'month' => $currentMonth,
+                    ],
                 ]
             ]
         ]);

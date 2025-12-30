@@ -682,69 +682,55 @@ $(document).ready(function() {
         }
     }
 
-    // Load dashboard data from API
-    getDashboardData(function(data, error) {
-        if (error) {
-            console.error('Error loading dashboard:', error);
-            return;
-        }
-
-        if (!data) {
-            console.error('No data received');
-            return;
-        }
-
-        renderDashboardData(data);
-    });
-
-    // Function to get current Jalali month and year
-    function getCurrentJalaliDate() {
-        // Use jalaliDatepicker if available, otherwise use approximate conversion
-        if (typeof jalaliDatepicker !== 'undefined' && jalaliDatepicker.toJalali) {
-            const now = new Date();
-            const jalali = jalaliDatepicker.toJalali(now.getFullYear(), now.getMonth() + 1, now.getDate());
-            return {
-                year: jalali[0],
-                month: jalali[1]
-            };
-        } else {
-            // Approximate conversion (Gregorian to Jalali)
-            const now = new Date();
-            const gregorianYear = now.getFullYear();
-            const gregorianMonth = now.getMonth() + 1;
-            const gregorianDay = now.getDate();
-            
-            // Approximate conversion: Jalali year ≈ Gregorian year - 621
-            // This is a simplified conversion, for more accuracy use a proper library
-            let jalaliYear = gregorianYear - 621;
-            let jalaliMonth = gregorianMonth;
-            let jalaliDay = gregorianDay;
-            
-            // Adjust for month differences (Jalali months start around March 21)
-            if (gregorianMonth < 3 || (gregorianMonth === 3 && gregorianDay < 21)) {
-                jalaliYear -= 1;
-                jalaliMonth += 9;
-            } else {
-                jalaliMonth -= 3;
-            }
-            
-            // Ensure month is between 1-12
-            if (jalaliMonth < 1) {
-                jalaliMonth += 12;
-            }
-            
-            return {
-                year: jalaliYear,
-                month: jalaliMonth
-            };
-        }
-    }
+    // Store current Jalali date from API
+    let currentJalaliDate = null;
 
     // Update current month links with query parameters
     function updateCurrentMonthLinks() {
-        const jalaliDate = getCurrentJalaliDate();
-        const currentMonth = jalaliDate.month;
-        const currentYear = jalaliDate.year;
+        // Use the date from API if available, otherwise fallback to calculation
+        let currentMonth, currentYear;
+        
+        if (currentJalaliDate && currentJalaliDate.month && currentJalaliDate.year) {
+            currentMonth = currentJalaliDate.month;
+            currentYear = currentJalaliDate.year;
+        } else {
+            // Fallback: Use jalaliDatepicker if available, otherwise use approximate conversion
+            if (typeof jalaliDatepicker !== 'undefined' && jalaliDatepicker.toJalali) {
+                const now = new Date();
+                const jalali = jalaliDatepicker.toJalali(now.getFullYear(), now.getMonth() + 1, now.getDate());
+                currentYear = jalali[0];
+                currentMonth = jalali[1];
+            } else {
+                // Approximate conversion (Gregorian to Jalali)
+                const now = new Date();
+                const gregorianYear = now.getFullYear();
+                const gregorianMonth = now.getMonth() + 1;
+                const gregorianDay = now.getDate();
+                
+                // Approximate conversion: Jalali year ≈ Gregorian year - 621
+                let jalaliYear = gregorianYear - 621;
+                let jalaliMonth = gregorianMonth;
+                
+                // Adjust for month differences (Jalali months start around March 21)
+                if (gregorianMonth < 3 || (gregorianMonth === 3 && gregorianDay < 21)) {
+                    jalaliYear -= 1;
+                    jalaliMonth += 9;
+                } else {
+                    jalaliMonth -= 3;
+                }
+                
+                // Ensure month is between 1-12
+                if (jalaliMonth < 1) {
+                    jalaliMonth += 12;
+                } else if (jalaliMonth > 12) {
+                    jalaliMonth -= 12;
+                    jalaliYear += 1;
+                }
+                
+                currentYear = jalaliYear;
+                currentMonth = jalaliMonth;
+            }
+        }
         
         // Route mapping
         const routeMap = {
@@ -766,8 +752,28 @@ $(document).ready(function() {
         });
     }
 
-    // Update links on page load
-    updateCurrentMonthLinks();
+    // Load dashboard data from API
+    getDashboardData(function(data, error) {
+        if (error) {
+            console.error('Error loading dashboard:', error);
+            return;
+        }
+
+        if (!data) {
+            console.error('No data received');
+            return;
+        }
+
+        // Store current Jalali date from API response
+        if (data.statistics && data.statistics.current_jalali_date) {
+            currentJalaliDate = data.statistics.current_jalali_date;
+        }
+
+        renderDashboardData(data);
+        
+        // Update links after data is loaded
+        updateCurrentMonthLinks();
+    });
 
 });
 </script>
