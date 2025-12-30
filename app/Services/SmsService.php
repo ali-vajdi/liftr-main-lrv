@@ -1314,6 +1314,35 @@ class SmsService
     }
 
     /**
+     * Send building manager notification SMS when service is cancelled
+     *
+     * @param Organization $organization
+     * @param string $phoneNumber Building manager phone number
+     * @param string $buildingName
+     * @param string $dateValue Service date value (formatted)
+     * @param bool $queue Whether to queue the SMS sending
+     * @return array
+     */
+    public function sendBuildingManagerServiceCancelledSms(Organization $organization, string $phoneNumber, string $buildingName, string $dateValue, bool $queue = false): array
+    {
+        $patternCode = 'ixvr18d93h4hfg3';
+        
+        $fillData = [
+            'building_name' => $buildingName,
+            'date_value' => $dateValue,
+            'organization_name' => $organization->name,
+        ];
+
+        return $this->sendPatternSms(
+            $organization,
+            $patternCode,
+            $fillData,
+            $phoneNumber,
+            $queue
+        );
+    }
+
+    /**
      * Send organization user password reset SMS
      *
      * @param Organization $organization
