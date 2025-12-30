@@ -88,7 +88,7 @@
                                 <div class="card-body">
                                     <h6 class="card-title">مانده نهایی</h6>
                                     <h3 id="balance">0 ریال</h3>
-                                    <small id="balanceNote">(مثبت = بدهکار، منفی = بستانکار)</small>
+                                    <small id="balanceNote"></small>
                                 </div>
                             </div>
                         </div>
@@ -300,11 +300,22 @@ function loadFinancialDashboard() {
                 
                 // Update summary cards
                 const balance = data.balance || 0;
-                // Show balance with + or - sign (positive = بستانکار, negative = بدهکار)
-                const balanceSign = balance > 0 ? '+' : (balance < 0 ? '-' : '');
-                const balanceDisplay = balance !== 0 ? `${balanceSign}${formatCurrency(Math.abs(balance))}` : formatCurrency(0);
+                // Show balance with بدهکار (debtor) when negative, بستانکار (creditor) when positive
+                let balanceDisplay, balanceNote;
+                if (balance > 0) {
+                    balanceDisplay = `+${formatCurrency(balance)}`;
+                    balanceNote = 'بستانکار';
+                    $('#balanceNote').text('(بستانکار)').removeClass('text-white text-danger').addClass('text-success');
+                } else if (balance < 0) {
+                    balanceDisplay = `${formatCurrency(Math.abs(balance))}`;
+                    balanceNote = 'بدهکار';
+                    $('#balanceNote').text('(بدهکار)').removeClass('text-white text-success').addClass('text-danger');
+                } else {
+                    balanceDisplay = formatCurrency(0);
+                    balanceNote = '';
+                    $('#balanceNote').text('').removeClass('text-white text-success text-danger');
+                }
                 $('#balance').text(balanceDisplay);
-                $('#balanceNote').text('').removeClass('text-white text-success text-warning');
                 $('#pendingAmount').text(formatCurrency(data.pending_amount || 0));
                 $('#totalDebits').text(formatCurrency(data.total_debits || 0));
                 $('#totalCredits').text(formatCurrency(data.total_credits || 0));
@@ -407,9 +418,15 @@ function renderRecordsTable(records) {
         const debitAmount = record.debit !== null ? formatCurrency(record.debit) : '-';
         const creditAmount = record.credit !== null ? formatCurrency(record.credit) : '-';
         const balanceAmount = record.balance || 0;
-        // Show balance with + or - sign (positive = بستانکار, negative = بدهکار)
-        const balanceSign = balanceAmount > 0 ? '+' : (balanceAmount < 0 ? '-' : '');
-        const balanceDisplay = balanceAmount !== 0 ? `${balanceSign}${formatCurrency(Math.abs(balanceAmount))}` : formatCurrency(0);
+        // Show balance with بدهکار (debtor) when negative, بستانکار (creditor) when positive
+        let balanceDisplay;
+        if (balanceAmount > 0) {
+            balanceDisplay = `+${formatCurrency(balanceAmount)} (بستانکار)`;
+        } else if (balanceAmount < 0) {
+            balanceDisplay = `${formatCurrency(Math.abs(balanceAmount))} (بدهکار)`;
+        } else {
+            balanceDisplay = formatCurrency(0);
+        }
         
         // Check if record can be edited/deleted (no building_contract_id)
         const canEdit = !record.building_contract_id;

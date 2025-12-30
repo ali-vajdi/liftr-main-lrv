@@ -278,7 +278,15 @@
                                 <td class="description-cell">{{ $record['description'] ?? '-' }}</td>
                                 <td>{{ $record['debit'] ? number_format($record['debit'], 0) . ' ریال' : '-' }}</td>
                                 <td>{{ $record['credit'] ? number_format($record['credit'], 0) . ' ریال' : '-' }}</td>
-                                <td>{{ number_format(abs($record['balance']), 0) . ' ریال' }}</td>
+                                <td>
+                                    @if($record['balance'] > 0)
+                                        {{ number_format($record['balance'], 0) . ' ریال (بستانکار)' }}
+                                    @elseif($record['balance'] < 0)
+                                        {{ number_format(abs($record['balance']), 0) . ' ریال (بدهکار)' }}
+                                    @else
+                                        {{ number_format(0, 0) . ' ریال' }}
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     @elseif($pageIndex == 0)
@@ -302,7 +310,15 @@
                             <strong>{{ number_format($totalCredits, 0) }} ریال</strong>
                         </td>
                         <td>
-                            <strong>{{ number_format(abs($finalBalance), 0) }} ریال</strong>
+                            <strong>
+                                @if($finalBalance > 0)
+                                    {{ number_format($finalBalance, 0) . ' ریال (بستانکار)' }}
+                                @elseif($finalBalance < 0)
+                                    {{ number_format(abs($finalBalance), 0) . ' ریال (بدهکار)' }}
+                                @else
+                                    {{ number_format(0, 0) . ' ریال' }}
+                                @endif
+                            </strong>
                         </td>
                     </tr>
 
@@ -317,7 +333,15 @@
                             <strong>مبلغ نهایی:</strong>
                         </td>
                         <td style="text-align: center; padding: 8px;">
-                            <strong>{{ number_format(abs($finalBalance), 0) }} ریال</strong>
+                            <strong>
+                                @if($finalBalance > 0)
+                                    {{ number_format($finalBalance, 0) . ' ریال (بستانکار)' }}
+                                @elseif($finalBalance < 0)
+                                    {{ number_format(abs($finalBalance), 0) . ' ریال (بدهکار)' }}
+                                @else
+                                    {{ number_format(0, 0) . ' ریال' }}
+                                @endif
+                            </strong>
                         </td>
                     </tr>
                     @endif
