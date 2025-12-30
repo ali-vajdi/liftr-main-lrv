@@ -17,21 +17,21 @@
                                     <polyline points="7 10 12 15 17 10"></polyline>
                                     <line x1="12" y1="15" x2="12" y2="3"></line>
                                 </svg>
-                                خروجی PDF
+                                دریافت PDF صورتحساب
                             </button>
                             <button type="button" class="btn btn-success btn-sm mr-2" id="addPaymentBtn">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="12" y1="5" x2="12" y2="19"></line>
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                فرم پرداختی های ساختمان
+                                پرداختی های ساختمان
                             </button>
                             <button type="button" class="btn btn-danger btn-sm mr-2" id="addExpenseBtn">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="12" y1="5" x2="12" y2="19"></line>
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                فرم هزینه قطعات و خرابی ها
+                                هزینه قطعات و خرابی ها
                             </button>
                             <a href="{{ route('organization.buildings.view') }}" class="btn btn-primary btn-sm">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -130,7 +130,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">فرم پرداختی های ساختمان</h5>
+                <h5 class="modal-title">پرداختی های ساختمان</h5>
                 <button type="button" class="close" data-dismiss="modal">
                     <span>&times;</span>
                 </button>
@@ -168,7 +168,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">فرم هزینه قطعات و خرابی ها</h5>
+                <h5 class="modal-title">هزینه قطعات و خرابی ها</h5>
                 <button type="button" class="close" data-dismiss="modal">
                     <span>&times;</span>
                 </button>
