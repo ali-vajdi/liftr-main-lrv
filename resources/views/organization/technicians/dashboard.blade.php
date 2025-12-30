@@ -198,7 +198,6 @@
                                     <tr>
                                         <th>ماه/سال سرویس</th>
                                         <th>ساختمان</th>
-                                        <th>آدرس</th>
                                         <th>وضعیت</th>
                                         <th>تاریخ اختصاص</th>
                                         <th>تاریخ مراجعه و انجام سرویس</th>
@@ -207,7 +206,7 @@
                                 </thead>
                                 <tbody id="services-tbody">
                                     <tr>
-                                        <td colspan="7" class="text-center">
+                                        <td colspan="6" class="text-center">
                                             <div class="spinner-border text-primary" role="status">
                                                 <span class="sr-only">در حال بارگذاری...</span>
                                             </div>
@@ -446,7 +445,7 @@ $(document).ready(function() {
     // Render services table
     function renderServicesTable(services) {
         if (!services || services.length === 0) {
-            $('#services-tbody').html('<tr><td colspan="7" class="text-center">سرویسی یافت نشد</td></tr>');
+            $('#services-tbody').html('<tr><td colspan="6" class="text-center">سرویسی یافت نشد</td></tr>');
             return;
         }
 
@@ -461,8 +460,6 @@ $(document).ready(function() {
         let html = '';
         services.forEach(function(service) {
             const buildingName = service.building ? service.building.name : '-';
-            const buildingAddress = service.building ? 
-                (service.building.address || (service.building.city ? service.building.city + ' - ' + (service.building.province || '') : '')) : '-';
             const assignedDate = service.assigned_at_jalali || '-';
             const completedDate = service.completed_at_jalali || '-';
             
@@ -470,7 +467,6 @@ $(document).ready(function() {
                 <tr>
                     <td>${service.service_date_text || '-'}</td>
                     <td>${buildingName}</td>
-                    <td>${buildingAddress}</td>
                     <td>${statusBadges[service.status] || service.status_text || '-'}</td>
                     <td>${assignedDate}</td>
                     <td>${completedDate}</td>
