@@ -215,15 +215,14 @@
                                         <th>وضعیت</th>
                                         <th>تکنسین</th>
                                         <th>تاریخ اختصاص</th>
-                                        <th>تاریخ تکمیل</th>
-                                        <th>تاریخ بازدید</th>
+                                        <th>تاریخ مراجعه و انجام سرویس</th>
                                         <th>تعداد آسانسورها</th>
                                         <th>عملیات</th>
                                     </tr>
                                 </thead>
                                 <tbody id="services-tbody">
                                     <tr>
-                                        <td colspan="9" class="text-center">
+                                        <td colspan="8" class="text-center">
                                             <div class="spinner-border text-primary" role="status">
                                                 <span class="sr-only">در حال بارگذاری...</span>
                                             </div>
@@ -517,7 +516,7 @@ $(document).ready(function() {
     // Render services table
     function renderServicesTable(services) {
         if (!services || services.length === 0) {
-            $('#services-tbody').html('<tr><td colspan="9" class="text-center">سرویسی یافت نشد</td></tr>');
+            $('#services-tbody').html('<tr><td colspan="8" class="text-center">سرویسی یافت نشد</td></tr>');
             return;
         }
 
@@ -535,7 +534,6 @@ $(document).ready(function() {
             const createdDate = service.created_at_jalali || '-';
             const assignedDate = service.assigned_at_jalali || '-';
             const completedDate = service.completed_at_jalali || '-';
-            const visitDate = service.visit_date_jalali || '-';
             const elevatorsCount = service.checklist && service.checklist.elevator_checklists ? 
                 service.checklist.elevator_checklists_count : '-';
             
@@ -547,7 +545,6 @@ $(document).ready(function() {
                     <td>${technicianName}</td>
                     <td>${assignedDate}</td>
                     <td>${completedDate}</td>
-                    <td>${visitDate}</td>
                     <td>${elevatorsCount}</td>
                     <td>
                         <button class="btn btn-sm btn-info view-service-btn mr-1" data-service-id="${service.id}" title="مشاهده جزئیات">
@@ -954,7 +951,7 @@ $(document).ready(function() {
     // Show error message
     function showError(message) {
         $('#building-info').html(`<div class="alert alert-danger">${message}</div>`);
-        $('#services-tbody').html(`<tr><td colspan="9" class="text-center text-danger">${message}</td></tr>`);
+        $('#services-tbody').html(`<tr><td colspan="8" class="text-center text-danger">${message}</td></tr>`);
     }
 
     // Load technicians for filter
