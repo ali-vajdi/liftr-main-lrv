@@ -105,11 +105,12 @@
                                     <th>بستانکاری</th>
                                     <th>مانده</th>
                                     <th>توضیحات بیشتر</th>
+                                    <th>عملیات</th>
                                 </tr>
                             </thead>
                             <tbody id="recordsTableBody">
                                 <tr>
-                                    <td colspan="6" class="text-center">
+                                    <td colspan="7" class="text-center">
                                         <div class="spinner-border text-primary" role="status">
                                             <span class="sr-only">در حال بارگذاری...</span>
                                         </div>
@@ -200,6 +201,46 @@
     </div>
 </div>
 
+<!-- Edit Transaction Modal -->
+<div class="modal fade" id="editTransactionModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ویرایش تراکنش مالی</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form id="editTransactionForm">
+                <input type="hidden" id="edit_record_id" name="record_id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="edit_date">تاریخ <span class="text-danger">*</span></label>
+                        <input data-jdp-only-date="true" type="text" class="form-control" id="edit_date" name="transaction_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_description">شرح <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="edit_description" name="description" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_amount">مبلغ <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="edit_amount" name="amount" min="0.01" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_extra_descriptions">توضیحات اضافه</label>
+                        <textarea class="form-control" id="edit_extra_descriptions" name="extra_descriptions" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger mr-auto" id="deleteRecordBtn">حذف</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">انصراف</button>
+                    <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @section('page-scripts')
@@ -270,6 +311,9 @@ function loadFinancialDashboard() {
                 
                 // Render contract info
                 renderContractInfo(data.contract);
+                
+                // Store records globally for edit/delete functions
+                window.currentRecords = data.records || [];
                 
                 // Render records table
                 renderRecordsTable(data.records || []);
@@ -354,11 +398,11 @@ function renderRecordsTable(records) {
     tbody.empty();
     
     if (records.length === 0) {
-        tbody.html('<tr><td colspan="6" class="text-center">هیچ تراکنش مالی یافت نشد</td></tr>');
+        tbody.html('<tr><td colspan="7" class="text-center">هیچ تراکنش مالی یافت نشد</td></tr>');
         return;
     }
     
-    // Records come from API ordered by ID descending
+    // Records come from API ordered by ID ascending
     records.forEach(function(record) {
         const debitAmount = record.debit !== null ? formatCurrency(record.debit) : '-';
         const creditAmount = record.credit !== null ? formatCurrency(record.credit) : '-';
@@ -366,6 +410,17 @@ function renderRecordsTable(records) {
         // Show balance with + or - sign (positive = بستانکار, negative = بدهکار)
         const balanceSign = balanceAmount > 0 ? '+' : (balanceAmount < 0 ? '-' : '');
         const balanceDisplay = balanceAmount !== 0 ? `${balanceSign}${formatCurrency(Math.abs(balanceAmount))}` : formatCurrency(0);
+        
+        // Check if record can be edited/deleted (no building_contract_id)
+        const canEdit = !record.building_contract_id;
+        const actionsHtml = canEdit ? `
+            <button class="btn btn-sm btn-warning edit-record-btn" data-record-id="${record.id}" title="ویرایش">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+            </button>
+        ` : '<span class="text-muted">-</span>';
         
         const row = `
             <tr>
@@ -375,9 +430,16 @@ function renderRecordsTable(records) {
                 <td>${creditAmount}</td>
                 <td>${balanceDisplay}</td>
                 <td>${record.extra_descriptions || '-'}</td>
+                <td>${actionsHtml}</td>
             </tr>
         `;
         tbody.append(row);
+    });
+    
+    // Attach event handlers for edit buttons
+    $('.edit-record-btn').on('click', function() {
+        const recordId = $(this).data('record-id');
+        editRecord(recordId);
     });
 }
 
@@ -408,6 +470,30 @@ jalaliDatepicker.startWatch({
 // Initialize Jalali DatePicker for expense form
 jalaliDatepicker.startWatch({
     selector: '#expense_date',
+    date: true,
+    time: false,
+    hasSecond: false,
+    showSelectTimeBtnAlways: false,
+    format: 'YYYY/MM/DD',
+    separatorChars: {
+        date: '/',
+        between: ' ',
+    },
+    persianDigits: false,
+    autoShow: true,
+    autoHide: true,
+    hideAfterChange: true,
+    showTodayBtn: true,
+    showEmptyBtn: true,
+    showCloseBtn: true,
+    useDropDownYears: true,
+    container: 'body',
+    zIndex: 10000,
+});
+
+// Initialize Jalali DatePicker for edit form
+jalaliDatepicker.startWatch({
+    selector: '#edit_date',
     date: true,
     time: false,
     hasSecond: false,
@@ -577,6 +663,204 @@ $('#addExpenseForm').on('submit', function(e) {
             });
         }
     });
+});
+
+// Edit record function
+function editRecord(recordId) {
+    // Find the record in the current records array
+    const record = window.currentRecords?.find(r => r.id === recordId);
+    if (!record) {
+        swal({
+            title: 'خطا',
+            text: 'رکورد یافت نشد',
+            type: 'error',
+            padding: '2em'
+        });
+        return;
+    }
+    
+    // Check if record can be edited
+    if (record.building_contract_id) {
+        swal({
+            title: 'خطا',
+            text: 'این تراکنش قابل ویرایش نیست',
+            type: 'error',
+            padding: '2em'
+        });
+        return;
+    }
+    
+    // Store record data for delete function
+    window.currentEditRecord = record;
+    
+    // Populate edit form
+    $('#edit_record_id').val(record.id);
+    $('#edit_date').val(record.transaction_date_jalali || '');
+    $('#edit_description').val(record.description || '');
+    $('#edit_amount').val(record.amount || '');
+    $('#edit_extra_descriptions').val(record.extra_descriptions || '');
+    
+    // Show modal
+    $('#editTransactionModal').modal('show');
+}
+
+// Delete record function (called from modal)
+function deleteRecordFromModal() {
+    const record = window.currentEditRecord;
+    if (!record) {
+        swal({
+            title: 'خطا',
+            text: 'رکورد یافت نشد',
+            type: 'error',
+            padding: '2em'
+        });
+        return;
+    }
+    
+    // Check if record can be deleted
+    if (record.building_contract_id) {
+        swal({
+            title: 'خطا',
+            text: 'این تراکنش قابل حذف نیست',
+            type: 'error',
+            padding: '2em'
+        });
+        return;
+    }
+    
+    // Confirm deletion
+    swal({
+        title: 'آیا مطمئن هستید؟',
+        text: 'این تراکنش حذف خواهد شد و قابل بازگشت نیست',
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'بله، حذف کن',
+        cancelButtonText: 'انصراف',
+        padding: '2em'
+    }).then((result) => {
+        if (result.value) {
+            // Delete the record
+            $.ajax({
+                url: `/api/organization/buildings/${buildingId}/financial-transactions/${record.id}`,
+                type: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#editTransactionModal').modal('hide');
+                        swal({
+                            title: 'موفقیت',
+                            text: response.message,
+                            type: 'success',
+                            padding: '2em',
+                            timer: 2000
+                        });
+                        loadFinancialDashboard();
+                    }
+                },
+                error: function(xhr) {
+                    const response = xhr.responseJSON;
+                    let errorMessage = 'خطا در حذف تراکنش';
+                    if (response?.message) {
+                        errorMessage = response.message;
+                    }
+                    swal({
+                        title: 'خطا',
+                        text: errorMessage,
+                        type: 'error',
+                        padding: '2em'
+                    });
+                }
+            });
+        }
+    });
+}
+
+// Handle edit transaction form submission
+$('#editTransactionForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    const record = window.currentEditRecord;
+    if (!record) {
+        swal({
+            title: 'خطا',
+            text: 'رکورد یافت نشد',
+            type: 'error',
+            padding: '2em'
+        });
+        return;
+    }
+    
+    const recordId = $('#edit_record_id').val();
+    const transactionDate = $('#edit_date').val();
+    const description = $('#edit_description').val();
+    const amount = parseFloat($('#edit_amount').val());
+    const extraDescriptions = $('#edit_extra_descriptions').val();
+    
+    if (!transactionDate || !description || !amount) {
+        swal({
+            title: 'خطا',
+            text: 'لطفاً فیلدهای الزامی را پر کنید',
+            type: 'error',
+            padding: '2em'
+        });
+        return;
+    }
+    
+    // Send Jalali date string directly - backend will convert it
+    // Keep the original type and transaction_type from the record
+    const formData = {
+        type: record.type,
+        amount: amount,
+        transaction_type: record.transaction_type,
+        description: description,
+        extra_descriptions: extraDescriptions,
+        transaction_date: transactionDate, // Send Jalali date string (Y/m/d format)
+    };
+    
+    $.ajax({
+        url: `/api/organization/buildings/${buildingId}/financial-transactions/${recordId}`,
+        type: 'PUT',
+        data: formData,
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('organization_token')
+        },
+        success: function(response) {
+            if (response.success) {
+                $('#editTransactionModal').modal('hide');
+                swal({
+                    title: 'موفقیت',
+                    text: response.message,
+                    type: 'success',
+                    padding: '2em',
+                    timer: 2000
+                });
+                loadFinancialDashboard();
+            }
+        },
+        error: function(xhr) {
+            const response = xhr.responseJSON;
+            let errorMessage = 'خطا در به‌روزرسانی تراکنش';
+            if (response?.errors) {
+                const errors = Object.values(response.errors).flat();
+                errorMessage = errors.join('\n');
+            } else if (response?.message) {
+                errorMessage = response.message;
+            }
+            swal({
+                title: 'خطا',
+                text: errorMessage,
+                type: 'error',
+                padding: '2em'
+            });
+        }
+    });
+});
+
+// Handle delete button in edit modal
+$('#deleteRecordBtn').on('click', function() {
+    deleteRecordFromModal();
 });
 
 // Format currency

@@ -171,6 +171,8 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::get('buildings/{building}/financial-dashboard/export-pdf', [\App\Http\Controllers\Api\Organization\FinancialDashboardController::class, 'exportPdf']);
         Route::get('buildings/{building}/financial-dashboard', [\App\Http\Controllers\Api\Organization\FinancialDashboardController::class, 'index']);
         Route::post('buildings/{building}/financial-transactions', [\App\Http\Controllers\Api\Organization\FinancialDashboardController::class, 'addTransaction']);
+        Route::put('buildings/{building}/financial-transactions/{record}', [\App\Http\Controllers\Api\Organization\FinancialDashboardController::class, 'updateTransaction']);
+        Route::delete('buildings/{building}/financial-transactions/{record}', [\App\Http\Controllers\Api\Organization\FinancialDashboardController::class, 'deleteTransaction']);
         Route::get('financial/all-buildings-summary', [\App\Http\Controllers\Api\Organization\FinancialDashboardController::class, 'getAllBuildingsFinancialSummary']);
         
         // Organization Elevators API

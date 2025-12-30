@@ -63,13 +63,17 @@ class FinancialDashboardController extends Controller
 
             return [
                 'id' => $record->id,
+                'building_contract_id' => $record->building_contract_id,
                 'transaction_date' => $transactionDate ? $transactionDate->toIso8601String() : null,
-                'transaction_date_jalali' => $transactionDate ? Jalalian::forge($transactionDate)->format('Y/m/d H:i:s') : null,
+                'transaction_date_jalali' => $transactionDate ? Jalalian::forge($transactionDate)->format('Y/m/d') : null,
                 'description' => $record->description,
                 'debit' => $record->type === BuildingFinancialRecord::TYPE_DEBIT ? $record->amount : null,
                 'credit' => $record->type === BuildingFinancialRecord::TYPE_CREDIT ? $record->amount : null,
                 'balance' => $balanceMap[$record->id] ?? 0,
                 'extra_descriptions' => $record->extra_descriptions,
+                'type' => $record->type,
+                'amount' => $record->amount,
+                'transaction_type' => $record->transaction_type,
             ];
         });
 
@@ -235,6 +239,130 @@ class FinancialDashboardController extends Controller
             'message' => 'تراکنش مالی با موفقیت ثبت شد',
             'data' => $record
         ], 201);
+    }
+
+    /**
+     * Update financial transaction
+     */
+    public function updateTransaction(Request $request, $building, $record)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Verify building belongs to the organization
+        $building = \App\Models\Building::where('organization_id', $user->organization_id)
+            ->findOrFail($building);
+
+        // Get the financial record
+        $financialRecord = BuildingFinancialRecord::where('building_id', $building->id)
+            ->findOrFail($record);
+
+        // Only allow editing records without building_contract_id
+        if ($financialRecord->building_contract_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'این تراکنش قابل ویرایش نیست'
+            ], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'type' => 'required|in:debit,credit',
+            'amount' => 'required|numeric|min:0.01',
+            'transaction_type' => 'required|in:manual_income,manual_payment',
+            'description' => 'required|string|max:1000',
+            'extra_descriptions' => 'nullable|string|max:2000',
+            'transaction_date' => 'required|string',
+        ], [
+            'type.required' => 'نوع تراکنش الزامی است',
+            'type.in' => 'نوع تراکنش نامعتبر است',
+            'amount.required' => 'مبلغ الزامی است',
+            'amount.numeric' => 'مبلغ باید عدد باشد',
+            'amount.min' => 'مبلغ باید بیشتر از 0 باشد',
+            'transaction_type.required' => 'نوع تراکنش مالی الزامی است',
+            'transaction_type.in' => 'نوع تراکنش مالی نامعتبر است',
+            'description.required' => 'شرح الزامی است',
+            'transaction_date.required' => 'تاریخ الزامی است',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Convert Jalali date to Gregorian
+        $transactionDate = now();
+        if ($request->transaction_date) {
+            try {
+                // Try to parse as Jalali date (Y/m/d format)
+                $jalaliDate = Jalalian::fromFormat('Y/m/d', $request->transaction_date);
+                $transactionDate = $jalaliDate->toCarbon();
+            } catch (\Exception $e) {
+                // If Jalali parsing fails, try to parse as Gregorian date
+                try {
+                    $transactionDate = Carbon::parse($request->transaction_date);
+                } catch (\Exception $e2) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'فرمت تاریخ نامعتبر است',
+                        'errors' => ['transaction_date' => ['فرمت تاریخ نامعتبر است']]
+                    ], 422);
+                }
+            }
+        }
+
+        $financialRecord->update([
+            'type' => $request->type,
+            'amount' => $request->amount,
+            'transaction_type' => $request->transaction_type,
+            'description' => $request->description ?? ($request->type === 'credit' ? 'دریافت وجه از ساختمان' : 'پرداخت به ساختمان'),
+            'extra_descriptions' => $request->extra_descriptions,
+            'transaction_date' => $transactionDate,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تراکنش مالی با موفقیت به‌روزرسانی شد',
+            'data' => $financialRecord
+        ]);
+    }
+
+    /**
+     * Delete financial transaction
+     */
+    public function deleteTransaction(Request $request, $building, $record)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Verify building belongs to the organization
+        $building = \App\Models\Building::where('organization_id', $user->organization_id)
+            ->findOrFail($building);
+
+        // Get the financial record
+        $financialRecord = BuildingFinancialRecord::where('building_id', $building->id)
+            ->findOrFail($record);
+
+        // Only allow deleting records without building_contract_id
+        if ($financialRecord->building_contract_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'این تراکنش قابل حذف نیست'
+            ], 403);
+        }
+
+        $financialRecord->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تراکنش مالی با موفقیت حذف شد'
+        ]);
     }
 
     /**
