@@ -33,6 +33,10 @@
                                                         <td id="org-address">...</td>
                                                     </tr>
                                                     <tr>
+                                                        <th>تلفن ثابت</th>
+                                                        <td id="org-landline-phone">...</td>
+                                                    </tr>
+                                                    <tr>
                                                         <th>وضعیت</th>
                                                         <td id="org-status">...</td>
                                                     </tr>
@@ -165,6 +169,11 @@
                             <textarea class="form-control" id="edit-org-address" name="address" rows="3"></textarea>
                         </div>
                         <div class="form-group">
+                            <label for="edit-org-landline-phone">تلفن ثابت</label>
+                            <input type="text" class="form-control" id="edit-org-landline-phone" name="landline_phone" placeholder="مثال: 04433842414">
+                            <small class="form-text text-muted">پیش شماره و شماره تلفن را بدون فاصله وارد کنید (مثال: 04433842414)</small>
+                        </div>
+                        <div class="form-group">
                             <label for="edit-org-logo">لوگو شرکت</label>
                             <input type="file" class="form-control-file" id="edit-org-logo" name="logo" accept="image/jpeg,image/png,image/jpg">
                             <small class="form-text text-muted">فرمت‌های مجاز: JPG, PNG (حداکثر 2 مگابایت)</small>
@@ -282,6 +291,9 @@ $(document).ready(function() {
         $('#org-name-table').text(org.name);
         $('#org-address').text(org.address || '-');
         
+        // Set landline phone
+        $('#org-landline-phone').text(org.landline_phone || '-');
+        
         // Set status
         var statusHtml = org.status 
             ? '<span class="badge badge-success">فعال</span>'
@@ -318,6 +330,7 @@ $(document).ready(function() {
         // Set form values
         $('#edit-org-name').val(org.name);
         $('#edit-org-address').val(org.address || '');
+        $('#edit-org-landline-phone').val(org.landline_phone || '');
     });
 
     // Load user profile
@@ -374,6 +387,7 @@ $(document).ready(function() {
 
         var formData = new FormData();
         formData.append('address', $('#edit-org-address').val());
+        formData.append('landline_phone', $('#edit-org-landline-phone').val());
         
         var logoFile = $('#edit-org-logo')[0].files[0];
         if (logoFile) {
@@ -404,6 +418,9 @@ $(document).ready(function() {
                         $('#org-name-profile').text(response.data.name);
                         $('#org-name-table').text(response.data.name);
                         $('#org-address').text(response.data.address || '-');
+                        
+                        // Update landline phone
+                        $('#org-landline-phone').text(response.data.landline_phone || '-');
                         
                         // Update logo
                         var logoHtml = '';
@@ -546,6 +563,7 @@ $(document).ready(function() {
         if (currentOrgData) {
             $('#edit-org-name').val(currentOrgData.name);
             $('#edit-org-address').val(currentOrgData.address || '');
+            $('#edit-org-landline-phone').val(currentOrgData.landline_phone || '');
         }
     });
 

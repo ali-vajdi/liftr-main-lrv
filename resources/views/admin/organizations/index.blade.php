@@ -25,6 +25,7 @@
                                 ['field' => 'id', 'label' => 'شناسه'],
                                 ['field' => 'name', 'label' => 'نام شرکت'],
                                 ['field' => 'address', 'label' => 'آدرس'],
+                                ['field' => 'landline_phone', 'label' => 'تلفن ثابت'],
                                 [
                                     'field' => 'logo',
                                     'label' => 'لوگو',
@@ -135,6 +136,11 @@
                                 <textarea class="form-control" id="address" name="address" rows="3"></textarea>
                             </div>
                             <div class="form-group">
+                                <label for="landline_phone">تلفن ثابت</label>
+                                <input type="text" class="form-control" id="landline_phone" name="landline_phone" placeholder="مثال: 04433842414">
+                                <small class="form-text text-muted">پیش شماره و شماره تلفن را بدون فاصله وارد کنید (مثال: 04433842414)</small>
+                            </div>
+                            <div class="form-group">
                                 <label for="logo">لوگو</label>
                                 <input type="file" class="form-control" id="logo" name="logo" accept="image/jpeg,image/png,image/jpg">
                                 <small class="form-text text-muted">فرمت‌های مجاز: JPG, PNG - حداکثر 2MB</small>
@@ -195,6 +201,10 @@
                                     <tr>
                                         <th>آدرس</th>
                                         <td id="detailAddress"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>تلفن ثابت</th>
+                                        <td id="detailLandlinePhone"></td>
                                     </tr>
                                     <tr>
                                         <th>لوگو</th>
@@ -274,6 +284,7 @@
                         $('#detailId').text(data.id);
                         $('#detailName').text(data.name);
                         $('#detailAddress').text(data.address || 'ثبت نشده');
+                        $('#detailLandlinePhone').text(data.landline_phone || 'ثبت نشده');
                         $('#detailLogo').html(data.logo ? 
                             `<img src="${data.logo}" alt="Logo" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">` : 
                             'بدون لوگو'
@@ -373,6 +384,7 @@
                 const id = $('#organizationId').val();
                 const name = $('#name').val();
                 const address = $('#address').val();
+                const landline_phone = $('#landline_phone').val();
                 const status = $('#status').val() === '1' ? true : false;
 
                 if (!name) {
@@ -389,6 +401,9 @@
                 const formData = new FormData();
                 formData.append('name', name);
                 formData.append('address', address);
+                if (landline_phone) {
+                    formData.append('landline_phone', landline_phone);
+                }
                 formData.append('status', status);
                 formData.append('sms_balance', $('#sms_balance').val() || 0);
                 formData.append('sms_cost_per_message', $('#sms_cost_per_message').val() || 0);
@@ -479,6 +494,7 @@
                         $('#organizationId').val(organization.id);
                         $('#name').val(organization.name);
                         $('#address').val(organization.address);
+                        $('#landline_phone').val(organization.landline_phone || '');
                         $('#status').val(organization.status ? '1' : '0');
                         $('#sms_balance').val(organization.sms_balance || 0);
                         $('#sms_cost_per_message').val(organization.sms_cost_per_message || 0);

@@ -149,6 +149,7 @@ class AuthController extends Controller
                     'id' => $user->organization->id,
                     'name' => $user->organization->name,
                     'address' => $user->organization->address,
+                    'landline_phone' => $user->organization->landline_phone,
                     'logo' => $user->organization->logo,
                     'status' => $user->organization->status,
                     'created_at' => $user->organization->created_at,
@@ -211,11 +212,14 @@ class AuthController extends Controller
 
         $validator = Validator::make($request->all(), [
             'address' => 'nullable|string',
+            'landline_phone' => 'nullable|string|max:20|regex:/^[0-9]+$/',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], [
             'logo.image' => 'فایل انتخاب شده باید تصویر باشد',
             'logo.mimes' => 'فرمت تصویر باید JPG یا PNG باشد',
             'logo.max' => 'حجم تصویر نمی‌تواند بیش از 2 مگابایت باشد',
+            'landline_phone.regex' => 'تلفن ثابت باید فقط شامل اعداد باشد',
+            'landline_phone.max' => 'تلفن ثابت نمی‌تواند بیش از 20 کاراکتر باشد',
         ]);
 
         if ($validator->fails()) {
@@ -223,7 +227,7 @@ class AuthController extends Controller
         }
 
         // Explicitly exclude name from updates - organizations cannot change their name
-        $data = $request->only(['address']);
+        $data = $request->only(['address', 'landline_phone']);
 
         // Handle logo upload
         if ($request->hasFile('logo')) {

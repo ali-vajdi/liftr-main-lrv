@@ -21,7 +21,8 @@ class OrganizationController extends Controller
             $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
                 $q->where('name', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('address', 'LIKE', "%{$searchTerm}%");
+                  ->orWhere('address', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('landline_phone', 'LIKE', "%{$searchTerm}%");
             });
         }
 
@@ -78,6 +79,7 @@ class OrganizationController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'address' => 'nullable|string',
+            'landline_phone' => 'nullable|string|max:20|regex:/^[0-9]+$/',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'status' => 'required|in:true,false',
         ], [
@@ -88,6 +90,8 @@ class OrganizationController extends Controller
             'logo.max' => 'حجم تصویر نمی‌تواند بیش از 2 مگابایت باشد',
             'status.required' => 'وضعیت الزامی است',
             'status.in' => 'وضعیت باید فعال یا غیرفعال باشد',
+            'landline_phone.regex' => 'تلفن ثابت باید فقط شامل اعداد باشد',
+            'landline_phone.max' => 'تلفن ثابت نمی‌تواند بیش از 20 کاراکتر باشد',
         ]);
 
         if ($validator->fails()) {
@@ -130,6 +134,7 @@ class OrganizationController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'address' => 'nullable|string',
+            'landline_phone' => 'nullable|string|max:20|regex:/^[0-9]+$/',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'status' => 'required|in:true,false',
             'sms_balance' => 'nullable|numeric|min:0',
@@ -146,6 +151,8 @@ class OrganizationController extends Controller
             'sms_balance.min' => 'موجودی پیامک نمی‌تواند منفی باشد',
             'sms_cost_per_message.numeric' => 'هزینه هر پیامک باید عدد باشد',
             'sms_cost_per_message.min' => 'هزینه هر پیامک نمی‌تواند منفی باشد',
+            'landline_phone.regex' => 'تلفن ثابت باید فقط شامل اعداد باشد',
+            'landline_phone.max' => 'تلفن ثابت نمی‌تواند بیش از 20 کاراکتر باشد',
         ]);
 
         if ($validator->fails()) {
