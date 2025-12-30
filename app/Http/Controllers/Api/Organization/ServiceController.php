@@ -772,19 +772,14 @@ class ServiceController extends Controller
         if ($service->building && $service->building->manager_phone) {
             $organization = Organization::findOrFail($user->organization_id);
             
-            // Format date_value: prefer visit_date if exists, otherwise use service_month + service_year
-            $dateValue = '';
-            if ($service->visit_date) {
-                $dateValue = Jalalian::forge($service->visit_date)->format('Y/m/d');
-            } else {
-                $monthNames = [
-                    1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
-                    5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
-                    9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
-                ];
-                $monthName = $monthNames[$service->service_month] ?? $service->service_month;
-                $dateValue = $monthName . ' ' . $service->service_year;
-            }
+            // Format date_value as month name + year
+            $monthNames = [
+                1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
+                5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
+                9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
+            ];
+            $monthName = $monthNames[$service->service_month] ?? $service->service_month;
+            $dateValue = $monthName . ' ' . $service->service_year;
             
             $smsResult = $this->smsService->sendBuildingManagerServiceCancelledSms(
                 $organization,
