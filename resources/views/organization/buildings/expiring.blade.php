@@ -343,13 +343,23 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="addContractMonthlyAmount">مبلغ ماهیانه قرارداد <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="addContractMonthlyAmount" name="monthly_amount" min="0" step="0.01" placeholder="0.00" required>
+                                @include('organization.components.price-input', [
+                                    'id' => 'addContractMonthlyAmount',
+                                    'name' => 'monthly_amount',
+                                    'placeholder' => 'مبلغ ماهیانه را وارد کنید',
+                                    'required' => true
+                                ])
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="addContractAnnualAmount">مبلغ سالیانه قرارداد</label>
-                                <input type="number" class="form-control" id="addContractAnnualAmount" name="annual_amount" readonly disabled>
+                                @include('organization.components.price-input', [
+                                    'id' => 'addContractAnnualAmount',
+                                    'name' => 'annual_amount',
+                                    'placeholder' => 'محاسبه خودکار',
+                                    'disabled' => true
+                                ])
                                 <small class="form-text text-muted">محاسبه خودکار (مبلغ ماهیانه × 12)</small>
                             </div>
                         </div>
@@ -398,7 +408,12 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label for="addPreviousDebt">بدهی قبلی</label>
-                                <input type="number" class="form-control" id="addPreviousDebt" name="previous_debt" min="0" step="0.01" placeholder="0.00" value="0">
+                                @include('organization.components.price-input', [
+                                    'id' => 'addPreviousDebt',
+                                    'name' => 'previous_debt',
+                                    'value' => '0',
+                                    'placeholder' => 'مبلغ بدهی قبلی را وارد کنید'
+                                ])
                             </div>
                         </div>
                     </div>
@@ -824,10 +839,10 @@ $('#addPaymentMethod').on('change', function() {
 });
 
 // Calculate annual amount
-$('#addContractMonthlyAmount').on('input', function() {
-    const monthlyAmount = parseFloat($(this).val()) || 0;
+$(document).on('input', '#addContractMonthlyAmount_display', function() {
+    const monthlyAmount = parseFloat(getPriceInputValue('addContractMonthlyAmount')) || 0;
     const annualAmount = monthlyAmount * 12;
-    $('#addContractAnnualAmount').val(annualAmount.toFixed(2));
+    setPriceInputValue('addContractAnnualAmount', annualAmount.toFixed(2));
 });
 
 // Handle save new contract
@@ -838,9 +853,9 @@ $('#saveNewContract').on('click', function() {
         manager_phone: $('#addManagerPhone').val(),
         contract_start_date: $('#addContractStartDate').val(),
         contract_end_date: $('#addContractEndDate').val(),
-        monthly_amount: $('#addContractMonthlyAmount').val(),
+        monthly_amount: getPriceInputValue('addContractMonthlyAmount') || 0,
         payment_method: $('#addPaymentMethod').val(),
-        previous_debt: $('#addPreviousDebt').val() || 0
+        previous_debt: getPriceInputValue('addPreviousDebt') || 0
     };
     
     // Add finish old contract and cancel services flags if set
@@ -871,7 +886,7 @@ $('#saveNewContract').on('click', function() {
         formData.payment_frequency_value = mapping.payment_frequency_value;
     }
     
-    if (!formData.manager_name || !formData.manager_phone || !formData.contract_start_date || !formData.contract_end_date || !formData.monthly_amount || !formData.payment_method) {
+    if (!formData.manager_name || !formData.manager_phone || !formData.contract_start_date || !formData.contract_end_date || !formData.monthly_amount || parseFloat(formData.monthly_amount) <= 0 || !formData.payment_method) {
         swal({
             title: 'خطا',
             text: 'لطفاً تمام فیلدهای الزامی را پر کنید',

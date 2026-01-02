@@ -154,7 +154,12 @@
                     </div>
                     <div class="form-group">
                         <label for="payment_amount">مبلغ پرداختی <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="payment_amount" name="amount" min="0.01" step="0.01" required>
+                        @include('organization.components.price-input', [
+                            'id' => 'payment_amount',
+                            'name' => 'amount',
+                            'placeholder' => 'مبلغ پرداختی را وارد کنید',
+                            'required' => true
+                        ])
                     </div>
                     <div class="form-group">
                         <label for="payment_extra_descriptions">توضیحات اضافه</label>
@@ -192,7 +197,12 @@
                     </div>
                     <div class="form-group">
                         <label for="expense_amount">مبلغ هزینه <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="expense_amount" name="amount" min="0.01" step="0.01" required>
+                        @include('organization.components.price-input', [
+                            'id' => 'expense_amount',
+                            'name' => 'amount',
+                            'placeholder' => 'مبلغ هزینه را وارد کنید',
+                            'required' => true
+                        ])
                     </div>
                     <div class="form-group">
                         <label for="expense_extra_descriptions">توضیحات اضافه</label>
@@ -231,7 +241,12 @@
                     </div>
                     <div class="form-group">
                         <label for="edit_amount">مبلغ <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="edit_amount" name="amount" min="0.01" step="0.01" required>
+                        @include('organization.components.price-input', [
+                            'id' => 'edit_amount',
+                            'name' => 'amount',
+                            'placeholder' => 'مبلغ را وارد کنید',
+                            'required' => true
+                        ])
                     </div>
                     <div class="form-group">
                         <label for="edit_extra_descriptions">توضیحات اضافه</label>
@@ -565,7 +580,7 @@ $('#addPaymentForm').on('submit', function(e) {
     
     const transactionDate = $('#payment_date').val();
     const description = $('#payment_description').val();
-    const amount = parseFloat($('#payment_amount').val());
+    const amount = parseFloat(getPriceInputValue('payment_amount')) || 0;
     const extraDescriptions = $('#payment_extra_descriptions').val();
     
     if (!transactionDate || !description || !amount) {
@@ -633,7 +648,7 @@ $('#addExpenseForm').on('submit', function(e) {
     
     const transactionDate = $('#expense_date').val();
     const description = $('#expense_description').val();
-    const amount = parseFloat($('#expense_amount').val());
+    const amount = parseFloat(getPriceInputValue('expense_amount')) || 0;
     const extraDescriptions = $('#expense_extra_descriptions').val();
     
     if (!transactionDate || !description || !amount) {
@@ -727,7 +742,7 @@ function editRecord(recordId) {
     $('#edit_record_id').val(record.id);
     $('#edit_date').val(record.transaction_date_jalali || '');
     $('#edit_description').val(record.description || '');
-    $('#edit_amount').val(record.amount || '');
+    setPriceInputValue('edit_amount', record.amount || '');
     $('#edit_extra_descriptions').val(record.extra_descriptions || '');
     
     // Show modal
@@ -825,7 +840,7 @@ $('#editTransactionForm').on('submit', function(e) {
     const recordId = $('#edit_record_id').val();
     const transactionDate = $('#edit_date').val();
     const description = $('#edit_description').val();
-    const amount = parseFloat($('#edit_amount').val());
+    const amount = parseFloat(getPriceInputValue('edit_amount')) || 0;
     const extraDescriptions = $('#edit_extra_descriptions').val();
     
     if (!transactionDate || !description || !amount) {
