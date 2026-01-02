@@ -28,6 +28,10 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Contract Info -->
+                    <div id="contract-info" style="display: none;">
+                        <hr class="my-3">
+                    </div>
                 </div>
             </div>
         </div>
@@ -417,6 +421,7 @@ $(document).ready(function() {
                 if (response.success) {
                     dashboardData = response.data;
                     renderBuildingInfo(dashboardData.building);
+                    renderContractInfo(dashboardData.contract);
                     renderStatistics(dashboardData.statistics, dashboardData.last_service);
                     renderServicesTable(dashboardData.services);
                 } else {
@@ -473,14 +478,6 @@ $(document).ready(function() {
                     <span class="info-value">${building.elevators_count || 0}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">تاریخ شروع قرارداد</span>
-                    <span class="info-value">${building.service_start_date_jalali || '-'}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">تاریخ پایان قرارداد</span>
-                    <span class="info-value">${building.service_end_date_jalali || '-'}</span>
-                </div>
-                <div class="info-item">
                     <span class="info-label">وضعیت</span>
                     <span class="info-value">
                         ${building.status ? '<span class="badge badge-success">فعال</span>' : '<span class="badge badge-danger">غیرفعال</span>'}
@@ -489,6 +486,80 @@ $(document).ready(function() {
             </div>
         `;
         $('#building-info').html(html);
+    }
+
+    // Render contract info
+    function renderContractInfo(contract) {
+        const contractInfoDiv = $('#contract-info');
+        
+        if (!contract) {
+            contractInfoDiv.hide();
+            return;
+        }
+        
+        const paymentMethodTexts = {
+            '1': 'بعد از هر سرویس (ماهانه)',
+            '2': 'بعد از هر 2 سرویس',
+            '3': 'بعد از هر 3 سرویس',
+            '4': 'قبل از هر 3 سرویس',
+            '5': 'قبل از هر 6 سرویس',
+            '6': 'قبل از هر 12 سرویس (سالانه)',
+            'custom': 'سفارشی'
+        };
+        
+        const statusBadge = contract.is_active 
+            ? '<span class="badge badge-success">فعال</span>' 
+            : (contract.status === 'finished' 
+                ? '<span class="badge badge-warning">تمام شده</span>' 
+                : '<span class="badge badge-danger">لغو شده</span>');
+        
+        let contractTitle;
+        if (contract.contract_name) {
+            contractTitle = `قرارداد شماره: <span dir="ltr">${contract.contract_name}</span>`;
+        } else if (contract.contract_number) {
+            contractTitle = `قرارداد شماره: <span dir="ltr">${contract.contract_number}</span>`;
+        } else {
+            contractTitle = 'قرارداد';
+        }
+        
+        const paymentMethodText = paymentMethodTexts[contract.payment_method] || 'نامشخص';
+        
+        // Format currency
+        function formatCurrency(amount) {
+            if (!amount) return '0 ریال';
+            const formatted = new Intl.NumberFormat('fa-IR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+            return `${formatted} ریال`;
+        }
+        
+        let html = `
+            <div class="mb-0 p-4">
+                <h6 class="mb-3 text-primary">${contractTitle} ${statusBadge}</h6>
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <small class="text-muted d-block">تاریخ شروع</small>
+                        <span class="font-weight-medium">${contract.contract_start_date_jalali || '-'}</span>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <small class="text-muted d-block">تاریخ پایان</small>
+                        <span class="font-weight-medium">${contract.contract_end_date_jalali || '-'}</span>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <small class="text-muted d-block">مبلغ ماهیانه</small>
+                        <span class="font-weight-medium">${formatCurrency(contract.monthly_amount || 0)}</span>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <small class="text-muted d-block">مبلغ سالیانه</small>
+                        <span class="font-weight-medium">${formatCurrency(contract.annual_amount || 0)}</span>
+                    </div>
+                    <div class="col-md-6 mb-0">
+                        <small class="text-muted d-block">روش دریافت مبلغ قرارداد</small>
+                        <span class="font-weight-medium">${paymentMethodText}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        contractInfoDiv.html(html).show();
     }
 
     // Render statistics

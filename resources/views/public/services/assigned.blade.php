@@ -5,6 +5,19 @@
 @section('page-title', 'جزئیات سرویس')
 
 @section('content')
+    <!-- Important Notice (Only for assigned services) -->
+    @if($service->status === 'assigned')
+    <div class="building-info notice-section">
+        <div class="notice-content">
+            <span class="notice-title fade-animation">توجه :</span>
+            <div class="notice-text">
+                <p>مدیر محترم ساختمان</p>
+                <p>جهت امضای برگه سرویس آسانسور حضور شما یا یکی از اعضای ساختمان در زمان تعیین شده الزامی می باشد.</p>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Visit Information (Only for assigned services) -->
     @if($service->status === 'assigned' && ($service->visit_date || $service->visit_time_range))
     <div class="building-info">
@@ -564,6 +577,56 @@
         .visit-info-text strong {
             font-weight: 700;
             color: #1e3a8a;
+        }
+
+        .notice-section {
+            margin-bottom: 2rem;
+        }
+
+        .notice-content {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+        }
+
+        .notice-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #d97706;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .fade-animation {
+            animation: fadeUpDown 2s ease-in-out infinite;
+        }
+
+        @keyframes fadeUpDown {
+            0%, 100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            50% {
+                opacity: 0.6;
+                transform: translateY(-5px);
+            }
+        }
+
+        .notice-text {
+            color: #92400e;
+            line-height: 1.8;
+        }
+
+        .notice-text p {
+            margin: 0.5rem 0;
+            font-size: 1rem;
+        }
+
+        .notice-text p:first-child {
+            font-weight: 600;
+            font-size: 1.0625rem;
         }
 
         .user-note-display,

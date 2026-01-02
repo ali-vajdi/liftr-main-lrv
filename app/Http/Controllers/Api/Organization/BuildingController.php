@@ -867,10 +867,50 @@ class BuildingController extends Controller
             $lastServiceDateJalaliWithMonth = $lastServiceMonthName . ' ' . $lastServiceJalali->getDay() . '، ' . $lastServiceJalali->getYear();
         }
 
+        // Format contract data if exists
+        $contractData = null;
+        if ($building->contract) {
+            $contract = $building->contract;
+            // Handle dates - timestamp cast returns Carbon instance in Laravel
+            $startDate = $contract->contract_start_date;
+            $endDate = $contract->contract_end_date;
+            
+            // Ensure we have Carbon instances (timestamp cast should already provide this)
+            if ($startDate && !($startDate instanceof Carbon)) {
+                $startDate = Carbon::createFromTimestamp($startDate);
+            }
+            if ($endDate && !($endDate instanceof Carbon)) {
+                $endDate = Carbon::createFromTimestamp($endDate);
+            }
+            
+            $contractData = [
+                'id' => $contract->id,
+                'contract_number' => $contract->contract_number,
+                'contract_name' => $contract->contract_name,
+                'status' => $contract->status,
+                'status_text' => $contract->status === BuildingContract::STATUS_ACTIVE ? 'فعال' : 
+                                ($contract->status === BuildingContract::STATUS_FINISHED ? 'تمام شده' : 'لغو شده'),
+                'contract_start_date' => $startDate ? $startDate->toIso8601String() : null,
+                'contract_start_date_jalali' => $startDate ? Jalalian::forge($startDate)->format('Y/m/d') : null,
+                'contract_end_date' => $endDate ? $endDate->toIso8601String() : null,
+                'contract_end_date_jalali' => $endDate ? Jalalian::forge($endDate)->format('Y/m/d') : null,
+                'monthly_amount' => $contract->monthly_amount,
+                'annual_amount' => $contract->annual_amount,
+                'previous_debt' => $contract->previous_debt,
+                'payment_timing' => $contract->payment_timing,
+                'payment_frequency_value' => $contract->payment_frequency_value,
+                'is_active' => $contract->status === BuildingContract::STATUS_ACTIVE,
+            ];
+
+            // Map payment method
+            $contractData['payment_method'] = $this->mapPaymentMethod($contract);
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
                 'building' => $building,
+                'contract' => $contractData,
                 'statistics' => [
                     'total_services' => $totalServices,
                     'completed_services' => $completedServices,
@@ -891,5 +931,29 @@ class BuildingController extends Controller
                 'services' => $formattedServices,
             ]
         ]);
+    }
+
+    /**
+     * Map payment method from contract fields to predefined option
+     */
+    private function mapPaymentMethod($contract)
+    {
+        // Determine which predefined option matches based on field values
+        if ($contract->payment_timing === 'after_service' && $contract->payment_frequency_value == 1) {
+            return '1';
+        } elseif ($contract->payment_timing === 'after_service' && $contract->payment_frequency_value == 2) {
+            return '2';
+        } elseif ($contract->payment_timing === 'after_service' && $contract->payment_frequency_value == 3) {
+            return '3';
+        } elseif ($contract->payment_timing === 'before_service' && $contract->payment_frequency_value == 3) {
+            return '4';
+        } elseif ($contract->payment_timing === 'before_service' && $contract->payment_frequency_value == 6) {
+            return '5';
+        } elseif ($contract->payment_timing === 'before_service' && $contract->payment_frequency_value == 12) {
+            return '6';
+        } else {
+            // Doesn't match any predefined option, so it's custom
+            return 'custom';
+        }
     }
 }
