@@ -22,7 +22,7 @@
                     </div>
                 </div>
                 <div class="widget-content">
-                    <div class="mb-3">
+                    <div class="m-4">
                         <div class="row">
                             <div class="col-md-6">
                                 <input type="text" class="form-control" id="searchInput" placeholder="جستجو بر اساس شماره فاکتور یا نام ساختمان...">
