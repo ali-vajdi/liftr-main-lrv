@@ -156,16 +156,20 @@ class BuildingContractController extends Controller
                 ], 422);
             }
             
-            // Generate formatted contract number using organization settings
+            // Generate contract number (simple increment starting from 1)
             $organization = $building->organization;
             if ($organization) {
                 $data['contract_number'] = $organization->generateContractNumber();
+                // Generate contract name using format settings
+                $data['contract_name'] = $organization->generateContractName();
             } else {
                 // Fallback to simple increment if organization not found
                 $maxContractNumber = BuildingContract::whereHas('building', function($q) use ($building) {
                     $q->where('organization_id', $building->organization_id);
                 })->max('contract_number');
-                $data['contract_number'] = ($maxContractNumber ?? 0) + 1;
+                $maxNumber = is_numeric($maxContractNumber) ? (int)$maxContractNumber : 0;
+                $data['contract_number'] = $maxNumber + 1;
+                $data['contract_name'] = (string)($maxNumber + 1);
             }
             
             // Extract manager fields before creating contract

@@ -152,11 +152,27 @@ class Organization extends Model
     }
 
     /**
-     * Generate formatted contract number based on organization settings
+     * Generate simple increment contract number (starting from 1 for each organization)
      */
     public function generateContractNumber()
     {
-        // If no format is set, use simple increment
+        // Get max contract number for this organization through buildings
+        $maxContractNumber = BuildingContract::whereHas('building', function($q) {
+            $q->where('organization_id', $this->id);
+        })->max('contract_number');
+        
+        // Return next number (starting from 1 if no contracts exist)
+        // Convert to integer if it's a string
+        $maxNumber = is_numeric($maxContractNumber) ? (int)$maxContractNumber : 0;
+        return $maxNumber + 1;
+    }
+
+    /**
+     * Generate formatted contract name based on organization settings
+     */
+    public function generateContractName()
+    {
+        // If no format is set, use simple increment as name
         if (!$this->contract_number_format || empty($this->contract_number_format['parts'])) {
             $this->contract_number_increment = ($this->contract_number_increment ?? 0) + 1;
             $this->save();
@@ -181,6 +197,17 @@ class Organization extends Model
                 case 'day':
                     $resultParts[] = (string)$jalaliDate->getDay();
                     break;
+                case 'day_name':
+                    $dayNames = [
+                        0 => 'شنبه', 1 => 'یکشنبه', 2 => 'دوشنبه', 3 => 'سه‌شنبه',
+                        4 => 'چهارشنبه', 5 => 'پنج‌شنبه', 6 => 'جمعه',
+                    ];
+                    // Convert Jalali date to Carbon to get day of week
+                    // Jalali day of week is the same as Gregorian (Saturday = 0 in both)
+                    $carbonDate = $jalaliDate->toCarbon();
+                    $dayOfWeek = $carbonDate->dayOfWeek; // 0 = Saturday, 6 = Friday
+                    $resultParts[] = $dayNames[$dayOfWeek] ?? '';
+                    break;
                 case 'month':
                     $monthNames = [
                         1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
@@ -188,6 +215,12 @@ class Organization extends Model
                         9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
                     ];
                     $resultParts[] = $monthNames[$jalaliDate->getMonth()] ?? '';
+                    break;
+                case 'month_number':
+                    $resultParts[] = (string)$jalaliDate->getMonth();
+                    break;
+                case 'year':
+                    $resultParts[] = (string)$jalaliDate->getYear();
                     break;
                 case 'text':
                     $resultParts[] = $customText;

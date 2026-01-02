@@ -61,13 +61,31 @@
                                             <div class="col-md-3 col-sm-6 mb-2">
                                                 <button type="button" class="btn btn-outline-info btn-block add-part-btn" data-type="day">
                                                     <i class="fa fa-calendar-day"></i><br>
-                                                    <small>روز</small>
+                                                    <small>عدد روز</small>
+                                                </button>
+                                            </div>
+                                            <div class="col-md-3 col-sm-6 mb-2">
+                                                <button type="button" class="btn btn-outline-info btn-block add-part-btn" data-type="day_name">
+                                                    <i class="fa fa-calendar-week"></i><br>
+                                                    <small>نام روز</small>
                                                 </button>
                                             </div>
                                             <div class="col-md-3 col-sm-6 mb-2">
                                                 <button type="button" class="btn btn-outline-success btn-block add-part-btn" data-type="month">
                                                     <i class="fa fa-calendar-alt"></i><br>
-                                                    <small>ماه</small>
+                                                    <small>نام ماه</small>
+                                                </button>
+                                            </div>
+                                            <div class="col-md-3 col-sm-6 mb-2">
+                                                <button type="button" class="btn btn-outline-success btn-block add-part-btn" data-type="month_number">
+                                                    <i class="fa fa-calendar"></i><br>
+                                                    <small>عدد ماه</small>
+                                                </button>
+                                            </div>
+                                            <div class="col-md-3 col-sm-6 mb-2">
+                                                <button type="button" class="btn btn-outline-danger btn-block add-part-btn" data-type="year">
+                                                    <i class="fa fa-calendar-check"></i><br>
+                                                    <small>سال</small>
                                                 </button>
                                             </div>
                                             <div class="col-md-3 col-sm-6 mb-2">
@@ -193,16 +211,34 @@ $(document).ready(function() {
             description: 'شماره ترتیبی قرارداد (شروع از 1)'
         },
         'day': {
-            label: 'روز',
+            label: 'عدد روز',
             icon: 'fa-calendar-day',
             badgeClass: 'badge-info',
-            description: 'روز جاری ماه (مثال: 22)'
+            description: 'عدد روز جاری ماه (مثال: 22)'
+        },
+        'day_name': {
+            label: 'نام روز',
+            icon: 'fa-calendar-week',
+            badgeClass: 'badge-info',
+            description: 'نام روز هفته (مثال: شنبه)'
         },
         'month': {
-            label: 'ماه',
+            label: 'نام ماه',
             icon: 'fa-calendar-alt',
             badgeClass: 'badge-success',
             description: 'نام ماه جاری (مثال: آبان)'
+        },
+        'month_number': {
+            label: 'عدد ماه',
+            icon: 'fa-calendar',
+            badgeClass: 'badge-success',
+            description: 'عدد ماه جاری (مثال: 8)'
+        },
+        'year': {
+            label: 'سال',
+            icon: 'fa-calendar-check',
+            badgeClass: 'badge-danger',
+            description: 'سال جاری (مثال: 1404)'
         },
         'text': {
             label: 'متن',
@@ -337,6 +373,13 @@ $(document).ready(function() {
         var day = jalaliDate.getDate();
         var monthNames = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
         var month = monthNames[jalaliDate.getMonth()];
+        var monthNumber = jalaliDate.getMonth() + 1;
+        var year = jalaliDate.getFullYear();
+        // Convert Gregorian year to approximate Jalali year (rough approximation)
+        var jalaliYear = year - 621;
+        // Day names in Persian (approximate - using Gregorian day of week)
+        var dayNames = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه'];
+        var dayName = dayNames[jalaliDate.getDay()];
         
         if (formatParts.length === 0) {
             $('#format-preview').html('<span class="text-muted">هیچ قالبی تعریف نشده است</span>');
@@ -355,8 +398,17 @@ $(document).ready(function() {
                 case 'day':
                     preview += '<span class="part-preview">' + day + '</span>';
                     break;
+                case 'day_name':
+                    preview += '<span class="part-preview">' + dayName + '</span>';
+                    break;
                 case 'month':
                     preview += '<span class="part-preview">' + month + '</span>';
+                    break;
+                case 'month_number':
+                    preview += '<span class="part-preview">' + monthNumber + '</span>';
+                    break;
+                case 'year':
+                    preview += '<span class="part-preview">' + jalaliYear + '</span>';
                     break;
                 case 'text':
                     preview += '<span class="part-preview">' + (customText || 'متن') + '</span>';

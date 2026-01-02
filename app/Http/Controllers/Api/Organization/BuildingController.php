@@ -295,16 +295,20 @@ class BuildingController extends Controller
             // Calculate annual amount
             $contractData['annual_amount'] = $contractData['monthly_amount'] * 12;
             
-            // Generate formatted contract number using organization settings
+            // Generate contract number (simple increment starting from 1)
             $organization = $building->organization;
             if ($organization) {
                 $contractData['contract_number'] = $organization->generateContractNumber();
+                // Generate contract name using format settings
+                $contractData['contract_name'] = $organization->generateContractName();
             } else {
                 // Fallback to simple increment if organization not found
                 $maxContractNumber = BuildingContract::whereHas('building', function($q) use ($building) {
                     $q->where('organization_id', $building->organization_id);
                 })->max('contract_number');
-                $contractData['contract_number'] = ($maxContractNumber ?? 0) + 1;
+                $maxNumber = is_numeric($maxContractNumber) ? (int)$maxContractNumber : 0;
+                $contractData['contract_number'] = $maxNumber + 1;
+                $contractData['contract_name'] = (string)($maxNumber + 1);
             }
             
             // Map payment method to database fields

@@ -494,7 +494,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'contract_number_format' => 'required|array',
             'contract_number_format.parts' => 'required|array|min:1',
-            'contract_number_format.parts.*' => 'required|in:increment,day,month,text',
+            'contract_number_format.parts.*' => 'required|in:increment,day,day_name,month,month_number,year,text',
             'contract_number_format.separators' => 'nullable|array',
             'contract_number_format.separators.*' => 'nullable|in:/,-',
             'contract_number_format.custom_text' => 'nullable|string|max:255',
