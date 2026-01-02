@@ -45,7 +45,7 @@ class PaymentMethodSeeder extends Seeder
                 'name' => 'سندباکس زرین‌پال',
                 'description' => 'درگاه پرداخت سندباکس زرین‌پال (تست)',
                 'is_active' => true,
-                'is_system' => false,
+                'is_system' => true,
                 'config' => [
                     'merchant_id' => '12de1ed3-0c38-4d52-add9-7e631e430214',
                     'base_url' => 'https://sandbox.zarinpal.com',
