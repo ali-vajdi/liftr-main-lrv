@@ -83,9 +83,12 @@ function formatCurrency(amount) {
 }
 
 // Load buildings for filter
-function loadBuildings() {
+function loadBuildings(callback) {
     const token = localStorage.getItem('organization_token');
-    if (!token) return;
+    if (!token) {
+        if (callback) callback();
+        return;
+    }
 
     $.ajax({
         url: '/api/organization/invoices/buildings',
@@ -102,10 +105,19 @@ function loadBuildings() {
                 buildingsList.forEach(function(building) {
                     select.append(`<option value="${building.id}">${building.name}</option>`);
                 });
+                
+                // Check for building_id in URL parameter
+                const urlParams = new URLSearchParams(window.location.search);
+                const buildingId = urlParams.get('building_id');
+                if (buildingId) {
+                    select.val(buildingId);
+                }
             }
+            if (callback) callback();
         },
         error: function(xhr) {
             console.error('Error loading buildings:', xhr);
+            if (callback) callback();
         }
     });
 }
@@ -471,8 +483,10 @@ function exportInvoicePdf(invoiceId, invoiceNumber, buildingName) {
 
 // Load data on page load
 $(document).ready(function() {
-    loadBuildings();
-    loadInvoices(1);
+    loadBuildings(function() {
+        // After buildings are loaded, load invoices (filter will be applied if building_id is in URL)
+        loadInvoices(1);
+    });
 });
 </script>
 @endsection
