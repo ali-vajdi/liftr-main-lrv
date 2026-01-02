@@ -17,8 +17,8 @@
             font-family: 'vazir', 'Tahoma', Arial, sans-serif;
             direction: rtl;
             text-align: right;
-            font-size: 12px;
-            line-height: 1.5;
+            font-size: 15px;
+            line-height: 1.6;
             color: #000;
             margin: 0;
             padding: 0;
@@ -69,9 +69,10 @@
         }
 
         .header td {
-            padding: 5px;
+            padding: 8px;
             vertical-align: top;
             direction: rtl;
+            font-size: 15px;
         }
 
         .header-left {
@@ -80,7 +81,7 @@
 
         .header-center {
             text-align: center;
-            font-size: 18px;
+            font-size: 24px;
             font-weight: bold;
         }
 
@@ -104,9 +105,10 @@
         }
 
         .building-info td {
-            padding: 5px;
+            padding: 8px;
             vertical-align: top;
             direction: rtl;
+            font-size: 15px;
         }
 
         .building-info-right {
@@ -128,7 +130,7 @@
         .invoice-table th,
         .invoice-table td {
             border: 1px solid #000;
-            padding: 8px;
+            padding: 10px;
             text-align: center;
             vertical-align: middle;
             direction: rtl;
@@ -141,10 +143,11 @@
             font-weight: bold;
             overflow: visible;
             word-wrap: break-word;
+            font-size: 15px;
         }
 
         .invoice-table td {
-            font-size: 11px;
+            font-size: 14px;
         }
 
         .invoice-table td.description-cell {
@@ -158,7 +161,7 @@
             width: 8%;
             min-width: 8%;
             text-align: center;
-            padding: 8px 4px;
+            padding: 10px 6px;
             overflow: visible;
             white-space: normal;
         }
@@ -179,9 +182,10 @@
         }
 
         .summary-table td {
-            padding: 8px;
+            padding: 10px;
             border: 1px solid #000;
             direction: rtl;
+            font-size: 15px;
         }
 
         .summary-table td:first-child {
@@ -207,8 +211,8 @@
         }
 
         .final-amount-row td {
-            padding: 10px;
-            font-size: 13px;
+            padding: 12px;
+            font-size: 17px;
         }
 
         .rotated-rectangle {
@@ -296,7 +300,7 @@
                             <svg width="80" height="80" style="display: block; margin: 0;">
                                 <g transform="translate(40, 40) rotate(90)">
                                     <rect x="-40" y="-15" width="80" height="30" fill="#e0e0e0" stroke="#000" stroke-width="1"/>
-                                    <text x="0" y="0" text-anchor="middle" dominant-baseline="central" font-weight="bold" font-size="11">فروشنده</text>
+                                    <text x="0" y="0" text-anchor="middle" dominant-baseline="central" font-weight="bold" font-size="14">فروشنده</text>
                                 </g>
                             </svg>
                         </td>
@@ -344,7 +348,7 @@
                             <svg width="80" height="80" style="display: block; margin: 0;">
                                 <g transform="translate(40, 40) rotate(90)">
                                     <rect x="-40" y="-15" width="80" height="30" fill="#e0e0e0" stroke="#000" stroke-width="1"/>
-                                    <text x="0" y="0" text-anchor="middle" dominant-baseline="central" font-weight="bold" font-size="11">خریدار</text>
+                                    <text x="0" y="0" text-anchor="middle" dominant-baseline="central" font-weight="bold" font-size="14">خریدار</text>
                                 </g>
                             </svg>
                         </td>
@@ -410,11 +414,11 @@
                     <tr class="final-amount-row">
                         <td colspan="2" style="text-align: center; border-right: 1px solid #000; vertical-align: top;">
                             <div style="font-weight: bold; margin-bottom: 5px;">مبلغ به حروف</div>
-                            <div style="font-size: 11px; text-align: right; padding: 0 10px;">{{ $totalInWords }} ریال</div>
+                            <div style="font-size: 14px; text-align: right; padding: 0 10px;">{{ $totalInWords }} ریال</div>
                         </td>
                         <td colspan="3" style="text-align: center; vertical-align: top;">
                             <div style="font-weight: bold; margin-bottom: 5px;">مبلغ نهایی</div>
-                            <div style="font-size: 13px;">{{ number_format($invoice->total, 0) }} ریال</div>
+                            <div style="font-size: 18px;">{{ number_format($invoice->total, 0) }} ریال</div>
                         </td>
                     </tr>
                 </tbody>
@@ -425,12 +429,12 @@
                 <table style="width: 100%; border-collapse: collapse; direction: rtl;">
                     <tr>
                         <td style="width: 50%; text-align: center; padding: 20px; border-left: 1px solid #000;">
-                            <div style="font-weight: bold; margin-bottom: 40px;">امضاء خریدار</div>
+                            <div style="font-weight: bold; margin-bottom: 40px; font-size: 16px;">امضاء خریدار</div>
                             <div style="border-top: 1px solid #000; padding-top: 5px;">
                             </div>
                         </td>
                         <td style="width: 50%; text-align: center; padding: 20px;">
-                            <div style="font-weight: bold; margin-bottom: 40px;">امضاء فروشنده</div>
+                            <div style="font-weight: bold; margin-bottom: 40px; font-size: 16px;">امضاء فروشنده</div>
                             <div style="border-top: 1px solid #000; padding-top: 5px;">
                             </div>
                         </td>
