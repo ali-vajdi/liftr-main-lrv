@@ -100,8 +100,8 @@
                                 <input type="text" class="form-control" id="phone_number" name="phone_number" required>
                             </div>
                             <div class="form-group">
-                                <label for="password">رمز عبور</label>
-                                <input type="password" class="form-control" id="password" name="password">
+                                <label for="password">رمز عبور <span class="text-danger password-required-indicator">*</span></label>
+                                <input type="password" class="form-control" id="password" name="password" required>
                                 <small class="form-text text-muted">حداقل 6 کاراکتر</small>
                             </div>
                             <div class="form-group">
@@ -316,6 +316,8 @@
                 $('#userModalLabel').text('افزودن کاربر');
                 $('#userForm')[0].reset();
                 $('#userId').val('');
+                $('#password').prop('required', true);
+                $('.password-required-indicator').show();
                 $('#userModal').modal('show');
             });
 
@@ -331,6 +333,17 @@
                     swal({
                         title: 'خطا',
                         text: 'لطفا نام و شماره تلفن را وارد کنید',
+                        type: 'error',
+                        padding: '2em'
+                    });
+                    return;
+                }
+
+                // Password is required when creating a new user
+                if (!id && !password) {
+                    swal({
+                        title: 'خطا',
+                        text: 'لطفا رمز عبور را وارد کنید',
                         type: 'error',
                         padding: '2em'
                     });
@@ -495,6 +508,8 @@
                         $('#name').val(user.name);
                         $('#phone_number').val(user.phone_number);
                         $('#password').val('');
+                        $('#password').prop('required', false);
+                        $('.password-required-indicator').hide();
                         $('#status').val(user.status ? '1' : '0');
 
                         $('#userModal').modal('show');
