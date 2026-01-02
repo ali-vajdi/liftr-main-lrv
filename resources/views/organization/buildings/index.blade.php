@@ -89,11 +89,6 @@
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>\';
                                 html += \'</button>\';
                                 
-                                // Public page button (opens QR code modal)
-                                html += \'<button type="button" class="btn btn-sm btn-info public-page-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" data-slug="\' + (item.slug || item.id) + \'" title="آرشیو سرویس ها">\';
-                                html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>\';
-                                html += \'</button>\';
-                                
                                 // Dashboard button
                                 html += \'<button type="button" class="btn btn-sm btn-primary dashboard-btn mr-1 bs-tooltip" data-id="\' + item.id + \'" data-slug="\' + (item.slug || item.id) + \'" title="داشبورد ساختمان">\';
                                 html += \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bar-chart-2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>\';
@@ -120,12 +115,6 @@
                                 $(".elevators-list-btn").on("click", function() {
                                     const slug = $(this).data("slug") || $(this).data("id");
                                     window.location.href = `/buildings/${slug}/elevators`;
-                                });
-                                
-                                // Handle public page button click (opens QR code modal)
-                                $(".public-page-btn").on("click", function() {
-                                    const slug = $(this).data("slug") || $(this).data("id");
-                                    window.onShowQRCode(slug);
                                 });
                                 
                                 // Handle dashboard button click
@@ -433,6 +422,39 @@
                         </tr>
                     </tbody>
                 </table>
+                
+                <!-- Archive Services Section -->
+                <div id="detailArchiveSection" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+                    <h6 class="mb-3">آرشیو کل سرویس ها</h6>
+                    <div class="text-center">
+                        <div id="detail-qrcode-container" style="display: flex; justify-content: center; align-items: center; padding: 20px; min-height: 300px;">
+                            <canvas id="detail-qrcode-canvas"></canvas>
+                        </div>
+                        <div class="mt-3">
+                            <p class="mb-2"><strong>لینک آرشیو سرویس ها:</strong></p>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="detail-public-link-input" readonly>
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="button" id="detail-copy-link-btn" title="کپی لینک">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-copy"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-info mr-2" id="detail-open-public-page-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                باز کردن آرشیو سرویس ها
+                            </button>
+                            <button type="button" class="btn btn-warning mr-2" id="detail-send-sms-btn" disabled>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-message-square"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                ارسال آرشیو سرویس ها از طریق SMS
+                            </button>
+                            <button type="button" class="btn btn-primary" id="detail-download-qrcode-btn">دانلود QR Code</button>
+                        </div>
+                    </div>
+                </div>
+                
                 <div id="detailMapContainer" style="margin-top: 20px; display: none;">
                     <h6 class="mb-3">موقعیت روی نقشه</h6>
                     <div id="detailMap" style="height: 400px; width: 100%; border: 1px solid #ddd; border-radius: 4px;"></div>
@@ -685,48 +707,6 @@
                     <button type="button" class="btn btn-primary" id="saveContract">ذخیره</button>
                 </div>
             </form>
-        </div>
-    </div>
-</div>
-
-<!-- QR Code Modal -->
-<div class="modal fade" id="qrcodeModal" tabindex="-1" role="dialog" aria-labelledby="qrcodeModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="qrcodeModalLabel">QR Code آرشیو سرویس ها</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body text-center">
-                <div id="qrcode-container" style="display: flex; justify-content: center; align-items: center; padding: 20px; min-height: 300px;">
-                    <canvas id="qrcode-canvas"></canvas>
-                </div>
-                <div class="mt-3">
-                    <p class="mb-2"><strong>لینک آرشیو سرویس ها:</strong></p>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="public-link-input" readonly>
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-secondary" type="button" id="copy-link-btn" title="کپی لینک">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-copy"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
-                <button type="button" class="btn btn-info" id="open-public-page-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                    باز کردن آرشیو سرویس ها
-                </button>
-                <button type="button" class="btn btn-warning" id="send-sms-btn" disabled>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-message-square"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                    ارسال آرشیو سرویس ها از طریق SMS
-                </button>
-                <button type="button" class="btn btn-primary" id="download-qrcode-btn">دانلود QR Code</button>
-            </div>
         </div>
     </div>
 </div>
@@ -1219,6 +1199,38 @@ window.onShow = function(id) {
                     '<span class="badge badge-danger">غیرفعال</span>'
                 );
                 $('#detailCreatedAt').text(new Date(data.created_at).toLocaleDateString('fa-IR'));
+
+                // Generate archive services QR code and link
+                const slug = data.slug || data.id;
+                const publicUrl = `${window.location.origin}/buildings/${slug}/services`;
+                $('#detail-public-link-input').val(publicUrl);
+                
+                // Reset container and recreate canvas
+                $('#detail-qrcode-container').html('<canvas id="detail-qrcode-canvas"></canvas>');
+                const canvas = document.getElementById('detail-qrcode-canvas');
+                
+                // Generate QR code
+                if (typeof QRCode !== 'undefined') {
+                    QRCode.toCanvas(canvas, publicUrl, {
+                        width: 300,
+                        margin: 2,
+                        color: {
+                            dark: '#000000',
+                            light: '#FFFFFF'
+                        }
+                    }, function (error) {
+                        if (error) {
+                            console.error('Error generating QR code:', error);
+                            // Fallback: use img tag with API
+                            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(publicUrl)}`;
+                            $('#detail-qrcode-container').html(`<img src="${qrApiUrl}" alt="QR Code" class="img-fluid">`);
+                        }
+                    });
+                } else {
+                    // Fallback: use img tag with API
+                    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(publicUrl)}`;
+                    $('#detail-qrcode-container').html(`<img src="${qrApiUrl}" alt="QR Code" class="img-fluid">`);
+                }
 
                 // Show/hide map based on location availability
                 if (data.selected_latitude && data.selected_longitude) {
@@ -1856,48 +1868,11 @@ $('#confirmDelete').on('click', function() {
     }
 });
 
-// Show QR Code
-window.onShowQRCode = function(slug) {
-    const publicUrl = `${window.location.origin}/buildings/${slug}/services`;
-    
-    // Set the link input
-    $('#public-link-input').val(publicUrl);
-    
-    // Clear previous QR code
-    const canvas = document.getElementById('qrcode-canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Generate QR code
-    if (typeof QRCode !== 'undefined') {
-        QRCode.toCanvas(canvas, publicUrl, {
-            width: 300,
-            margin: 2,
-            color: {
-                dark: '#000000',
-                light: '#FFFFFF'
-            }
-        }, function (error) {
-            if (error) {
-                console.error('Error generating QR code:', error);
-                // Fallback: use img tag with API
-                const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(publicUrl)}`;
-                $('#qrcode-container').html(`<img src="${qrApiUrl}" alt="QR Code" class="img-fluid">`);
-            }
-        });
-    } else {
-        // Fallback: use img tag with API
-        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(publicUrl)}`;
-        $('#qrcode-container').html(`<img src="${qrApiUrl}" alt="QR Code" class="img-fluid">`);
-    }
-    
-    // Show modal
-    $('#qrcodeModal').modal('show');
-};
+// Detail Archive Section Event Handlers
 
-// Copy link to clipboard
-$('#copy-link-btn').on('click', function() {
-    const input = document.getElementById('public-link-input');
+// Copy link to clipboard (detail modal)
+$('#detail-copy-link-btn').on('click', function() {
+    const input = document.getElementById('detail-public-link-input');
     input.select();
     input.setSelectionRange(0, 99999); // For mobile devices
     
@@ -1920,17 +1895,17 @@ $('#copy-link-btn').on('click', function() {
     }
 });
 
-// Open public page
-$('#open-public-page-btn').on('click', function() {
-    const publicUrl = $('#public-link-input').val();
+// Open public page (detail modal)
+$('#detail-open-public-page-btn').on('click', function() {
+    const publicUrl = $('#detail-public-link-input').val();
     if (publicUrl) {
         window.open(publicUrl, '_blank');
     }
 });
 
-// Download QR Code
-$('#download-qrcode-btn').on('click', function() {
-    const canvas = document.getElementById('qrcode-canvas');
+// Download QR Code (detail modal)
+$('#detail-download-qrcode-btn').on('click', function() {
+    const canvas = document.getElementById('detail-qrcode-canvas');
     if (canvas && canvas.width > 0) {
         const url = canvas.toDataURL('image/png');
         const link = document.createElement('a');
@@ -1939,7 +1914,7 @@ $('#download-qrcode-btn').on('click', function() {
         link.click();
     } else {
         // Fallback for API-generated QR codes
-        const img = document.querySelector('#qrcode-container img');
+        const img = document.querySelector('#detail-qrcode-container img');
         if (img) {
             const link = document.createElement('a');
             link.download = 'building-qrcode.png';
