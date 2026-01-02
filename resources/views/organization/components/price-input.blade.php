@@ -10,9 +10,6 @@
 
 <div class="price-input-wrapper">
     <div class="input-group">
-        <div class="input-group-prepend">
-            <span class="input-group-text">ریال</span>
-        </div>
         <input 
             type="text" 
             class="price-display {{ $class }}" 
@@ -22,6 +19,9 @@
             {{ $disabled ? 'disabled' : '' }}
             autocomplete="off"
         >
+        <div class="input-group-append">
+            <span class="input-group-text">ریال</span>
+        </div>
     </div>
     <input 
         type="hidden" 
@@ -41,13 +41,13 @@
 .price-input-wrapper .input-group-text {
     background-color: #f8f9fa;
     border: 1px solid #ced4da;
-    border-right: none;
+    border-left: none;
     color: #495057;
     font-weight: 500;
 }
 
 .price-input-wrapper .price-display {
-    border-left: none;
+    border-right: none;
     direction: ltr;
     text-align: left;
 }
@@ -57,7 +57,7 @@
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
-.price-input-wrapper .price-display:focus + .input-group-text {
+.price-input-wrapper .price-display:focus ~ .input-group-append .input-group-text {
     border-color: #80bdff;
 }
 </style>
