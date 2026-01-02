@@ -164,8 +164,7 @@
 
 /* Fix horizontal spacing issues - apply consistent margins to all sections */
 #invoiceForm {
-    padding-left: 15px;
-    padding-right: 15px;
+    padding: 20px;
 }
 
 #invoiceForm > * {
