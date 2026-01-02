@@ -423,6 +423,26 @@
     text-decoration: none;
     color: inherit;
 }
+/* Make SMS, Package, and Stats cards equal height */
+.row.layout-top-spacing > .col-xl-4:first-of-type,
+.row.layout-top-spacing > .col-xl-4:nth-of-type(2),
+.row.layout-top-spacing > .col-xl-4:nth-of-type(3) {
+    display: flex;
+}
+.row.layout-top-spacing > .col-xl-4:first-of-type > .widget,
+.row.layout-top-spacing > .col-xl-4:nth-of-type(2) > .widget,
+.row.layout-top-spacing > .col-xl-4:nth-of-type(3) > .widget {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+.row.layout-top-spacing > .col-xl-4:first-of-type > .widget > .widget-content,
+.row.layout-top-spacing > .col-xl-4:nth-of-type(2) > .widget > .widget-content,
+.row.layout-top-spacing > .col-xl-4:nth-of-type(3) > .widget > .widget-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
 </style>
 @endsection
 
