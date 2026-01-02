@@ -55,6 +55,7 @@ Route::get('/buildings/{building}/financial-dashboard', [OrganizationViewControl
 Route::get('/financial/all-debts', [OrganizationViewController::class, 'showAllDebts'])->name('organization.financial.all-debts');
 Route::get('/financial/invoices', [OrganizationViewController::class, 'showInvoices'])->name('organization.financial.invoices.index');
 Route::get('/financial/invoices/create', [OrganizationViewController::class, 'showCreateInvoice'])->name('organization.financial.invoices.create');
+Route::get('/financial/invoices/{invoice}/edit', [OrganizationViewController::class, 'showEditInvoice'])->name('organization.financial.invoices.edit');
 
 // Public Routes for Buildings
 Route::get('/buildings/{building}/services', [PublicBuildingController::class, 'showServices'])->name('public.buildings.services');

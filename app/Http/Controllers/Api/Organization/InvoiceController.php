@@ -257,6 +257,132 @@ class InvoiceController extends Controller
     }
 
     /**
+     * Update an existing invoice
+     */
+    public function update(Request $request, Invoice $invoice)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Verify invoice belongs to the organization
+        if ($invoice->organization_id !== $user->organization_id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'building_id' => 'required|exists:buildings,id',
+            'discount' => 'nullable|numeric|min:0',
+            'tax_percentage' => 'nullable|numeric|min:0|max:100',
+            'invoice_date' => 'nullable|string',
+            'items' => 'required|array|min:1',
+            'items.*.description' => 'required|string',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Verify building belongs to the organization
+        $building = Building::where('id', $request->building_id)
+            ->where('organization_id', $user->organization_id)
+            ->firstOrFail();
+
+        DB::beginTransaction();
+        try {
+            // Calculate subtotal from items
+            $subtotal = 0;
+            foreach ($request->items as $item) {
+                $itemTotal = $item['quantity'] * $item['unit_price'];
+                $subtotal += $itemTotal;
+            }
+
+            // Calculate discount
+            $discount = $request->discount ?? 0;
+            $subtotalAfterDiscount = $subtotal - $discount;
+
+            // Calculate tax
+            $taxPercentage = $request->tax_percentage ?? 0;
+            $taxAmount = ($subtotalAfterDiscount * $taxPercentage) / 100;
+
+            // Calculate total
+            $total = $subtotalAfterDiscount + $taxAmount;
+
+            // Parse invoice date (Jalali format: Y/m/d)
+            $invoiceDate = null;
+            if ($request->invoice_date) {
+                try {
+                    $dateParts = explode('/', $request->invoice_date);
+                    if (count($dateParts) === 3) {
+                        $jalaliDate = Jalalian::fromFormat('Y/m/d', $request->invoice_date);
+                        $invoiceDate = $jalaliDate->toCarbon();
+                    }
+                } catch (\Exception $e) {
+                    // If date parsing fails, keep existing date
+                    $invoiceDate = $invoice->invoice_date;
+                }
+            } else {
+                $invoiceDate = $invoice->invoice_date ?? Carbon::now();
+            }
+
+            // Update invoice
+            $invoice->update([
+                'building_id' => $building->id,
+                'subtotal' => $subtotal,
+                'discount' => $discount,
+                'tax_percentage' => $taxPercentage,
+                'tax_amount' => $taxAmount,
+                'total' => $total,
+                'invoice_date' => $invoiceDate,
+            ]);
+
+            // Delete existing items
+            $invoice->items()->delete();
+
+            // Create new invoice items
+            $order = 0;
+            foreach ($request->items as $itemData) {
+                $itemTotal = $itemData['quantity'] * $itemData['unit_price'];
+                InvoiceItem::create([
+                    'invoice_id' => $invoice->id,
+                    'description' => $itemData['description'],
+                    'quantity' => $itemData['quantity'],
+                    'unit_price' => $itemData['unit_price'],
+                    'total' => $itemTotal,
+                    'order' => $order++,
+                ]);
+            }
+
+            DB::commit();
+
+            $invoice->load(['building', 'items']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'فاکتور با موفقیت به‌روزرسانی شد',
+                'data' => [
+                    'id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'خطا در به‌روزرسانی فاکتور: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get buildings for invoice creation (dropdown)
      */
     public function getBuildings()

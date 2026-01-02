@@ -176,6 +176,12 @@ class ViewController extends Controller
         return view('organization.financial.invoices.create');
     }
 
+    // Edit Invoice View
+    public function showEditInvoice(\App\Models\Invoice $invoice)
+    {
+        return view('organization.financial.invoices.edit', compact('invoice'));
+    }
+
     // Settings View
     public function showSettings()
     {
