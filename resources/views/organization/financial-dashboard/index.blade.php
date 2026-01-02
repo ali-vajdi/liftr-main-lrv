@@ -392,9 +392,9 @@ function renderContractInfo(contract) {
     
     let contractTitle;
     if (contract.contract_name) {
-        contractTitle = `قرارداد <span dir="ltr">${contract.contract_name}</span>`;
+        contractTitle = `فرارداد شماره: <span dir="ltr">${contract.contract_name}</span>`;
     } else if (contract.contract_number) {
-        contractTitle = `قرارداد شماره <span dir="ltr">${contract.contract_number}</span>`;
+        contractTitle = `فرارداد شماره: <span dir="ltr">${contract.contract_number}</span>`;
     } else {
         contractTitle = 'قرارداد';
     }

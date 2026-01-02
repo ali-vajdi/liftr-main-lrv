@@ -251,7 +251,7 @@ function renderContracts(contracts) {
             <div class="card mb-3 contract-item" data-id="${contract.id}">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="mb-0">قرارداد</h6>
+                        <h6 class="mb-0">شماره قرارداد:</h6>
                         <div class="contract-name" style="direction: ltr; text-align: left; font-family: 'Courier New', monospace; font-weight: bold; margin-top: 4px;">
                             ${contract.contract_name || contract.contract_number || contract.id}
                         </div>
