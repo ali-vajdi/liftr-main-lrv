@@ -20,97 +20,6 @@
                 </a>
             </li>
 
-            <li class="menu {{ request()->routeIs('organization.packages.*') ? 'active' : '' }}">
-                <a href="#packages" data-toggle="collapse"
-                    aria-expanded="{{ request()->routeIs('organization.packages.*') ? 'true' : 'false' }}"
-                    class="dropdown-toggle">
-                    <div class="">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-package">
-                            <path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                        </svg>
-                        <span>اشتراک‌های من</span>
-                    </div>
-                    <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-chevron-right">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
-                    </div>
-                </a>
-                <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.packages.*') ? 'show' : '' }}"
-                    id="packages" data-parent="#accordionExample">
-                    <li class="{{ request()->routeIs('organization.packages.view') ? 'active' : '' }}">
-                        <a style="margin-right: 0; !important;" href="{{ route('organization.packages.view') }}">مشاهده اشتراک‌ها</a>
-                    </li>
-                </ul>
-            </li>
-
-            <li class="menu {{ request()->routeIs('organization.users.*') ? 'active' : '' }}">
-                <a href="#users" data-toggle="collapse"
-                    aria-expanded="{{ request()->routeIs('organization.users.*') ? 'true' : 'false' }}"
-                    class="dropdown-toggle">
-                    <div class="">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-users">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="9" cy="7" r="4"></circle>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                        <span>کاربران شرکت</span>
-                    </div>
-                    <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-chevron-right">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
-                    </div>
-                </a>
-                <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.users.*') ? 'show' : '' }}"
-                    id="users" data-parent="#accordionExample">
-                    <li class="{{ request()->routeIs('organization.users.view') ? 'active' : '' }}">
-                        <a style="margin-right: 0; !important;" href="{{ route('organization.users.view') }}">مدیریت کاربران</a>
-                    </li>
-                </ul>
-            </li>
-
-            <li class="menu {{ request()->routeIs('organization.technicians.*') ? 'active' : '' }}">
-                <a href="#technicians" data-toggle="collapse"
-                    aria-expanded="{{ request()->routeIs('organization.technicians.*') ? 'true' : 'false' }}"
-                    class="dropdown-toggle">
-                    <div class="">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-user-check">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="8.5" cy="7" r="4"></circle>
-                            <polyline points="17 11 19 13 23 9"></polyline>
-                        </svg>
-                        <span>تکنیسین‌ها</span>
-                    </div>
-                    <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-chevron-right">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
-                    </div>
-                </a>
-                <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.technicians.*') ? 'show' : '' }}"
-                    id="technicians" data-parent="#accordionExample">
-                    <li class="{{ request()->routeIs('organization.technicians.view') ? 'active' : '' }}">
-                        <a style="margin-right: 0; !important;" href="{{ route('organization.technicians.view') }}">مدیریت تکنیسین‌ها</a>
-                    </li>
-                </ul>
-            </li>
-
             <li class="menu {{ request()->routeIs('organization.buildings.*') ? 'active' : '' }}">
                 <a href="#buildings" data-toggle="collapse"
                     aria-expanded="{{ request()->routeIs('organization.buildings.*') ? 'true' : 'false' }}"
@@ -152,11 +61,12 @@
                     aria-expanded="{{ request()->routeIs('organization.services.*') ? 'true' : 'false' }}"
                     class="dropdown-toggle">
                     <div class="">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-settings">
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3m15.364-6.364l-4.243 4.243m0 0L12.879 8.88m4.242 4.242L12.879 8.88m0 0L8.636 4.636M12.879 8.88l4.243 4.243"></path>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"
+                            class="feather feather-file-text">
+                            <rect x="4" y="2" width="16" height="20" rx="2" ry="2" fill="currentColor"/>
+                            <rect x="7" y="7" width="10" height="2" rx="1" fill="#fff"/>
+                            <rect x="7" y="11" width="10" height="2" rx="1" fill="#fff"/>
+                            <rect x="7" y="15" width="7" height="2" rx="1" fill="#fff"/>
                         </svg>
                         <span>لیست سرویس‌ها</span>
                     </div>
@@ -184,6 +94,7 @@
                     </li>
                 </ul>
             </li>
+
 
             <li class="menu {{ request()->routeIs('organization.financial.*') ? 'active' : '' }}">
                 <a href="#financial" data-toggle="collapse"
@@ -213,6 +124,98 @@
                     </li>
                     <li class="{{ request()->routeIs('organization.financial.invoices.*') ? 'active' : '' }}">
                         <a style="margin-right: 0; !important;" href="{{ route('organization.financial.invoices.index') }}">فاکتور ها</a>
+                    </li>
+                </ul>
+            </li>
+
+
+            <li class="menu {{ request()->routeIs('organization.technicians.*') ? 'active' : '' }}">
+                <a href="#technicians" data-toggle="collapse"
+                    aria-expanded="{{ request()->routeIs('organization.technicians.*') ? 'true' : 'false' }}"
+                    class="dropdown-toggle">
+                    <div class="">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-user-check">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <polyline points="17 11 19 13 23 9"></polyline>
+                        </svg>
+                        <span>تکنیسین‌ها</span>
+                    </div>
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-chevron-right">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </a>
+                <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.technicians.*') ? 'show' : '' }}"
+                    id="technicians" data-parent="#accordionExample">
+                    <li class="{{ request()->routeIs('organization.technicians.view') ? 'active' : '' }}">
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.technicians.view') }}">مدیریت تکنیسین‌ها</a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="menu {{ request()->routeIs('organization.users.*') ? 'active' : '' }}">
+                <a href="#users" data-toggle="collapse"
+                    aria-expanded="{{ request()->routeIs('organization.users.*') ? 'true' : 'false' }}"
+                    class="dropdown-toggle">
+                    <div class="">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-users">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span>کاربران شرکت</span>
+                    </div>
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-chevron-right">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </a>
+                <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.users.*') ? 'show' : '' }}"
+                    id="users" data-parent="#accordionExample">
+                    <li class="{{ request()->routeIs('organization.users.view') ? 'active' : '' }}">
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.users.view') }}">مدیریت کاربران</a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="menu {{ request()->routeIs('organization.packages.*') ? 'active' : '' }}">
+                <a href="#packages" data-toggle="collapse"
+                    aria-expanded="{{ request()->routeIs('organization.packages.*') ? 'true' : 'false' }}"
+                    class="dropdown-toggle">
+                    <div class="">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-package">
+                            <path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                        <span>اشتراک‌های من</span>
+                    </div>
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-chevron-right">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </a>
+                <ul class="collapse submenu list-unstyled {{ request()->routeIs('organization.packages.*') ? 'show' : '' }}"
+                    id="packages" data-parent="#accordionExample">
+                    <li class="{{ request()->routeIs('organization.packages.view') ? 'active' : '' }}">
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.packages.view') }}">مشاهده اشتراک‌ها</a>
                     </li>
                 </ul>
             </li>
@@ -273,11 +276,12 @@
                     aria-expanded="{{ request()->routeIs('organization.settings') ? 'true' : 'false' }}"
                     class="dropdown-toggle">
                     <div class="">
+                        <!-- Better Settings Icon: Gear with more detail (FontAwesome style) -->
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             class="feather feather-settings">
                             <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3m15.364-6.364l-4.243 4.243m0 0L12.879 8.88m4.242 4.242L12.879 8.88m0 0L8.636 4.636M12.879 8.88l4.243 4.243"></path>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09A1.65 1.65 0 0 0 9 3.09V3a2 2 0 0 1 4 0v.09c.35.16.68.36 1 .62.3.23.63.43 1 .52v.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 20.91 9c.08.37.13.74.13 1.12s-.05.75-.13 1.12A1.65 1.65 0 0 0 19.4 15z"></path>
                         </svg>
                         <span>تنظیمات</span>
                     </div>
