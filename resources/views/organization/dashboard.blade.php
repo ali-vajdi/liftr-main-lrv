@@ -234,10 +234,12 @@
                         </a>
                     </div>
                     <div class="col-md-2 col-4 mb-3">
-                        <div style="padding: 20px 10px; background: linear-gradient(135deg, #fa709a15 0%, #fee14015 100%); border-radius: 12px; border: 2px solid #e7515a;">
-                            <h4 class="text-danger mb-2" style="font-weight: 700; font-size: 28px;"><span id="current-month-services-expired-overview">0</span></h4>
-                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">منقضی شده</small>
-                        </div>
+                        <a href="{{ route('organization.services.expired') }}" class="clickable-stat-card current-month-link" data-route="expired" style="text-decoration: none; display: block;">
+                            <div style="padding: 20px 10px; background: linear-gradient(135deg, #fa709a15 0%, #fee14015 100%); border-radius: 12px; border: 2px solid #e7515a; transition: all 0.3s ease; cursor: pointer;">
+                                <h4 class="text-danger mb-2" style="font-weight: 700; font-size: 28px;"><span id="current-month-services-expired-overview">0</span></h4>
+                                <small class="text-muted" style="font-size: 12px; font-weight: 500;">منقضی شده</small>
+                            </div>
+                        </a>
                     </div>
                     <div class="col-md-2 col-4 mb-3">
                         <div style="padding: 20px 10px; display: flex; align-items: center; justify-content: center; height: 100%;">
@@ -296,10 +298,12 @@
                         </a>
                     </div>
                     <div class="col-md-2 col-4 mb-3">
-                        <div style="padding: 20px 10px; background: linear-gradient(135deg, #fa709a15 0%, #fee14015 100%); border-radius: 12px; border: 2px solid #e7515a;">
-                            <h4 class="text-danger mb-2" style="font-weight: 700; font-size: 28px;"><span id="services-expired-overview">0</span></h4>
-                            <small class="text-muted" style="font-size: 12px; font-weight: 500;">منقضی شده</small>
-                        </div>
+                        <a href="{{ route('organization.services.expired') }}" class="clickable-stat-card" style="text-decoration: none; display: block;">
+                            <div style="padding: 20px 10px; background: linear-gradient(135deg, #fa709a15 0%, #fee14015 100%); border-radius: 12px; border: 2px solid #e7515a; transition: all 0.3s ease; cursor: pointer;">
+                                <h4 class="text-danger mb-2" style="font-weight: 700; font-size: 28px;"><span id="services-expired-overview">0</span></h4>
+                                <small class="text-muted" style="font-size: 12px; font-weight: 500;">منقضی شده</small>
+                            </div>
+                        </a>
                     </div>
                     <div class="col-md-2 col-4 mb-3">
                         <div style="padding: 20px 10px; display: flex; align-items: center; justify-content: center; height: 100%;">
@@ -737,7 +741,8 @@ $(document).ready(function() {
             'all': '{{ route("organization.services.all") }}',
             'pending': '{{ route("organization.services.pending") }}',
             'assigned': '{{ route("organization.services.assigned") }}',
-            'completed': '{{ route("organization.services.completed") }}'
+            'completed': '{{ route("organization.services.completed") }}',
+            'expired': '{{ route("organization.services.expired") }}'
         };
         
         // Update all current month links

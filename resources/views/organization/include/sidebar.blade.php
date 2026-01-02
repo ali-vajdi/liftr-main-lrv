@@ -92,6 +92,9 @@
                     <li class="{{ request()->routeIs('organization.services.completed') ? 'active' : '' }}">
                         <a style="margin-right: 0; !important;" href="{{ route('organization.services.completed') }}">انجام شده</a>
                     </li>
+                    <li class="{{ request()->routeIs('organization.services.expired') ? 'active' : '' }}">
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.services.expired') }}">منقضی شده</a>
+                    </li>
                 </ul>
             </li>
 

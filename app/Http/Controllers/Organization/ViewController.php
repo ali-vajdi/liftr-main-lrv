@@ -120,6 +120,12 @@ class ViewController extends Controller
         return view('organization.services.completed');
     }
 
+    public function showExpiredServices()
+    {
+        // Organization data will be fetched via API in the view
+        return view('organization.services.expired');
+    }
+
     public function showAllServices()
     {
         // Organization data will be fetched via API in the view

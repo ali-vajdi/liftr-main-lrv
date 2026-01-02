@@ -191,6 +191,7 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::get('services/pending', [OrgServiceController::class, 'pending']);
         Route::get('services/assigned', [OrgServiceController::class, 'assigned']);
         Route::get('services/completed', [OrgServiceController::class, 'completed']);
+        Route::get('services/expired', [OrgServiceController::class, 'expired']);
         Route::get('services/all', [OrgServiceController::class, 'all']);
         Route::get('services/technicians', [OrgServiceController::class, 'getTechnicians']);
         Route::post('services', [OrgServiceController::class, 'store']);

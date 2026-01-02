@@ -43,6 +43,7 @@ Route::get('/buildings/{building}/contracts', [OrganizationViewController::class
 Route::get('/services/pending', [OrganizationViewController::class, 'showPendingServices'])->name('organization.services.pending');
 Route::get('/services/assigned', [OrganizationViewController::class, 'showAssignedServices'])->name('organization.services.assigned');
 Route::get('/services/completed', [OrganizationViewController::class, 'showCompletedServices'])->name('organization.services.completed');
+Route::get('/services/expired', [OrganizationViewController::class, 'showExpiredServices'])->name('organization.services.expired');
 Route::get('/services/all', [OrganizationViewController::class, 'showAllServices'])->name('organization.services.all');
 Route::get('/packages/payment', [OrganizationViewController::class, 'showPayment'])->name('organization.payment');
 Route::get('/packages/payment/page', [OrganizationViewController::class, 'showPayment'])->name('organization.payment.page');
