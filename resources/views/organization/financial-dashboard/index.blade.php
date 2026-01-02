@@ -52,7 +52,7 @@
                 </div>
                 <div class="widget-content">
                     <!-- Building and Contract Info -->
-                    <div class="mb-4">
+                    <div class="mb-4 mx-0">
                         <div class="card border-0 shadow-sm">
                             <div class="card-body p-4">
                                 <!-- Building Info -->
@@ -66,14 +66,14 @@
 
                                 <!-- Contract Info -->
                                 <div id="contract-info" style="display: none;">
-                                    <hr class="my-3">
+                                    <hr class="my-3 mx-0">
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Summary Cards -->
-                    <div class="row mb-4" id="summaryCards">
+                    <div class="row mb-4 mx-0" id="summaryCards">
                         <div class="col-md-4">
                             <div class="card bg-danger text-white">
                                 <div class="card-body">
@@ -102,8 +102,8 @@
                     </div>
 
                     <!-- Financial Records Table -->
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover" id="financialRecordsTable">
+                    <div class="table-responsive mx-0">
+                        <table class="table table-bordered table-hover mb-0" id="financialRecordsTable">
                             <thead>
                                 <tr>
                                     <th>تاریخ</th>
@@ -266,6 +266,48 @@
 @endsection
 
 @section('page-scripts')
+<style>
+/* Fix horizontal spacing issues - apply consistent margins to all sections */
+.widget-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.widget-content > * {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.widget-content .row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.widget-content .row > [class*="col-"] {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.widget-content .table-responsive {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.widget-content hr {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.widget-content .card {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.widget-content .form-group {
+    margin-left: 0;
+    margin-right: 0;
+}
+</style>
 <script>
 const buildingId = {{ $buildingId }};
 const buildingSlug = '{{ $buildingSlug }}';
@@ -286,7 +328,7 @@ function loadBuildingInfo() {
                 $('#building-info').html(`
                     <div class="mb-0">
                         <h6 class="mb-3 text-primary">نام ساختمان: ${building.name}</h6>
-                        <div class="row">
+                        <div class="row mx-0">
                             <div class="col-md-6 mb-2">
                                 <small class="text-muted d-block">مدیر/نماینده</small>
                                 <span class="font-weight-medium">${building.manager_name || '-'}</span>
@@ -404,7 +446,7 @@ function renderContractInfo(contract) {
     let html = `
         <div class="mb-0">
             <h6 class="mb-3 text-primary">${contractTitle} ${statusBadge}</h6>
-            <div class="row">
+            <div class="row mx-0">
                 <div class="col-md-6 mb-2">
                     <small class="text-muted d-block">تاریخ شروع</small>
                     <span class="font-weight-medium">${contract.contract_start_date_jalali || '-'}</span>
