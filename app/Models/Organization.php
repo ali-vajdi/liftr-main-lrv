@@ -22,7 +22,6 @@ class Organization extends Model
         'sms_cost_per_message',
         'contract_number_format',
         'contract_number_increment',
-        'invoice_number_format',
         'invoice_number_increment',
     ];
 
@@ -32,7 +31,6 @@ class Organization extends Model
         'sms_cost_per_message' => 'decimal:2',
         'contract_number_format' => 'array',
         'contract_number_increment' => 'integer',
-        'invoice_number_format' => 'array',
         'invoice_number_increment' => 'integer',
     ];
 
@@ -245,73 +243,12 @@ class Organization extends Model
     }
 
     /**
-     * Generate formatted invoice number based on organization settings
+     * Generate simple increment invoice number (starting from 1 for each organization)
      */
     public function generateInvoiceNumber()
     {
-        // If no format is set, use simple increment as number
-        if (!$this->invoice_number_format || empty($this->invoice_number_format['parts'])) {
-            $this->invoice_number_increment = ($this->invoice_number_increment ?? 0) + 1;
-            $this->save();
-            return (string)$this->invoice_number_increment;
-        }
-
-        $format = $this->invoice_number_format;
-        $parts = $format['parts'] ?? [];
-        $separators = $format['separators'] ?? [];
-        $customText = $format['custom_text'] ?? '';
-
-        $resultParts = [];
-        $jalaliDate = Jalalian::now();
-
-        foreach ($parts as $index => $part) {
-            switch ($part) {
-                case 'increment':
-                    $this->invoice_number_increment = ($this->invoice_number_increment ?? 0) + 1;
-                    $this->save();
-                    $resultParts[] = (string)$this->invoice_number_increment;
-                    break;
-                case 'day':
-                    $resultParts[] = (string)$jalaliDate->getDay();
-                    break;
-                case 'day_name':
-                    $dayNames = [
-                        0 => 'شنبه', 1 => 'یکشنبه', 2 => 'دوشنبه', 3 => 'سه‌شنبه',
-                        4 => 'چهارشنبه', 5 => 'پنج‌شنبه', 6 => 'جمعه',
-                    ];
-                    $carbonDate = $jalaliDate->toCarbon();
-                    $dayOfWeek = $carbonDate->dayOfWeek;
-                    $resultParts[] = $dayNames[$dayOfWeek] ?? '';
-                    break;
-                case 'month':
-                    $monthNames = [
-                        1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
-                        5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
-                        9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
-                    ];
-                    $resultParts[] = $monthNames[$jalaliDate->getMonth()] ?? '';
-                    break;
-                case 'month_number':
-                    $resultParts[] = (string)$jalaliDate->getMonth();
-                    break;
-                case 'year':
-                    $resultParts[] = (string)$jalaliDate->getYear();
-                    break;
-                case 'text':
-                    $resultParts[] = $customText;
-                    break;
-            }
-        }
-
-        // Join parts with separators
-        $result = '';
-        foreach ($resultParts as $index => $part) {
-            if ($index > 0 && isset($separators[$index - 1])) {
-                $result .= $separators[$index - 1];
-            }
-            $result .= $part;
-        }
-
-        return $result;
+        $this->invoice_number_increment = ($this->invoice_number_increment ?? 0) + 1;
+        $this->save();
+        return (string)$this->invoice_number_increment;
     }
 }

@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('organizations', function (Blueprint $table) {
-            $table->unsignedInteger('invoice_number_increment')->default(0)->after('contract_number_increment')->comment('عدد افزایشی فعلی برای شماره فاکتور');
+            if (Schema::hasColumn('organizations', 'invoice_number_format')) {
+                $table->dropColumn('invoice_number_format');
+            }
         });
     }
 
@@ -22,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('organizations', function (Blueprint $table) {
-            $table->dropColumn(['invoice_number_increment']);
+            $table->json('invoice_number_format')->nullable()->after('contract_number_increment');
         });
     }
 };

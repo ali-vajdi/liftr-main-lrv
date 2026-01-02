@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Morilog\Jalali\Jalalian;
 use Carbon\Carbon;
+use niklasravnsborg\LaravelPdf\Facades\Pdf;
 
 class InvoiceController extends Controller
 {
@@ -274,5 +275,181 @@ class InvoiceController extends Controller
             'success' => true,
             'data' => $buildings
         ]);
+    }
+
+    /**
+     * Export invoice as PDF
+     */
+    public function exportPdf(Invoice $invoice)
+    {
+        $user = auth('organization_api')->user();
+        if (!$user) {
+            abort(401, 'Unauthorized');
+        }
+
+        // Verify invoice belongs to the organization
+        if ($invoice->organization_id !== $user->organization_id) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Load relationships
+        $invoice->load(['building', 'items', 'organization']);
+        $organization = $invoice->organization;
+        $building = $invoice->building;
+
+        if (!$organization || !$building) {
+            abort(404, 'سازمان یا ساختمان یافت نشد');
+        }
+
+        // Get invoice date in Jalali format
+        $invoiceDate = $invoice->invoice_date 
+            ? Jalalian::forge($invoice->invoice_date)->format('Y/m/d')
+            : Jalalian::forge($invoice->created_at)->format('Y/m/d');
+
+        // Convert total to Persian words
+        $totalInWords = $this->numberToPersianWords($invoice->total);
+        
+        // Generate PDF
+        $pdf = Pdf::loadView('organization.financial.invoices.pdf', [
+            'invoice' => $invoice,
+            'organization' => $organization,
+            'building' => $building,
+            'invoiceDate' => $invoiceDate,
+            'totalInWords' => $totalInWords,
+        ]);
+
+        $filename = 'فاکتور_' . $invoice->invoice_number . '_' . $building->name . '.pdf';
+        
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Convert number to Persian words
+     */
+    private function numberToPersianWords($number)
+    {
+        $ones = [
+            0 => '',
+            1 => 'یک',
+            2 => 'دو',
+            3 => 'سه',
+            4 => 'چهار',
+            5 => 'پنج',
+            6 => 'شش',
+            7 => 'هفت',
+            8 => 'هشت',
+            9 => 'نه',
+            10 => 'ده',
+            11 => 'یازده',
+            12 => 'دوازده',
+            13 => 'سیزده',
+            14 => 'چهارده',
+            15 => 'پانزده',
+            16 => 'شانزده',
+            17 => 'هفده',
+            18 => 'هجده',
+            19 => 'نوزده',
+        ];
+
+        $tens = [
+            2 => 'بیست',
+            3 => 'سی',
+            4 => 'چهل',
+            5 => 'پنجاه',
+            6 => 'شصت',
+            7 => 'هفتاد',
+            8 => 'هشتاد',
+            9 => 'نود',
+        ];
+
+        $hundreds = [
+            1 => 'یکصد',
+            2 => 'دویست',
+            3 => 'سیصد',
+            4 => 'چهارصد',
+            5 => 'پانصد',
+            6 => 'ششصد',
+            7 => 'هفتصد',
+            8 => 'هشتصد',
+            9 => 'نهصد',
+        ];
+
+        if ($number == 0) {
+            return 'صفر';
+        }
+
+        // Handle negative numbers
+        $isNegative = $number < 0;
+        $number = abs($number);
+
+        // Split into integer and decimal parts
+        $parts = explode('.', (string)$number);
+        $integerPart = (int)$parts[0];
+        $decimalPart = isset($parts[1]) ? (int)substr($parts[1], 0, 2) : 0;
+
+        $result = '';
+
+        // Convert integer part
+        if ($integerPart >= 1000000000) {
+            $billions = (int)($integerPart / 1000000000);
+            $result .= $this->convertThreeDigits($billions, $ones, $tens, $hundreds) . ' میلیارد ';
+            $integerPart = $integerPart % 1000000000;
+        }
+
+        if ($integerPart >= 1000000) {
+            $millions = (int)($integerPart / 1000000);
+            $result .= $this->convertThreeDigits($millions, $ones, $tens, $hundreds) . ' میلیون ';
+            $integerPart = $integerPart % 1000000;
+        }
+
+        if ($integerPart >= 1000) {
+            $thousands = (int)($integerPart / 1000);
+            if ($thousands == 1) {
+                $result .= 'هزار ';
+            } else {
+                $result .= $this->convertThreeDigits($thousands, $ones, $tens, $hundreds) . ' هزار ';
+            }
+            $integerPart = $integerPart % 1000;
+        }
+
+        if ($integerPart > 0) {
+            $result .= $this->convertThreeDigits($integerPart, $ones, $tens, $hundreds);
+        }
+
+        // Remove trailing space
+        $result = trim($result);
+
+        // Add negative prefix if needed
+        if ($isNegative) {
+            $result = 'منفی ' . $result;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Convert three-digit number to words
+     */
+    private function convertThreeDigits($number, $ones, $tens, $hundreds)
+    {
+        $result = '';
+
+        if ($number >= 100) {
+            $hundred = (int)($number / 100);
+            $result .= $hundreds[$hundred] . ' ';
+            $number = $number % 100;
+        }
+
+        if ($number >= 20) {
+            $ten = (int)($number / 10);
+            $result .= $tens[$ten] . ' ';
+            $number = $number % 10;
+        }
+
+        if ($number > 0) {
+            $result .= $ones[$number];
+        }
+
+        return trim($result);
     }
 }

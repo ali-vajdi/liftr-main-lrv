@@ -127,7 +127,6 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::get('organization', [OrganizationAuthController::class, 'getOrganization']);
         Route::post('organization', [OrganizationAuthController::class, 'updateOrganization']);
         Route::post('settings/contract', [OrganizationAuthController::class, 'updateContractSettings']);
-        Route::post('settings/invoice', [OrganizationAuthController::class, 'updateInvoiceSettings']);
         
         // Payment routes (excluded from payment check)
         Route::get('payment/info', [\App\Http\Controllers\Organization\PaymentController::class, 'getPaymentInfo']);
@@ -181,6 +180,7 @@ Route::prefix('organization')->name('organization.')->group(function () {
         
         // Organization Invoices API
         Route::get('invoices/buildings', [\App\Http\Controllers\Api\Organization\InvoiceController::class, 'getBuildings']);
+        Route::get('invoices/{invoice}/export-pdf', [\App\Http\Controllers\Api\Organization\InvoiceController::class, 'exportPdf']);
         Route::apiResource('invoices', \App\Http\Controllers\Api\Organization\InvoiceController::class);
         
         // Organization Elevators API

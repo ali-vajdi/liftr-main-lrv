@@ -173,10 +173,17 @@ function renderInvoicesTable(invoices) {
                 <td><strong>${formatCurrency(invoice.total)}</strong></td>
                 <td>${invoice.items_count || 0}</td>
                 <td>
-                    <button class="btn btn-sm btn-info view-invoice-btn" data-invoice-id="${invoice.id}" title="مشاهده">
+                    <button class="btn btn-sm btn-info view-invoice-btn mr-1" data-invoice-id="${invoice.id}" title="مشاهده">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                             <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                    <button class="btn btn-sm btn-danger export-pdf-btn" data-invoice-id="${invoice.id}" title="دریافت PDF">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
                         </svg>
                     </button>
                 </td>
@@ -347,6 +354,14 @@ function showInvoiceModal(invoice) {
                         </div>
                     </div>
                     <div class="modal-footer">
+                        <button type="button" class="btn btn-danger export-pdf-modal-btn" data-invoice-id="${invoice.id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            دریافت PDF
+                        </button>
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
                     </div>
                 </div>
@@ -365,6 +380,13 @@ function showInvoiceModal(invoice) {
     $('#invoiceModal').on('hidden.bs.modal', function() {
         $(this).remove();
     });
+    
+    // Attach export PDF button handler in modal
+    $(document).off('click', '.export-pdf-modal-btn').on('click', '.export-pdf-modal-btn', function() {
+        const invoiceId = $(this).data('invoice-id');
+        $('#invoiceModal').modal('hide');
+        exportInvoicePdf(invoiceId);
+    });
 }
 
 // Search and filter handlers
@@ -378,6 +400,56 @@ $('#searchInput').on('keyup', function() {
 $('#buildingFilter').on('change', function() {
     loadInvoices(1);
 });
+
+// Export invoice PDF
+function exportInvoicePdf(invoiceId) {
+    const token = localStorage.getItem('organization_token');
+    if (!token) {
+        swal({
+            title: 'خطا',
+            text: 'لطفاً ابتدا وارد سیستم شوید',
+            type: 'error',
+            padding: '2em'
+        });
+        return;
+    }
+
+    const url = `/api/organization/invoices/${invoiceId}/export-pdf`;
+    
+    // Use fetch to download PDF with authentication
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/pdf'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('خطا در دریافت فایل PDF');
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `فاکتور_${invoiceId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        swal({
+            title: 'خطا',
+            text: 'خطا در دریافت فایل PDF. لطفاً دوباره تلاش کنید.',
+            type: 'error',
+            padding: '2em'
+        });
+    });
+}
 
 // Load data on page load
 $(document).ready(function() {
