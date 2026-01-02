@@ -179,7 +179,7 @@ function renderInvoicesTable(invoices) {
                             <circle cx="12" cy="12" r="3"></circle>
                         </svg>
                     </button>
-                    <button class="btn btn-sm btn-danger export-pdf-btn" data-invoice-id="${invoice.id}" title="دریافت PDF">
+                    <button class="btn btn-sm btn-danger export-pdf-btn" data-invoice-id="${invoice.id}" data-invoice-number="${invoice.invoice_number || ''}" data-building-name="${invoice.building_name || ''}" title="دریافت PDF">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="7 10 12 15 17 10"></polyline>
@@ -196,6 +196,14 @@ function renderInvoicesTable(invoices) {
     $('.view-invoice-btn').on('click', function() {
         const invoiceId = $(this).data('invoice-id');
         viewInvoice(invoiceId);
+    });
+    
+    // Attach event handlers for export PDF buttons
+    $('.export-pdf-btn').on('click', function() {
+        const invoiceId = $(this).data('invoice-id');
+        const invoiceNumber = $(this).data('invoice-number') || '';
+        const buildingName = $(this).data('building-name') || '';
+        exportInvoicePdf(invoiceId, invoiceNumber, buildingName);
     });
 }
 
@@ -384,8 +392,10 @@ function showInvoiceModal(invoice) {
     // Attach export PDF button handler in modal
     $(document).off('click', '.export-pdf-modal-btn').on('click', '.export-pdf-modal-btn', function() {
         const invoiceId = $(this).data('invoice-id');
+        const invoiceNumber = invoice.invoice_number || '';
+        const buildingName = invoice.building ? invoice.building.name : '';
         $('#invoiceModal').modal('hide');
-        exportInvoicePdf(invoiceId);
+        exportInvoicePdf(invoiceId, invoiceNumber, buildingName);
     });
 }
 
@@ -402,7 +412,7 @@ $('#buildingFilter').on('change', function() {
 });
 
 // Export invoice PDF
-function exportInvoicePdf(invoiceId) {
+function exportInvoicePdf(invoiceId, invoiceNumber, buildingName) {
     const token = localStorage.getItem('organization_token');
     if (!token) {
         swal({
@@ -434,7 +444,9 @@ function exportInvoicePdf(invoiceId) {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `فاکتور_${invoiceId}.pdf`;
+        // Format filename exactly like backend: فاکتور_{invoice_number}_{building_name}.pdf
+        const filename = `فاکتور_${invoiceNumber}_${buildingName}.pdf`;
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
