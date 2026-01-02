@@ -1364,18 +1364,36 @@ class ServiceController extends Controller
 
         $perPage = $request->has('per_page') ? (int)$request->per_page : 10;
         
-        // Handle sorting - default to id desc
-        $sortField = $request->has('sort_field') ? $request->sort_field : 'id';
-        $sortDirection = $request->has('sort_direction') ? $request->sort_direction : 'desc';
+        // Handle sorting - default to service_year asc, service_month asc (1404/1 first)
+        $sortField = $request->has('sort_field') ? $request->sort_field : 'service_year';
+        $sortDirection = $request->has('sort_direction') ? $request->sort_direction : 'asc';
         
         // Validate sort direction
         if (!in_array(strtolower($sortDirection), ['asc', 'desc'])) {
-            $sortDirection = 'desc';
+            $sortDirection = 'asc';
         }
         
         // Apply sorting
-        $services = $query->orderBy($sortField, $sortDirection)
-            ->paginate($perPage);
+        // When sorting by id, use service_year and service_month instead (remove ID sorting)
+        if ($sortField === 'id') {
+            $query->orderBy('service_year', 'asc')
+                  ->orderBy('service_month', 'asc');
+        } elseif ($sortField === 'service_year') {
+            // When sorting by service_year, also sort by service_month
+            $query->orderBy('service_year', $sortDirection)
+                  ->orderBy('service_month', 'asc');
+        } elseif ($sortField === 'service_month') {
+            // When sorting by service_month, also sort by service_year first
+            $query->orderBy('service_year', 'asc')
+                  ->orderBy('service_month', $sortDirection);
+        } else {
+            // For other fields, apply the requested sort, then add service_year and service_month as secondary sorts
+            $query->orderBy($sortField, $sortDirection)
+                  ->orderBy('service_year', 'asc')
+                  ->orderBy('service_month', 'asc');
+        }
+        
+        $services = $query->paginate($perPage);
 
         // Add formatted data with full details
         $items = collect($services->items())->map(function ($service) {

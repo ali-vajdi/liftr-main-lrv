@@ -15,7 +15,7 @@
                         <div class="card">
                             <div class="card-header bg-primary text-white">
                                 <h5 class="mb-0">
-                                    <i class="fa fa-file-contract"></i> قالب شماره فاکتور
+                                    <i class="fa fa-file-contract"></i> قالب شماره قرارداد
                                 </h5>
                             </div>
                             <div class="card-body">

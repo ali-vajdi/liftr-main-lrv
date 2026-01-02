@@ -1533,8 +1533,8 @@
                 let currentPage = 1;
                 let perPage = 10;
                 let searchTerm = '';
-                let sortField = 'id';
-                let sortDirection = 'desc';
+                let sortField = 'service_year';
+                let sortDirection = 'asc';
                 let filters = {};
 
                 // Initialize filters
@@ -1579,8 +1579,8 @@
                     });
                 }
 
-                // Set initial sort icon (if ID column exists, otherwise it will be sorted by ID in backend)
-                $('.sortable[data-field="id"]').find('.sort-icon').html('↓');
+                // Set initial sort icon (if service_year column exists, otherwise it will be sorted by service_year in backend)
+                $('.sortable[data-field="service_year"]').find('.sort-icon').html('↑');
                 
                 // Initial data load
                 loadData();
