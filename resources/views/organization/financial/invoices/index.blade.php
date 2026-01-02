@@ -46,7 +46,6 @@
                                         <th>تخفیف</th>
                                         <th>مالیات</th>
                                         <th>قیمت کل</th>
-                                        <th>تعداد آیتم</th>
                                         <th>عملیات</th>
                                     </tr>
                                 </thead>
@@ -183,7 +182,6 @@ function renderInvoicesTable(invoices) {
                 <td>${formatCurrency(invoice.discount)}</td>
                 <td>${formatCurrency(invoice.tax_amount)} (${invoice.tax_percentage}%)</td>
                 <td><strong>${formatCurrency(invoice.total)}</strong></td>
-                <td>${invoice.items_count || 0}</td>
                 <td>
                     <button class="btn btn-sm btn-info view-invoice-btn mr-1" data-invoice-id="${invoice.id}" title="مشاهده">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

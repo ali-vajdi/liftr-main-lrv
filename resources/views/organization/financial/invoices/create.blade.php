@@ -43,13 +43,13 @@
                         <hr class="my-4">
 
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6>آیتم‌های فاکتور</h6>
+                            <h6>فاکتور</h6>
                             <button type="button" class="btn btn-success btn-sm" id="addItemBtn">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="12" y1="5" x2="12" y2="19"></line>
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
                                 </svg>
-                                افزودن آیتم
+                                افزودن سطر
                             </button>
                         </div>
 
@@ -208,7 +208,7 @@ function addItemRow() {
     const row = `
         <tr id="${rowId}">
             <td>
-                <input type="text" class="form-control item-description" placeholder="شرح آیتم" required>
+                <input type="text" class="form-control item-description" placeholder="شرح" required>
             </td>
             <td>
                 <input type="number" class="form-control item-quantity" min="1" value="1" required>
@@ -421,7 +421,7 @@ $('#invoiceForm').on('submit', function(e) {
     if (items.length === 0) {
         swal({
             title: 'خطا',
-            text: 'لطفاً حداقل یک آیتم به فاکتور اضافه کنید',
+            text: 'لطفاً حداقل یک سطر به فاکتور اضافه کنید',
             type: 'error',
             padding: '2em'
         });
@@ -431,7 +431,7 @@ $('#invoiceForm').on('submit', function(e) {
     if (hasError) {
         swal({
             title: 'خطا',
-            text: 'لطفاً تمام فیلدهای آیتم‌ها را پر کنید',
+            text: 'لطفاً تمام فیلدهای سطر را پر کنید',
             type: 'error',
             padding: '2em'
         });

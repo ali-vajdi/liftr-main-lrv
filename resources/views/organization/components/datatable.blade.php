@@ -1537,10 +1537,10 @@
                 let sortDirection = 'asc';
                 let filters = {};
 
-                // Initialize filters
+                // Initialize filters - read initial values from DOM elements
                 $('.filter-control').each(function() {
                     const filterName = $(this).data('filter-name');
-                    filters[filterName] = '';
+                    filters[filterName] = $(this).val() || '';
                 });
 
                 // Initialize per-page selector

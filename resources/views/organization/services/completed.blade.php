@@ -242,6 +242,37 @@
 
 @section('page-scripts')
 <script>
+// Set URL filter parameters immediately (before datatable initializes)
+(function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const monthParam = urlParams.get('month');
+    const yearParam = urlParams.get('year');
+    
+    // Function to set filter values
+    function setFilterValues() {
+        if (monthParam) {
+            const monthSelect = document.querySelector('.filter-control[data-filter-name="month"]');
+            if (monthSelect) {
+                monthSelect.value = monthParam;
+            }
+        }
+        if (yearParam) {
+            const yearSelect = document.querySelector('.filter-control[data-filter-name="year"]');
+            if (yearSelect) {
+                yearSelect.value = yearParam;
+            }
+        }
+    }
+    
+    // Try to set immediately if elements exist
+    setFilterValues();
+    
+    // Also set when DOM is ready (in case elements aren't ready yet)
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setFilterValues);
+    }
+})();
+
 let allServicesData = {};
 
 // Define onShowDetails function
@@ -559,57 +590,25 @@ function populateYearDropdown() {
         select.append(`<option value="${year}">${year}</option>`);
     }
     
-    // Read URL parameters and set filters
+    // Read URL parameters and set filters immediately (before datatable loads)
     const urlParams = new URLSearchParams(window.location.search);
     const monthParam = urlParams.get('month');
     const yearParam = urlParams.get('year');
     
-    // Function to apply URL parameters to filters
-    function applyUrlFilters() {
-        if (monthParam) {
-            const monthSelect = $('.filter-control[data-filter-name="month"]');
-            if (monthSelect.length && monthSelect.find('option').length > 1) {
-                monthSelect.val(monthParam);
-                if (typeof window.datatableApi !== 'undefined' && window.datatableApi.setFilter) {
-                    window.datatableApi.setFilter('month', monthParam);
-                }
-            }
-        }
-        
-        if (yearParam) {
-            const yearSelect = $('.filter-control[data-filter-name="year"]');
-            if (yearSelect.length && yearSelect.find('option').length > 1) {
-                yearSelect.val(yearParam);
-                if (typeof window.datatableApi !== 'undefined' && window.datatableApi.setFilter) {
-                    window.datatableApi.setFilter('year', yearParam);
-                }
-            }
+    // Apply URL parameters to filters immediately
+    if (monthParam) {
+        const monthSelect = $('.filter-control[data-filter-name="month"]');
+        if (monthSelect.length && monthSelect.find('option').length > 1) {
+            monthSelect.val(monthParam);
         }
     }
     
-    // Wait for datatable to be initialized, then set filters
-    // Try multiple times to ensure filters are populated
-    let attempts = 0;
-    const maxAttempts = 10;
-    const checkInterval = setInterval(function() {
-        attempts++;
-        const monthSelect = $('.filter-control[data-filter-name="month"]');
+    if (yearParam) {
         const yearSelect = $('.filter-control[data-filter-name="year"]');
-        
-        // Check if filters are ready (have options populated)
-        const monthReady = monthSelect.length > 0 && monthSelect.find('option').length > 1;
-        const yearReady = yearSelect.length > 0 && yearSelect.find('option').length > 1;
-        const datatableReady = typeof window.datatableApi !== 'undefined' && window.datatableApi.setFilter;
-        
-        if ((monthReady || !monthParam) && (yearReady || !yearParam) && datatableReady) {
-            clearInterval(checkInterval);
-            applyUrlFilters();
-        } else if (attempts >= maxAttempts) {
-            clearInterval(checkInterval);
-            // Try to apply anyway
-            applyUrlFilters();
+        if (yearSelect.length && yearSelect.find('option').length > 1) {
+            yearSelect.val(yearParam);
         }
-    }, 200);
+    }
 }
 
 // Load organization name
