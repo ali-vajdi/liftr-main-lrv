@@ -168,18 +168,11 @@
                             <small class="text-muted" style="font-size: 11px; color: #888ea8;"><span id="technicians-active">0</span> فعال</small>
                         </div>
                     </div>
-                    <div class="col-6 mb-4">
+                    <div class="col-12 mb-4">
                         <div class="text-center" style="padding: 15px; background: linear-gradient(135deg, #fad96115 0%, #f76b1c15 100%); border-radius: 12px; border: 1px solid #e0e6ed;">
                             <h3 class="mb-2" style="color: #f59e0b; font-weight: 700; font-size: 28px;"><span id="buildings-total">0</span></h3>
                             <p class="text-muted mb-1" style="font-size: 13px; font-weight: 500; margin-bottom: 5px;">ساختمان</p>
                             <small id="buildings-status" class="text-muted" style="font-size: 11px; color: #888ea8;"><span id="buildings-active">0</span> فعال</small>
-                        </div>
-                    </div>
-                    <div class="col-6 mb-4">
-                        <div class="text-center" style="padding: 15px; background: linear-gradient(135deg, #4facfe15 0%, #00f2fe15 100%); border-radius: 12px; border: 1px solid #e0e6ed;">
-                            <h3 class="mb-2" style="color: #2196f3; font-weight: 700; font-size: 28px;"><span id="services-total">0</span></h3>
-                            <p class="text-muted mb-1" style="font-size: 13px; font-weight: 500; margin-bottom: 5px;">سرویس</p>
-                            <small class="text-muted" style="font-size: 11px; color: #888ea8;"><span id="services-completed">0</span> انجام شده</small>
                         </div>
                     </div>
                 </div>
@@ -252,7 +245,7 @@
     </div>
 
     <!-- Services Overview -->
-    <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
+    <!-- <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
         <div class="widget widget-chart-one" style="border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <div class="widget-heading" style="border-bottom: 1px solid #e0e6ed; padding: 15px 20px; background: linear-gradient(135deg, #00d4aa 0%, #00a085 100%); margin: -1px -1px 0 -1px;">
                 <h5 class="mb-0" style="font-weight: 600; color: white;">
@@ -313,7 +306,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <!-- Quick Actions -->
     <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
@@ -329,7 +322,7 @@
             </div>
             <div class="widget-content" style="padding: 25px 20px;">
                 <div class="row">
-                    <div class="col-md-3 col-sm-6 mb-3">
+                    <!-- <div class="col-md-3 col-sm-6 mb-3">
                         <a href="{{ route('organization.services.pending') }}" class="btn btn-outline-warning btn-block" style="border-radius: 12px; padding: 15px 20px; font-weight: 600; border-width: 2px; transition: all 0.3s;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 8px;">
                                 <circle cx="12" cy="12" r="10"></circle>
@@ -338,7 +331,7 @@
                             سرویس‌های در انتظار
                             <span id="pending-badge" class="badge badge-warning" style="margin-right: 5px; padding: 5px 10px; border-radius: 50px; display: none;">0</span>
                         </a>
-                    </div>
+                    </div> -->
                     <div class="col-md-3 col-sm-6 mb-3">
                         <a href="{{ route('organization.buildings.expiring') }}" class="btn btn-outline-danger btn-block" style="border-radius: 12px; padding: 15px 20px; font-weight: 600; border-width: 2px; transition: all 0.3s;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 8px;">
@@ -378,6 +371,28 @@
                             پروفایل
                         </a>
                     </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <a href="{{ route('organization.financial.invoices.index') }}" class="btn btn-outline-info btn-block" style="border-radius: 12px; padding: 15px 20px; font-weight: 600; border-width: 2px; transition: all 0.3s;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 8px;">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                            فاکتور ها
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <a href="{{ route('organization.financial.all-debts') }}" class="btn btn-outline-warning btn-block" style="border-radius: 12px; padding: 15px 20px; font-weight: 600; border-width: 2px; transition: all 0.3s;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-left: 8px;">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                            کل بدهی‌ها
+                        </a>
+                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -387,7 +402,7 @@
 
 @section('page-styles')
 <style>
-.btn-outline-warning:hover, .btn-outline-danger:hover, .btn-outline-primary:hover, .btn-outline-secondary:hover {
+.btn-outline-warning:hover, .btn-outline-danger:hover, .btn-outline-primary:hover, .btn-outline-secondary:hover, .btn-outline-info:hover, .btn-outline-dark:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
