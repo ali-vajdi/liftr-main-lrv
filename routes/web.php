@@ -29,6 +29,7 @@ Route::get('/rp/{token}', [OrganizationAuthController::class, 'showResetPassword
 // Organization Dashboard and Management Routes
 Route::get('/', [OrganizationViewController::class, 'showDashboard'])->name('organization.dashboard');
 Route::get('/profile', [OrganizationViewController::class, 'showProfile'])->name('organization.profile');
+Route::get('/settings', [OrganizationViewController::class, 'showSettings'])->name('organization.settings');
 Route::get('/packages', [OrganizationViewController::class, 'showPackages'])->name('organization.packages.view');
 Route::get('/users', [OrganizationViewController::class, 'showUsers'])->name('organization.users.view');
 Route::get('/technicians', [OrganizationViewController::class, 'showTechnicians'])->name('organization.technicians.view');

@@ -152,6 +152,8 @@ class AuthController extends Controller
                     'landline_phone' => $user->organization->landline_phone,
                     'logo' => $user->organization->logo,
                     'status' => $user->organization->status,
+                    'contract_number_format' => $user->organization->contract_number_format,
+                    'contract_number_increment' => $user->organization->contract_number_increment,
                     'created_at' => $user->organization->created_at,
                     'updated_at' => $user->organization->updated_at,
                 ] : null,
@@ -197,6 +199,31 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'phone_number' => $user->phone_number,
                 'status' => $user->status,
+            ]
+        ]);
+    }
+
+    public function getOrganization(Request $request)
+    {
+        $user = $request->user();
+        $organization = $user->organization;
+
+        if (!$organization) {
+            return response()->json(['message' => 'سازمان یافت نشد'], 404);
+        }
+
+        return response()->json([
+            'data' => [
+                'id' => $organization->id,
+                'name' => $organization->name,
+                'address' => $organization->address,
+                'landline_phone' => $organization->landline_phone,
+                'logo' => $organization->logo,
+                'status' => $organization->status,
+                'contract_number_format' => $organization->contract_number_format,
+                'contract_number_increment' => $organization->contract_number_increment,
+                'created_at' => $organization->created_at,
+                'updated_at' => $organization->updated_at,
             ]
         ]);
     }
@@ -450,5 +477,69 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'رمز عبور با موفقیت تغییر یافت. اکنون می‌توانید با رمز عبور جدید وارد شوید.'
         ], 200);
+    }
+
+    /**
+     * Update contract settings
+     */
+    public function updateContractSettings(Request $request)
+    {
+        $user = $request->user();
+        $organization = $user->organization;
+
+        if (!$organization) {
+            return response()->json(['message' => 'سازمان یافت نشد'], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'contract_number_format' => 'required|array',
+            'contract_number_format.parts' => 'required|array|min:1',
+            'contract_number_format.parts.*' => 'required|in:increment,day,month,text',
+            'contract_number_format.separators' => 'nullable|array',
+            'contract_number_format.separators.*' => 'nullable|in:/,-',
+            'contract_number_format.custom_text' => 'nullable|string|max:255',
+        ], [
+            'contract_number_format.required' => 'قالب شماره فاکتور الزامی است',
+            'contract_number_format.parts.required' => 'بخش‌های قالب الزامی است',
+            'contract_number_format.parts.min' => 'حداقل یک بخش باید انتخاب شود',
+            'contract_number_format.parts.*.in' => 'نوع بخش نامعتبر است',
+            'contract_number_format.separators.*.in' => 'جداکننده باید / یا - باشد',
+            'contract_number_format.custom_text.max' => 'متن سفارشی نمی‌تواند بیش از 255 کاراکتر باشد',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Validate that if text part exists, custom_text must be provided
+        if (in_array('text', $request->contract_number_format['parts']) && empty($request->contract_number_format['custom_text'])) {
+            return response()->json([
+                'errors' => [
+                    'contract_number_format.custom_text' => ['برای بخش متن، متن سفارشی الزامی است']
+                ]
+            ], 422);
+        }
+
+        // Validate separators count (should be parts.length - 1)
+        $partsCount = count($request->contract_number_format['parts']);
+        $separatorsCount = count($request->contract_number_format['separators'] ?? []);
+        if ($separatorsCount !== $partsCount - 1 && $partsCount > 1) {
+            return response()->json([
+                'errors' => [
+                    'contract_number_format.separators' => ['تعداد جداکننده‌ها باید یک عدد کمتر از تعداد بخش‌ها باشد']
+                ]
+            ], 422);
+        }
+
+        $organization->contract_number_format = $request->contract_number_format;
+        $organization->save();
+
+        return response()->json([
+            'message' => 'تنظیمات قرارداد با موفقیت بروزرسانی شد',
+            'data' => [
+                'contract_number_format' => $organization->contract_number_format,
+                'contract_number_increment' => $organization->contract_number_increment,
+            ]
+        ]);
     }
 }

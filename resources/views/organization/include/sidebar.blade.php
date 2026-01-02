@@ -265,6 +265,22 @@
                 </a>
             </li>
 
+            <li class="menu {{ request()->routeIs('organization.settings') ? 'active' : '' }}">
+                <a href="{{ route('organization.settings') }}"
+                    aria-expanded="{{ request()->routeIs('organization.settings') ? 'true' : 'false' }}"
+                    class="dropdown-toggle">
+                    <div class="">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-settings">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3m15.364-6.364l-4.243 4.243m0 0L12.879 8.88m4.242 4.242L12.879 8.88m0 0L8.636 4.636M12.879 8.88l4.243 4.243"></path>
+                        </svg>
+                        <span>تنظیمات</span>
+                    </div>
+                </a>
+            </li>
+
             <li class="menu {{ request()->routeIs('organization.profile') ? 'active' : '' }}">
                 <a href="{{ route('organization.profile') }}"
                     aria-expanded="{{ request()->routeIs('organization.profile') ? 'true' : 'false' }}"

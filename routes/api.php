@@ -124,7 +124,9 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::get('check-auth', [OrganizationAuthController::class, 'checkAuth']);
         Route::get('profile', [OrganizationAuthController::class, 'profile']);
         Route::put('profile', [OrganizationAuthController::class, 'updateProfile']);
+        Route::get('organization', [OrganizationAuthController::class, 'getOrganization']);
         Route::post('organization', [OrganizationAuthController::class, 'updateOrganization']);
+        Route::post('settings/contract', [OrganizationAuthController::class, 'updateContractSettings']);
         
         // Payment routes (excluded from payment check)
         Route::get('payment/info', [\App\Http\Controllers\Organization\PaymentController::class, 'getPaymentInfo']);

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Morilog\Jalali\Jalalian;
 
 class Organization extends Model
 {
@@ -19,12 +20,16 @@ class Organization extends Model
         'moderator_id',
         'sms_balance',
         'sms_cost_per_message',
+        'contract_number_format',
+        'contract_number_increment',
     ];
 
     protected $casts = [
         'status' => 'boolean',
         'sms_balance' => 'decimal:2',
         'sms_cost_per_message' => 'decimal:2',
+        'contract_number_format' => 'array',
+        'contract_number_increment' => 'integer',
     ];
 
     // Status constants
@@ -144,5 +149,61 @@ class Organization extends Model
     public function sms()
     {
         return $this->hasMany(Sms::class);
+    }
+
+    /**
+     * Generate formatted contract number based on organization settings
+     */
+    public function generateContractNumber()
+    {
+        // If no format is set, use simple increment
+        if (!$this->contract_number_format || empty($this->contract_number_format['parts'])) {
+            $this->contract_number_increment = ($this->contract_number_increment ?? 0) + 1;
+            $this->save();
+            return (string)$this->contract_number_increment;
+        }
+
+        $format = $this->contract_number_format;
+        $parts = $format['parts'] ?? [];
+        $separators = $format['separators'] ?? [];
+        $customText = $format['custom_text'] ?? '';
+
+        $resultParts = [];
+        $jalaliDate = Jalalian::now();
+
+        foreach ($parts as $index => $part) {
+            switch ($part) {
+                case 'increment':
+                    $this->contract_number_increment = ($this->contract_number_increment ?? 0) + 1;
+                    $this->save();
+                    $resultParts[] = (string)$this->contract_number_increment;
+                    break;
+                case 'day':
+                    $resultParts[] = (string)$jalaliDate->getDay();
+                    break;
+                case 'month':
+                    $monthNames = [
+                        1 => 'فروردین', 2 => 'اردیبهشت', 3 => 'خرداد', 4 => 'تیر',
+                        5 => 'مرداد', 6 => 'شهریور', 7 => 'مهر', 8 => 'آبان',
+                        9 => 'آذر', 10 => 'دی', 11 => 'بهمن', 12 => 'اسفند',
+                    ];
+                    $resultParts[] = $monthNames[$jalaliDate->getMonth()] ?? '';
+                    break;
+                case 'text':
+                    $resultParts[] = $customText;
+                    break;
+            }
+        }
+
+        // Join parts with separators
+        $result = '';
+        foreach ($resultParts as $index => $part) {
+            if ($index > 0 && isset($separators[$index - 1])) {
+                $result .= $separators[$index - 1];
+            }
+            $result .= $part;
+        }
+
+        return $result;
     }
 }

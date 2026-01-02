@@ -156,14 +156,17 @@ class BuildingContractController extends Controller
                 ], 422);
             }
             
-            // Calculate organization-specific contract number
-            // Get all contracts for buildings in this organization
-            $maxContractNumber = BuildingContract::whereHas('building', function($q) use ($building) {
-                $q->where('organization_id', $building->organization_id);
-            })->max('contract_number');
-            
-            // Assign next contract number (starting from 1 if no contracts exist)
-            $data['contract_number'] = ($maxContractNumber ?? 0) + 1;
+            // Generate formatted contract number using organization settings
+            $organization = $building->organization;
+            if ($organization) {
+                $data['contract_number'] = $organization->generateContractNumber();
+            } else {
+                // Fallback to simple increment if organization not found
+                $maxContractNumber = BuildingContract::whereHas('building', function($q) use ($building) {
+                    $q->where('organization_id', $building->organization_id);
+                })->max('contract_number');
+                $data['contract_number'] = ($maxContractNumber ?? 0) + 1;
+            }
             
             // Extract manager fields before creating contract
             $managerName = $data['manager_name'];

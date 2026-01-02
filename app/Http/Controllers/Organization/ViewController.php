@@ -163,6 +163,13 @@ class ViewController extends Controller
     {
         return view('organization.financial.all-debts');
     }
+
+    // Settings View
+    public function showSettings()
+    {
+        // Organization data will be fetched via API in the view
+        return view('organization.settings.index');
+    }
 }
 
 
