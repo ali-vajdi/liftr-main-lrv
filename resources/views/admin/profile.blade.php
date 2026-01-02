@@ -17,7 +17,8 @@
                             </div>
                             <div class="form-group">
                                 <label for="username">نام کاربری</label>
-                                <input type="text" class="form-control" id="username" name="username" required>
+                                <input type="text" class="form-control" id="username" name="username" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                <small class="form-text text-muted">نام کاربری قابل تغییر نیست.</small>
                             </div>
                             <div class="form-group">
                                 <label for="currentPassword">رمز عبور فعلی</label>
@@ -82,12 +83,11 @@
                 e.preventDefault();
 
                 const fullName = $('#fullName').val();
-                const username = $('#username').val();
                 const currentPassword = $('#currentPassword').val();
                 const newPassword = $('#newPassword').val();
                 const newPasswordConfirmation = $('#newPasswordConfirmation').val();
 
-                if (!fullName || !username) {
+                if (!fullName) {
                     swal({
                         title: 'خطا',
                         text: 'لطفا تمام فیلدهای الزامی را پر کنید',
@@ -118,8 +118,7 @@
                 }
 
                 const data = {
-                    full_name: fullName,
-                    username: username
+                    full_name: fullName
                 };
 
                 if (currentPassword) {

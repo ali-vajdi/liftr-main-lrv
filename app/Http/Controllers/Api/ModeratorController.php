@@ -80,7 +80,6 @@ class ModeratorController extends Controller
 
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'username' => ['required', 'string', 'max:255', Rule::unique('moderators')->ignore($moderator->id)],
             'current_password' => 'required_with:new_password|string',
             'new_password' => 'nullable|string|min:6|confirmed',
         ]);
@@ -93,7 +92,7 @@ class ModeratorController extends Controller
         }
 
         $moderator->full_name = $validated['full_name'];
-        $moderator->username = $validated['username'];
+        // Username cannot be changed
 
         if (isset($validated['new_password'])) {
             $moderator->password = Hash::make($validated['new_password']);
