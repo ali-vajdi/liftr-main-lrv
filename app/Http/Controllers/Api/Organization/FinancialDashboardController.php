@@ -125,6 +125,7 @@ class FinancialDashboardController extends Controller
             $contractData = [
                 'id' => $contract->id,
                 'contract_number' => $contract->contract_number,
+                'contract_name' => $contract->contract_name,
                 'status' => $contract->status,
                 'status_text' => $contract->status === BuildingContract::STATUS_ACTIVE ? 'فعال' : 
                                 ($contract->status === BuildingContract::STATUS_FINISHED ? 'تمام شده' : 'لغو شده'),

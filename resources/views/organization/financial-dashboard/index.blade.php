@@ -390,9 +390,14 @@ function renderContractInfo(contract) {
             ? '<span class="badge badge-warning">تمام شده</span>' 
             : '<span class="badge badge-danger">لغو شده</span>');
     
-    const contractTitle = contract.contract_number 
-        ? `قرارداد شماره ${contract.contract_number}` 
-        : 'قرارداد';
+    let contractTitle;
+    if (contract.contract_name) {
+        contractTitle = `قرارداد <span dir="ltr">${contract.contract_name}</span>`;
+    } else if (contract.contract_number) {
+        contractTitle = `قرارداد شماره <span dir="ltr">${contract.contract_number}</span>`;
+    } else {
+        contractTitle = 'قرارداد';
+    }
     
     const paymentMethodText = paymentMethodTexts[contract.payment_method] || 'نامشخص';
     
