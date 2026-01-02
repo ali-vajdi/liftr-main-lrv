@@ -228,7 +228,7 @@
                         </td>
                         <td class="building-info-right" style="width: 50%; text-align: right;">
                             <div>
-                                <strong>نام شرکت:</strong> {{ $organization->name ?? 'نامشخص' }}
+                                <strong>نام شرکت:</strong> {{ $organization && $organization->name ? 'آسانسور ' . $organization->name : 'نامشخص' }}
                             </div>
                         </td>
                     </tr>

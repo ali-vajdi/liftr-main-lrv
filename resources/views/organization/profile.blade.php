@@ -287,8 +287,8 @@ $(document).ready(function() {
         currentOrgData = org;
 
         // Set organization name
-        $('#org-name-profile').text(org.name);
-        $('#org-name-table').text(org.name);
+        $('#org-name-profile').text('آسانسور ' + org.name);
+        $('#org-name-table').text('آسانسور ' + org.name);
         $('#org-address').text(org.address || '-');
         
         // Set landline phone
@@ -415,8 +415,8 @@ $(document).ready(function() {
                     // Update organization data without reload
                     if (response.data) {
                         currentOrgData = response.data;
-                        $('#org-name-profile').text(response.data.name);
-                        $('#org-name-table').text(response.data.name);
+                        $('#org-name-profile').text('آسانسور ' + response.data.name);
+                        $('#org-name-table').text('آسانسور ' + response.data.name);
                         $('#org-address').text(response.data.address || '-');
                         
                         // Update landline phone

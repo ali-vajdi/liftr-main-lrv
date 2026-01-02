@@ -13,7 +13,7 @@
         } elseif (isset($service) && $service && $service->building && $service->building->organization) {
             $organization = $service->building->organization;
         }
-        $orgName = $organization && $organization->name ? $organization->name : 'لیفتر';
+        $orgName = $organization && $organization->name ? 'آسانسور ' . $organization->name : 'لیفتر';
     @endphp
     <title>{{ $orgName }} - @yield('title', 'سرویس‌های ساختمان')</title>
     <link rel="icon" type="image/png" href="{{ asset('assets/img/logo.png') }}" />
@@ -613,7 +613,7 @@
                         <img src="{{ asset($organization->logo) }}" alt="{{ $organization->name }}">
                     @endif
                     @if($organization && $organization->name)
-                        <span class="site-logo-text">{{ $organization->name }}</span>
+                        <span class="site-logo-text">آسانسور {{ $organization->name }}</span>
                     @else
                         <span class="site-logo-text">لیفتر</span>
                     @endif

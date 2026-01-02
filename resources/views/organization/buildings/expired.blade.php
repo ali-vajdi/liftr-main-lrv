@@ -414,7 +414,7 @@ function showMap(lat, lng, title) {
 // Load organization name
 getOrganizationData(function(org, error) {
     if (!error && org) {
-        $('#org-name-expired').text(org.name);
+        $('#org-name-expired').text('آسانسور ' + org.name);
     }
 });
 

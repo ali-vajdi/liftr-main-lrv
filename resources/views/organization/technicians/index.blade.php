@@ -529,7 +529,7 @@
         // Load organization name
         getOrganizationData(function(org, error) {
             if (!error && org) {
-                $('#org-name-technicians').text(org.name);
+                $('#org-name-technicians').text('آسانسور ' + org.name);
             }
         });
     </script>

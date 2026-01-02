@@ -256,7 +256,7 @@
             // Load organization name
             getOrganizationData(function(org, error) {
                 if (!error && org) {
-                    $('#org-name-users').text(org.name);
+                    $('#org-name-users').text('آسانسور ' + org.name);
                 }
             });
 

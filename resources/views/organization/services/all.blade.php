@@ -1710,7 +1710,7 @@ function loadTechniciansForFilter() {
 // Load organization name
 getOrganizationData(function(org, error) {
     if (!error && org) {
-        $('#org-name-all-services').text(org.name);
+        $('#org-name-all-services').text('آسانسور ' + org.name);
     }
 });
 

@@ -1959,7 +1959,7 @@ $('#download-qrcode-btn').on('click', function() {
 // Load organization name
 getOrganizationData(function(org, error) {
     if (!error && org) {
-        $('#org-name-buildings').text(org.name);
+        $('#org-name-buildings').text('آسانسور ' + org.name);
     }
 });
 

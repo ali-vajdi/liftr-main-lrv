@@ -587,7 +587,7 @@ $(document).ready(function() {
         var stats = data.statistics;
 
         // Set organization name
-        $('#org-name').text(org.name);
+        $('#org-name').text('آسانسور ' + org.name);
 
         // Set SMS statistics
         $('#sms-balance').text(parseFloat(stats.sms.balance).toLocaleString('fa-IR'));

@@ -1106,7 +1106,7 @@ function populateYearDropdown() {
 // Load organization name
 getOrganizationData(function(org, error) {
     if (!error && org) {
-        $('#org-name-assigned').text(org.name);
+        $('#org-name-assigned').text('آسانسور ' + org.name);
     }
 });
 </script>

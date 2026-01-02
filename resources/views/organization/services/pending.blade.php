@@ -1003,7 +1003,7 @@ function populateYearDropdown() {
 // Load organization name
 getOrganizationData(function(org, error) {
     if (!error && org) {
-        $('#org-name-pending').text(org.name);
+        $('#org-name-pending').text('آسانسور ' + org.name);
     }
 });
 </script>
