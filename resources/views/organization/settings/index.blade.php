@@ -8,9 +8,14 @@
             <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
                 <div class="widget widget-chart-one">
                     <div class="widget-heading">
-                        <h5 class="mb-0">تنظیمات قرارداد</h5>
+                        <h5 class="mb-0">
+                            <button class="btn btn-link text-white p-0 mr-2" type="button" data-toggle="collapse" data-target="#contract-settings-collapse" aria-expanded="false" aria-controls="contract-settings-collapse" style="text-decoration: none; border: none; background: none;">
+                                <i class="fa fa-chevron-down" id="collapse-icon"></i>
+                            </button>
+                            تنظیمات قرارداد
+                        </h5>
                     </div>
-                    <div class="widget-content">
+                    <div class="widget-content collapse" id="contract-settings-collapse">
                         <!-- Contract Settings Section -->
                         <div class="card">
                             <div class="card-header bg-primary text-white">
@@ -171,14 +176,39 @@
         .add-part-btn {
             height: 80px;
             transition: all 0.3s ease;
+            position: relative;
+        }
+        .add-part-btn i {
+            font-size: 24px !important;
+            display: inline-block !important;
+            margin-bottom: 5px;
         }
         .add-part-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
+        .add-part-btn:hover i {
+            transform: scale(1.1);
+        }
         .part-icon {
             font-size: 24px;
             margin-bottom: 5px;
+        }
+        .remove-part-btn {
+            min-width: 35px;
+            height: 35px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+        .remove-part-btn i {
+            font-size: 16px !important;
+            display: inline-block !important;
+        }
+        .format-part-item i {
+            font-size: 20px !important;
+            display: inline-block !important;
         }
         .preview-container {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -190,7 +220,23 @@
         #format-preview {
             color: white !important;
         }
+        .widget-heading button i {
+            font-size: 18px !important;
+            display: inline-block !important;
+            transition: transform 0.3s ease;
+        }
+        .widget-heading button:hover i {
+            transform: scale(1.2);
+        }
+        .widget-heading button:focus {
+            outline: none;
+            box-shadow: none;
+        }
     </style>
+@endsection
+
+@section('page-styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 @endsection
 
 @section('page-scripts')
@@ -612,6 +658,15 @@ $(document).ready(function() {
     
     // Load settings on page load
     loadSettings();
+    
+    // Handle collapse icon toggle
+    $('#contract-settings-collapse').on('show.bs.collapse', function () {
+        $('#collapse-icon').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+    });
+    
+    $('#contract-settings-collapse').on('hide.bs.collapse', function () {
+        $('#collapse-icon').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+    });
 });
 </script>
 @endsection
