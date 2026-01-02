@@ -164,6 +164,18 @@ class ViewController extends Controller
         return view('organization.financial.all-debts');
     }
 
+    // Invoices View
+    public function showInvoices()
+    {
+        return view('organization.financial.invoices.index');
+    }
+
+    // Create Invoice View
+    public function showCreateInvoice()
+    {
+        return view('organization.financial.invoices.create');
+    }
+
     // Settings View
     public function showSettings()
     {

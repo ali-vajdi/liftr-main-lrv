@@ -211,6 +211,9 @@
                     <li class="{{ request()->routeIs('organization.financial.all-debts') ? 'active' : '' }}">
                         <a style="margin-right: 0; !important;" href="{{ route('organization.financial.all-debts') }}">کل بدهی‌ها</a>
                     </li>
+                    <li class="{{ request()->routeIs('organization.financial.invoices.*') ? 'active' : '' }}">
+                        <a style="margin-right: 0; !important;" href="{{ route('organization.financial.invoices.index') }}">فاکتور ها</a>
+                    </li>
                 </ul>
             </li>
 

@@ -18,6 +18,7 @@ return new class extends Migration
         'building_contracts',
         'cities',
         'elevators',
+        'invoices',
         'messages',
         'moderators',
         'organizations',

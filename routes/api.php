@@ -127,6 +127,7 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::get('organization', [OrganizationAuthController::class, 'getOrganization']);
         Route::post('organization', [OrganizationAuthController::class, 'updateOrganization']);
         Route::post('settings/contract', [OrganizationAuthController::class, 'updateContractSettings']);
+        Route::post('settings/invoice', [OrganizationAuthController::class, 'updateInvoiceSettings']);
         
         // Payment routes (excluded from payment check)
         Route::get('payment/info', [\App\Http\Controllers\Organization\PaymentController::class, 'getPaymentInfo']);
@@ -177,6 +178,10 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::put('buildings/{building}/financial-transactions/{record}', [\App\Http\Controllers\Api\Organization\FinancialDashboardController::class, 'updateTransaction']);
         Route::delete('buildings/{building}/financial-transactions/{record}', [\App\Http\Controllers\Api\Organization\FinancialDashboardController::class, 'deleteTransaction']);
         Route::get('financial/all-buildings-summary', [\App\Http\Controllers\Api\Organization\FinancialDashboardController::class, 'getAllBuildingsFinancialSummary']);
+        
+        // Organization Invoices API
+        Route::get('invoices/buildings', [\App\Http\Controllers\Api\Organization\InvoiceController::class, 'getBuildings']);
+        Route::apiResource('invoices', \App\Http\Controllers\Api\Organization\InvoiceController::class);
         
         // Organization Elevators API
         Route::apiResource('buildings.elevators', OrgElevatorController::class);

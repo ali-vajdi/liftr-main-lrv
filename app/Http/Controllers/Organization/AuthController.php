@@ -542,4 +542,68 @@ class AuthController extends Controller
             ]
         ]);
     }
+
+    /**
+     * Update invoice settings
+     */
+    public function updateInvoiceSettings(Request $request)
+    {
+        $user = $request->user();
+        $organization = $user->organization;
+
+        if (!$organization) {
+            return response()->json(['message' => 'سازمان یافت نشد'], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'invoice_number_format' => 'required|array',
+            'invoice_number_format.parts' => 'required|array|min:1',
+            'invoice_number_format.parts.*' => 'required|in:increment,day,day_name,month,month_number,year,text',
+            'invoice_number_format.separators' => 'nullable|array',
+            'invoice_number_format.separators.*' => 'nullable|in:/,-',
+            'invoice_number_format.custom_text' => 'nullable|string|max:255',
+        ], [
+            'invoice_number_format.required' => 'قالب شماره فاکتور الزامی است',
+            'invoice_number_format.parts.required' => 'بخش‌های قالب الزامی است',
+            'invoice_number_format.parts.min' => 'حداقل یک بخش باید انتخاب شود',
+            'invoice_number_format.parts.*.in' => 'نوع بخش نامعتبر است',
+            'invoice_number_format.separators.*.in' => 'جداکننده باید / یا - باشد',
+            'invoice_number_format.custom_text.max' => 'متن سفارشی نمی‌تواند بیش از 255 کاراکتر باشد',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Validate that if text part exists, custom_text must be provided
+        if (in_array('text', $request->invoice_number_format['parts']) && empty($request->invoice_number_format['custom_text'])) {
+            return response()->json([
+                'errors' => [
+                    'invoice_number_format.custom_text' => ['برای بخش متن، متن سفارشی الزامی است']
+                ]
+            ], 422);
+        }
+
+        // Validate separators count (should be parts.length - 1)
+        $partsCount = count($request->invoice_number_format['parts']);
+        $separatorsCount = count($request->invoice_number_format['separators'] ?? []);
+        if ($separatorsCount !== $partsCount - 1 && $partsCount > 1) {
+            return response()->json([
+                'errors' => [
+                    'invoice_number_format.separators' => ['تعداد جداکننده‌ها باید یک عدد کمتر از تعداد بخش‌ها باشد']
+                ]
+            ], 422);
+        }
+
+        $organization->invoice_number_format = $request->invoice_number_format;
+        $organization->save();
+
+        return response()->json([
+            'message' => 'تنظیمات فاکتور با موفقیت بروزرسانی شد',
+            'data' => [
+                'invoice_number_format' => $organization->invoice_number_format,
+                'invoice_number_increment' => $organization->invoice_number_increment,
+            ]
+        ]);
+    }
 }
