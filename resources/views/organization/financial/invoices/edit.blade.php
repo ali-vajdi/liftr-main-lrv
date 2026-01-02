@@ -23,9 +23,9 @@
                 </div>
                 <div class="widget-content">
                     <form id="invoiceForm">
-                        <div class="row">
+                        <div class="row mb-4 mt-2">
                             <div class="col-md-6">
-                                <div class="form-group">
+                                <div class="form-group mb-0">
                                     <label for="building_id">ساختمان <span class="text-danger">*</span></label>
                                     <select class="form-control" id="building_id" name="building_id" required>
                                         <option value="">انتخاب کنید...</option>
@@ -33,17 +33,17 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group">
+                                <div class="form-group mb-0">
                                     <label for="invoice_date">تاریخ فاکتور</label>
                                     <input data-jdp-only-date="true" type="text" class="form-control" id="invoice_date" name="invoice_date">
                                 </div>
                             </div>
                         </div>
 
-                        <hr class="my-4">
+                        <hr class="my-4 mx-0">
 
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6>آیتم‌های فاکتور</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-3 mx-0">
+                            <h6 class="mb-0">آیتم‌های فاکتور</h6>
                             <button type="button" class="btn btn-success btn-sm" id="addItemBtn">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -53,8 +53,8 @@
                             </button>
                         </div>
 
-                        <div class="table-responsive">
-                            <table class="table table-bordered" id="itemsTable">
+                        <div class="table-responsive mb-4">
+                            <table class="table table-bordered mb-0" id="itemsTable">
                                 <thead>
                                     <tr>
                                         <th style="width: 40%;">شرح <span class="text-danger">*</span></th>
@@ -70,11 +70,11 @@
                             </table>
                         </div>
 
-                        <hr class="my-4">
+                        <hr class="my-4 mx-0">
 
-                        <div class="row">
+                        <div class="row mb-3 mx-0">
                             <div class="col-md-6">
-                                <div class="form-group">
+                                <div class="form-group mb-0">
                                     <label for="discount">تخفیف</label>
                                     @include('organization.components.price-input', [
                                         'id' => 'discount',
@@ -85,16 +85,16 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group">
+                                <div class="form-group mb-0">
                                     <label for="tax_percentage">مالیات (درصد)</label>
                                     <input type="number" class="form-control" id="tax_percentage" name="tax_percentage" min="0" max="100" step="0.01" placeholder="درصد مالیات" value="0">
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row mt-3">
+                        <div class="row mb-4 mx-0">
                             <div class="col-md-6 offset-md-6">
-                                <table class="table">
+                                <table class="table mb-0">
                                     <tr>
                                         <td><strong>جمع کل:</strong></td>
                                         <td id="subtotalDisplay">0 ریال</td>
@@ -115,7 +115,7 @@
                             </div>
                         </div>
 
-                        <div class="form-group mt-4">
+                        <div class="form-group mb-0 mt-4 mx-0">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
@@ -160,6 +160,47 @@
 
 .price-input-wrapper .price-display:focus ~ .input-group-append .input-group-text {
     border-color: #80bdff;
+}
+
+/* Fix horizontal spacing issues - apply consistent margins to all sections */
+#invoiceForm {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+#invoiceForm > * {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+#invoiceForm .row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+#invoiceForm .row > [class*="col-"] {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+#invoiceForm .table-responsive {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+#invoiceForm hr {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+#invoiceForm .d-flex {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+#invoiceForm .form-group {
+    margin-left: 0;
+    margin-right: 0;
 }
 </style>
 <script>
