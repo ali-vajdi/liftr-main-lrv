@@ -392,9 +392,9 @@ function renderContractInfo(contract) {
     
     let contractTitle;
     if (contract.contract_name) {
-        contractTitle = `فرارداد شماره: <span dir="ltr">${contract.contract_name}</span>`;
+        contractTitle = `قرارداد شماره: <span dir="ltr">${contract.contract_name}</span>`;
     } else if (contract.contract_number) {
-        contractTitle = `فرارداد شماره: <span dir="ltr">${contract.contract_number}</span>`;
+        contractTitle = `قرارداد شماره: <span dir="ltr">${contract.contract_number}</span>`;
     } else {
         contractTitle = 'قرارداد';
     }
@@ -422,7 +422,7 @@ function renderContractInfo(contract) {
                     <span class="font-weight-medium">${formatCurrency(contract.annual_amount || 0)}</span>
                 </div>
                 <div class="col-md-6 mb-0">
-                    <small class="text-muted d-block">روش پرداخت</small>
+                    <small class="text-muted d-block">روش دریافت مبلغ قرارداد</small>
                     <span class="font-weight-medium">${paymentMethodText}</span>
                 </div>
             </div>
