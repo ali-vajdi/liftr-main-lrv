@@ -679,8 +679,8 @@ class BuildingController extends Controller
         }
 
         $services = $servicesQuery
-        ->orderBy('service_year', 'desc')
-        ->orderBy('service_month', 'desc')
+        ->orderBy('service_year', 'asc')
+        ->orderBy('service_month', 'asc')
         ->orderBy('created_at', 'desc')
         ->get();
 
