@@ -1209,9 +1209,17 @@ class ServiceController extends Controller
 
         $perPage = $request->has('per_page') ? (int)$request->per_page : 10;
         
-        $services = $query->orderBy('service_year', 'desc')
-            ->orderBy('service_month', 'desc')
-            ->orderBy('created_at', 'desc')
+        // Handle sorting - default to id desc
+        $sortField = $request->has('sort_field') ? $request->sort_field : 'id';
+        $sortDirection = $request->has('sort_direction') ? $request->sort_direction : 'desc';
+        
+        // Validate sort direction
+        if (!in_array(strtolower($sortDirection), ['asc', 'desc'])) {
+            $sortDirection = 'desc';
+        }
+        
+        // Apply sorting
+        $services = $query->orderBy($sortField, $sortDirection)
             ->paginate($perPage);
 
         // Add formatted data with full details
