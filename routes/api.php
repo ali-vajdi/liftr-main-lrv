@@ -183,6 +183,10 @@ Route::prefix('organization')->name('organization.')->group(function () {
         Route::get('invoices/{invoice}/export-pdf', [\App\Http\Controllers\Api\Organization\InvoiceController::class, 'exportPdf']);
         Route::apiResource('invoices', \App\Http\Controllers\Api\Organization\InvoiceController::class);
         
+        // Organization Damage Reports API
+        Route::get('damages/buildings', [\App\Http\Controllers\Api\Organization\DamageController::class, 'getBuildings']);
+        Route::apiResource('damages', \App\Http\Controllers\Api\Organization\DamageController::class);
+        
         // Organization Elevators API
         Route::apiResource('buildings.elevators', OrgElevatorController::class);
         Route::post('buildings/{buildingId}/elevators/bulk', [OrgElevatorController::class, 'bulk']);

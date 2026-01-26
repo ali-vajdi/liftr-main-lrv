@@ -58,6 +58,11 @@ Route::get('/financial/invoices', [OrganizationViewController::class, 'showInvoi
 Route::get('/financial/invoices/create', [OrganizationViewController::class, 'showCreateInvoice'])->name('organization.financial.invoices.create');
 Route::get('/financial/invoices/{invoice}/edit', [OrganizationViewController::class, 'showEditInvoice'])->name('organization.financial.invoices.edit');
 
+// Damage Reports Routes
+Route::get('/damages', [OrganizationViewController::class, 'showDamages'])->name('organization.damages.index');
+Route::get('/damages/create', [OrganizationViewController::class, 'showCreateDamage'])->name('organization.damages.create');
+Route::get('/damages/{damage}/edit', [OrganizationViewController::class, 'showEditDamage'])->name('organization.damages.edit');
+
 // Public Routes for Buildings
 Route::get('/buildings/{building}/services', [PublicBuildingController::class, 'showServices'])->name('public.buildings.services');
 Route::get('/d/{slug}', [PublicBuildingController::class, 'showAssignedService'])->name('public.services.assigned.show');

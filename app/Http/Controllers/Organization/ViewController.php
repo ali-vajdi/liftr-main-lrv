@@ -194,6 +194,24 @@ class ViewController extends Controller
         // Organization data will be fetched via API in the view
         return view('organization.settings.index');
     }
+
+    // Damage Reports View
+    public function showDamages()
+    {
+        return view('organization.damages.index');
+    }
+
+    // Create Damage View
+    public function showCreateDamage()
+    {
+        return view('organization.damages.create');
+    }
+
+    // Edit Damage View
+    public function showEditDamage(\App\Models\Damage $damage)
+    {
+        return view('organization.damages.edit', compact('damage'));
+    }
 }
 
 
