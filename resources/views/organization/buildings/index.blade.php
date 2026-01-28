@@ -1233,14 +1233,14 @@ window.onShow = function(id) {
                         if (error) {
                             console.error('Error generating QR code:', error);
                             // Fallback: use img tag with API
-                            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(publicUrl)}`;
-                            $('#detail-qrcode-container').html(`<img src="${qrApiUrl}" alt="QR Code" class="img-fluid">`);
+                            //const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(publicUrl)}`;
+                            //$('#detail-qrcode-container').html(`<img src="${qrApiUrl}" alt="QR Code" class="img-fluid">`);
                         }
                     });
                 } else {
                     // Fallback: use img tag with API
-                    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(publicUrl)}`;
-                    $('#detail-qrcode-container').html(`<img src="${qrApiUrl}" alt="QR Code" class="img-fluid">`);
+                    //const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(publicUrl)}`;
+                    //$('#detail-qrcode-container').html(`<img src="${qrApiUrl}" alt="QR Code" class="img-fluid">`);
                 }
 
                 // Show/hide map based on location availability
